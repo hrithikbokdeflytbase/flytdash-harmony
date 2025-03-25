@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Eye, FileText, Loader, CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
 import {
@@ -9,6 +10,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface RecentFlightsTableProps {
   isLoading?: boolean;
@@ -114,11 +117,11 @@ const getStatusText = (status: FlightStatus): string => {
 const getStatusIcon = (status: FlightStatus) => {
   switch (status) {
     case 'completed':
-      return <CheckCircle className="w-4 h-4 mr-100" />;
+      return <CheckCircle className="w-4 h-4" />;
     case 'failed':
-      return <XCircle className="w-4 h-4 mr-100" />;
+      return <XCircle className="w-4 h-4" />;
     case 'warning':
-      return <AlertTriangle className="w-4 h-4 mr-100" />;
+      return <AlertTriangle className="w-4 h-4" />;
     default:
       return null;
   }
@@ -155,10 +158,18 @@ const RecentFlightsTable: React.FC<RecentFlightsTableProps> = ({ isLoading = fal
               className="hover:bg-surface-states-hover cursor-pointer border-b border-outline-primary last:border-0"
             >
               <TableCell>
-                <span className={`px-200 py-50 rounded-full text-tiny1-medium inline-flex items-center ${getStatusBadgeClass(flight.status)}`}>
-                  {getStatusIcon(flight.status)}
-                  {getStatusText(flight.status)}
-                </span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className={`p-200 rounded-full flex items-center justify-center w-8 h-8 ${getStatusBadgeClass(flight.status)}`}>
+                        {getStatusIcon(flight.status)}
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{getStatusText(flight.status)}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </TableCell>
               <TableCell className="font-medium text-text-icon-01">
                 {flight.missionName}
