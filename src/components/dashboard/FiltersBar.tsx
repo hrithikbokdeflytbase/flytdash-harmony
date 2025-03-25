@@ -194,20 +194,25 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
                     disabled={isLoading}
                   >
                     <CalendarIcon className="h-4 w-4 mr-2 text-primary-100" />
-                    {date?.from ? (
-                      date.to ? (
-                        <>
-                          {format(date.from, "MMM d, yyyy")} - {format(date.to, "MMM d, yyyy")}
-                        </>
+                    <span className="text-text-icon-01/84">
+                      {date?.from ? (
+                        date.to ? (
+                          <>
+                            {format(date.from, "MMM d, yyyy")} - {format(date.to, "MMM d, yyyy")}
+                          </>
+                        ) : (
+                          format(date.from, "MMM d, yyyy")
+                        )
                       ) : (
-                        format(date.from, "MMM d, yyyy")
-                      )
-                    ) : (
-                      <span>Select date range</span>
-                    )}
+                        <span>Select date range</span>
+                      )}
+                    </span>
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-background-level-2 border border-outline-primary shadow-lg" align="start">
+                <PopoverContent 
+                  className="w-auto p-0 bg-background-level-3 border border-[rgba(255,255,255,0.08)] shadow-lg" 
+                  align="start"
+                >
                   <div className="p-300 border-b border-outline-primary">
                     <div className="flex gap-200 items-center justify-between">
                       <Select value={dateRange} onValueChange={(value) => onDateRangeChange(value as DateRangeType)}>
@@ -216,10 +221,10 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
                         >
                           <SelectValue placeholder="Preset" />
                         </SelectTrigger>
-                        <SelectContent className="bg-background-level-2 border-outline-primary">
-                          <SelectItem value="daily" className="text-text-icon-01/84">Daily</SelectItem>
-                          <SelectItem value="weekly" className="text-text-icon-01/84">Weekly</SelectItem>
-                          <SelectItem value="monthly" className="text-text-icon-01/84">Monthly</SelectItem>
+                        <SelectContent className="bg-background-level-4 border-outline-primary">
+                          <SelectItem value="daily" className="text-text-icon-01/84 focus:bg-primary-200 focus:text-white">Daily</SelectItem>
+                          <SelectItem value="weekly" className="text-text-icon-01/84 focus:bg-primary-200 focus:text-white">Weekly</SelectItem>
+                          <SelectItem value="monthly" className="text-text-icon-01/84 focus:bg-primary-200 focus:text-white">Monthly</SelectItem>
                         </SelectContent>
                       </Select>
                       

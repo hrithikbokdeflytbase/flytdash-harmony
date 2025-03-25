@@ -115,42 +115,69 @@
   .rdp {
     --rdp-cell-size: 36px; /* Size of cell */
     --rdp-accent-color: #496DC8; /* Primary color */
-    --rdp-background-color: rgba(73, 109, 200, 0.2); /* Lighter primary for backgrounds */
+    --rdp-background-color: rgba(73, 109, 200, 0.15); /* Lighter primary for backgrounds */
     --rdp-accent-color-dark: #3A57A0; /* Darker primary */
-    --rdp-background-color-dark: rgba(73, 109, 200, 0.3); /* Darker primary for backgrounds */
-    --rdp-outline: 2px solid rgba(73, 109, 200, 0.5); /* Focus outline */
+    --rdp-background-color-dark: rgba(73, 109, 200, 0.25); /* Darker primary for backgrounds */
+    --rdp-outline: 2px solid #496DC8; /* Focus outline */
+  }
+  
+  /* Calendar styles updated to match FlytBase design */
+  .react-datepicker {
+    background-color: #2E2E30 !important; /* Background Level 3 */
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
   }
   
   .rdp-day_today {
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.84); /* Text-1 color with 84% opacity */
+    font-weight: 600 !important;
+    color: rgba(255, 255, 255, 0.84) !important; /* Text-1 color */
+    border: 1px solid #6D8AD3 !important; /* Primary 100 */
     position: relative;
     z-index: 1;
   }
   
   .rdp-caption_label, 
   .rdp-day {
-    color: rgba(255, 255, 255, 0.84); /* Text-1 color with 84% opacity */
+    color: rgba(255, 255, 255, 0.84) !important; /* Text-1 color */
   }
   
   .rdp-head_cell {
-    color: rgba(255, 255, 255, 0.64); /* Text-2 color with lower opacity */
+    color: rgba(255, 255, 255, 0.54) !important; /* Text-2 color */
   }
   
   .rdp-day_outside {
-    color: rgba(255, 255, 255, 0.4); /* Even dimmer for outside days */
+    color: rgba(255, 255, 255, 0.24) !important; /* Text disabled color */
+  }
+  
+  .rdp-day_selected {
+    background-color: #496DC8 !important; /* Primary 200 */
+    color: white !important;
+  }
+  
+  .rdp-day_in_range:not(.rdp-day_selected) {
+    background-color: rgba(73, 109, 200, 0.15) !important; /* Primary 200 with 15% opacity */
+    color: rgba(255, 255, 255, 0.84) !important; /* Text-1 color */
+  }
+  
+  .rdp-button:hover:not([disabled]):not(.rdp-day_selected) {
+    background-color: rgba(236, 236, 238, 0.1) !important; /* Surface hover */
+  }
+  
+  .rdp-button:focus-visible {
+    outline: 2px solid #496DC8 !important; /* Primary color */
+    outline-offset: 2px;
+    background-color: rgba(73, 109, 200, 0.2) !important;
+  }
+  
+  /* Day names (Su, Mo, etc.) */
+  .react-datepicker__day-name {
+    color: rgba(255, 255, 255, 0.54) !important; /* Text-2 color */
   }
   
   /* All calendar month and day text */
   .react-datepicker__month-text,
   .react-datepicker__day-text,
   .react-datepicker__current-month {
-    color: rgba(255, 255, 255, 0.84) !important; /* Text-1 color with 84% opacity */
-  }
-  
-  /* Day names (Su, Mo, etc.) */
-  .react-datepicker__day-name {
-    color: rgba(255, 255, 255, 0.64) !important; /* Text-2 color with lower opacity */
+    color: rgba(255, 255, 255, 0.84) !important; /* Text-1 color */
   }
 }
 
