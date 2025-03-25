@@ -32,7 +32,7 @@ const generateMockData = (dateRange: DateRangeType, viewType: ViewType) => {
           { name: 'Nov', flights: Math.floor(Math.random() * 70) + 30 },
           { name: 'Dec', flights: Math.floor(Math.random() * 70) + 30 },
         ];
-      case 'this-week':
+      case 'weekly':
         // Weekly data
         return [
           { name: 'Mon', flights: Math.floor(Math.random() * 30) + 10 },
@@ -43,7 +43,7 @@ const generateMockData = (dateRange: DateRangeType, viewType: ViewType) => {
           { name: 'Sat', flights: Math.floor(Math.random() * 30) + 10 },
           { name: 'Sun', flights: Math.floor(Math.random() * 30) + 10 },
         ];
-      case 'this-month':
+      case 'daily':
         // Monthly data - showing weekly aggregates instead of daily
         return [
           { name: 'Week 1', flights: Math.floor(Math.random() * 70) + 30 },
@@ -131,7 +131,7 @@ const generateMockData = (dateRange: DateRangeType, viewType: ViewType) => {
             aborted: Math.floor(Math.random() * 8),
           },
         ];
-      case 'this-week':
+      case 'weekly':
         // Weekly data
         return [
           { 
@@ -177,7 +177,7 @@ const generateMockData = (dateRange: DateRangeType, viewType: ViewType) => {
             aborted: Math.floor(Math.random() * 3),
           },
         ];
-      case 'this-month':
+      case 'daily':
         // Monthly data - showing weekly aggregates
         return [
           {
