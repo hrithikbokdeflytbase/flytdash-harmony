@@ -1,13 +1,10 @@
-
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import DateRangeFilter from '@/components/dashboard/DateRangeFilter';
+import DateRangeFilter, { DateRangeType } from '@/components/dashboard/DateRangeFilter';
 import MetricCard from '@/components/dashboard/MetricCard';
 import FlightTimeline from '@/components/dashboard/FlightTimeline';
 import RecentFlightsTable from '@/components/dashboard/RecentFlightsTable';
 import { Calendar, AlertCircle, Loader } from 'lucide-react';
-
-type DateRangeType = 'today' | 'this-week' | 'this-month';
 
 const Index = () => {
   const [isLoading, setIsLoading] = useState(false);

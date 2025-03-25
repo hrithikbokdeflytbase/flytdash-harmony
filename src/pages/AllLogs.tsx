@@ -1,11 +1,9 @@
 
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import DateRangeFilter from '@/components/dashboard/DateRangeFilter';
+import DateRangeFilter, { DateRangeType } from '@/components/dashboard/DateRangeFilter';
 import RecentFlightsTable from '@/components/dashboard/RecentFlightsTable';
 import { Loader } from 'lucide-react';
-
-type DateRangeType = 'today' | 'this-week' | 'this-month' | 'custom';
 
 const AllLogs = () => {
   const [isLoading, setIsLoading] = useState(false);

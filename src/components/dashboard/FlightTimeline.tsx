@@ -2,8 +2,8 @@
 import React from 'react';
 import { BarChart, XAxis, YAxis, Bar, ResponsiveContainer, Tooltip, CartesianGrid, Legend } from 'recharts';
 import { Loader } from 'lucide-react';
+import { DateRangeType } from './DateRangeFilter';
 
-type DateRangeType = 'today' | 'this-week' | 'this-month' | 'custom';
 type ViewType = 'total' | 'status';
 
 interface FlightTimelineProps {
@@ -17,11 +17,10 @@ const generateMockData = (dateRange: DateRangeType, viewType: ViewType) => {
   if (viewType === 'total') {
     switch (dateRange) {
       case 'today':
-        // Single day data - 5 time periods in a day
-        return Array.from({ length: 5 }, (_, i) => ({
-          name: `${i * 4 + 8}:00`,
-          flights: Math.floor(Math.random() * 10) + 2,
-        }));
+        // Single day data - just show the total for today
+        return [
+          { name: 'Today', flights: Math.floor(Math.random() * 30) + 10 }
+        ];
       case 'this-week':
         // Weekly data
         return [
@@ -34,7 +33,6 @@ const generateMockData = (dateRange: DateRangeType, viewType: ViewType) => {
           { name: 'Sun', flights: Math.floor(Math.random() * 30) + 10 },
         ];
       case 'this-month':
-      case 'custom':
         // Monthly data - showing weekly aggregates instead of daily
         return [
           { name: 'Week 1', flights: Math.floor(Math.random() * 70) + 30 },
@@ -47,13 +45,15 @@ const generateMockData = (dateRange: DateRangeType, viewType: ViewType) => {
     // Status view
     switch (dateRange) {
       case 'today':
-        // Single day data - 5 time periods
-        return Array.from({ length: 5 }, (_, i) => ({
-          name: `${i * 4 + 8}:00`,
-          successful: Math.floor(Math.random() * 8),
-          failed: Math.floor(Math.random() * 2),
-          aborted: Math.floor(Math.random() * 1),
-        }));
+        // Single day data - just show the total for today
+        return [
+          { 
+            name: 'Today', 
+            successful: Math.floor(Math.random() * 25) + 10,
+            failed: Math.floor(Math.random() * 5),
+            aborted: Math.floor(Math.random() * 3),
+          }
+        ];
       case 'this-week':
         // Weekly data
         return [
@@ -101,7 +101,6 @@ const generateMockData = (dateRange: DateRangeType, viewType: ViewType) => {
           },
         ];
       case 'this-month':
-      case 'custom':
         // Monthly data - showing weekly aggregates
         return [
           {
@@ -137,6 +136,7 @@ const generateMockData = (dateRange: DateRangeType, viewType: ViewType) => {
 const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, isLoading }) => {
   const data = React.useMemo(() => generateMockData(dateRange, viewType), [dateRange, viewType]);
   
+  // Custom tooltip for the chart
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (

@@ -2,7 +2,7 @@
 import React from 'react';
 import { Calendar } from 'lucide-react';
 
-type DateRangeType = 'today' | 'this-week' | 'this-month';
+export type DateRangeType = 'today' | 'this-week' | 'this-month';
 
 interface DateRangeFilterProps {
   currentRange: DateRangeType;
