@@ -111,6 +111,23 @@
     outline: 2px solid #496DC8;
     outline-offset: 2px;
   }
+  
+  /* Calendar custom styling */
+  .rdp {
+    --rdp-cell-size: 36px; /* Size of cell */
+    --rdp-accent-color: #496DC8; /* Primary color */
+    --rdp-background-color: rgba(73, 109, 200, 0.2); /* Lighter primary for backgrounds */
+    --rdp-accent-color-dark: #3A57A0; /* Darker primary */
+    --rdp-background-color-dark: rgba(73, 109, 200, 0.3); /* Darker primary for backgrounds */
+    --rdp-outline: 2px solid rgba(73, 109, 200, 0.5); /* Focus outline */
+  }
+  
+  .rdp-day_today {
+    font-weight: 600;
+    color: white;
+    position: relative;
+    z-index: 1;
+  }
 }
 
 @layer components {

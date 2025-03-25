@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Select,
@@ -208,7 +207,7 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
                     )}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-background-level-2" align="start">
+                <PopoverContent className="w-auto p-0 bg-background-level-2 border border-outline-primary shadow-lg" align="start">
                   <div className="p-300 border-b border-outline-primary">
                     <div className="flex gap-200 items-center justify-between">
                       <Select value={dateRange} onValueChange={(value) => onDateRangeChange(value as DateRangeType)}>
@@ -217,7 +216,7 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
                         >
                           <SelectValue placeholder="Preset" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="bg-background-level-2 border-outline-primary">
                           <SelectItem value="daily">Daily</SelectItem>
                           <SelectItem value="weekly">Weekly</SelectItem>
                           <SelectItem value="monthly">Monthly</SelectItem>
