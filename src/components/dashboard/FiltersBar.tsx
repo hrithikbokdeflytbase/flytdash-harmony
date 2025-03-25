@@ -223,7 +223,7 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
                         </SelectContent>
                       </Select>
                       
-                      <span className="text-sm text-text-icon-02">{formatDateDisplay()}</span>
+                      <span className="text-sm text-text-icon-01/84">{formatDateDisplay()}</span>
                     </div>
                   </div>
                   <CalendarComponent

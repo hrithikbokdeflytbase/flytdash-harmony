@@ -1,4 +1,3 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap');
 
@@ -124,9 +123,23 @@
   
   .rdp-day_today {
     font-weight: 600;
-    color: white;
+    color: rgba(255, 255, 255, 0.84); /* Text-1 color with 84% opacity */
     position: relative;
     z-index: 1;
+  }
+  
+  .rdp-caption_label, 
+  .rdp-head_cell,
+  .rdp-day {
+    color: rgba(255, 255, 255, 0.84); /* Text-1 color with 84% opacity */
+  }
+  
+  .rdp-head_cell {
+    color: rgba(255, 255, 255, 0.64); /* Text-2 color with lower opacity */
+  }
+  
+  .rdp-day_outside {
+    color: rgba(255, 255, 255, 0.4); /* Even dimmer for outside days */
   }
 }
 
