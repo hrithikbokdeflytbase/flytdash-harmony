@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { 
-  Calendar, 
+  Calendar as CalendarIcon, 
   ChevronDown, 
   Filter, 
   RefreshCw, 
@@ -32,7 +32,7 @@ import AdvancedFilters from './AdvancedFilters';
 import FilterChip from './FilterChip';
 import { cn } from '@/lib/utils';
 import { DateRange } from 'react-day-picker';
-import { format } from 'date-fns';
+import { format, addDays } from 'date-fns';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 
 export interface FiltersBarProps {
@@ -51,9 +51,14 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
   const [showAdvancedFilters, setShowAdvancedFilters] = useState<boolean>(false);
   const [triggerType, setTriggerType] = useState<string>('all');
   const [selectedDrones, setSelectedDrones] = useState<string[]>([]);
+  
+  // Initialize with today and a week from today
+  const today = new Date();
+  const oneWeekLater = addDays(today, 7);
+  
   const [date, setDate] = useState<DateRange | undefined>({
-    from: new Date(),
-    to: new Date(new Date().setDate(new Date().getDate() + 7))
+    from: today,
+    to: oneWeekLater
   });
   
   const formatDateDisplay = () => {
@@ -69,6 +74,28 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
     }
   };
 
+  const handleDateRangeSelect = (selectedRange: DateRange | undefined) => {
+    // Only update if we have a valid selection
+    if (selectedRange) {
+      setDate(selectedRange);
+      
+      // Auto-detect date range type based on selection
+      if (selectedRange.from && selectedRange.to) {
+        const diffInDays = Math.floor(
+          (selectedRange.to.getTime() - selectedRange.from.getTime()) / (1000 * 60 * 60 * 24)
+        );
+        
+        if (diffInDays <= 1) {
+          onDateRangeChange('daily');
+        } else if (diffInDays <= 7) {
+          onDateRangeChange('weekly');
+        } else {
+          onDateRangeChange('monthly');
+        }
+      }
+    }
+  };
+
   const resetFilters = () => {
     onDateRangeChange('monthly');
     setOperationType('all');
@@ -76,8 +103,8 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
     setTriggerType('all');
     setSelectedDrones([]);
     setDate({
-      from: new Date(),
-      to: new Date(new Date().setDate(new Date().getDate() + 7))
+      from: today,
+      to: oneWeekLater
     });
   };
 
@@ -167,7 +194,7 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
                     )}
                     disabled={isLoading}
                   >
-                    <Calendar className="h-4 w-4 mr-2 text-primary-100" />
+                    <CalendarIcon className="h-4 w-4 mr-2 text-primary-100" />
                     {date?.from ? (
                       date.to ? (
                         <>
@@ -204,9 +231,8 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
                     mode="range"
                     defaultMonth={date?.from}
                     selected={date}
-                    onSelect={setDate}
+                    onSelect={handleDateRangeSelect}
                     numberOfMonths={2}
-                    className="p-3 pointer-events-auto"
                   />
                 </PopoverContent>
               </Popover>
