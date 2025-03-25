@@ -7,7 +7,7 @@ import FlightTimeline from '@/components/dashboard/FlightTimeline';
 import RecentFlightsTable from '@/components/dashboard/RecentFlightsTable';
 import { Calendar, AlertCircle, Loader } from 'lucide-react';
 
-type DateRangeType = 'today' | 'this-week' | 'this-month' | 'custom';
+type DateRangeType = 'today' | 'this-week' | 'this-month';
 
 const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -45,7 +45,7 @@ const Index = () => {
         />
       </div>
       
-      {/* Dashboard Overview Section - Updated to stretch cards */}
+      {/* Dashboard Overview Section */}
       <div className="mb-600">
         <h2 className="fb-title1-medium text-text-icon-01 mb-400">Dashboard Overview</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-400">

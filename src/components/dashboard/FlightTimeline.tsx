@@ -12,16 +12,18 @@ interface FlightTimelineProps {
   isLoading: boolean;
 }
 
-// Mock data for the timeline
+// Mock data for the timeline - simplified to use daily data for all ranges
 const generateMockData = (dateRange: DateRangeType, viewType: ViewType) => {
   if (viewType === 'total') {
     switch (dateRange) {
       case 'today':
-        return Array.from({ length: 24 }, (_, i) => ({
-          name: `${i}:00`,
-          flights: Math.floor(Math.random() * 10),
+        // Single day data - 5 time periods in a day
+        return Array.from({ length: 5 }, (_, i) => ({
+          name: `${i * 4 + 8}:00`,
+          flights: Math.floor(Math.random() * 10) + 2,
         }));
       case 'this-week':
+        // Weekly data
         return [
           { name: 'Mon', flights: Math.floor(Math.random() * 30) + 10 },
           { name: 'Tue', flights: Math.floor(Math.random() * 30) + 10 },
@@ -33,21 +35,27 @@ const generateMockData = (dateRange: DateRangeType, viewType: ViewType) => {
         ];
       case 'this-month':
       case 'custom':
-        return Array.from({ length: 30 }, (_, i) => ({
-          name: `${i + 1}`,
-          flights: Math.floor(Math.random() * 20) + 5,
-        }));
+        // Monthly data - showing weekly aggregates instead of daily
+        return [
+          { name: 'Week 1', flights: Math.floor(Math.random() * 70) + 30 },
+          { name: 'Week 2', flights: Math.floor(Math.random() * 70) + 30 },
+          { name: 'Week 3', flights: Math.floor(Math.random() * 70) + 30 },
+          { name: 'Week 4', flights: Math.floor(Math.random() * 70) + 30 },
+        ];
     }
   } else {
+    // Status view
     switch (dateRange) {
       case 'today':
-        return Array.from({ length: 24 }, (_, i) => ({
-          name: `${i}:00`,
+        // Single day data - 5 time periods
+        return Array.from({ length: 5 }, (_, i) => ({
+          name: `${i * 4 + 8}:00`,
           successful: Math.floor(Math.random() * 8),
           failed: Math.floor(Math.random() * 2),
           aborted: Math.floor(Math.random() * 1),
         }));
       case 'this-week':
+        // Weekly data
         return [
           { 
             name: 'Mon', 
@@ -94,12 +102,33 @@ const generateMockData = (dateRange: DateRangeType, viewType: ViewType) => {
         ];
       case 'this-month':
       case 'custom':
-        return Array.from({ length: 30 }, (_, i) => ({
-          name: `${i + 1}`,
-          successful: Math.floor(Math.random() * 15) + 5,
-          failed: Math.floor(Math.random() * 4),
-          aborted: Math.floor(Math.random() * 2),
-        }));
+        // Monthly data - showing weekly aggregates
+        return [
+          {
+            name: 'Week 1',
+            successful: Math.floor(Math.random() * 60) + 20,
+            failed: Math.floor(Math.random() * 15),
+            aborted: Math.floor(Math.random() * 8),
+          },
+          {
+            name: 'Week 2',
+            successful: Math.floor(Math.random() * 60) + 20,
+            failed: Math.floor(Math.random() * 15),
+            aborted: Math.floor(Math.random() * 8),
+          },
+          {
+            name: 'Week 3',
+            successful: Math.floor(Math.random() * 60) + 20,
+            failed: Math.floor(Math.random() * 15),
+            aborted: Math.floor(Math.random() * 8),
+          },
+          {
+            name: 'Week 4',
+            successful: Math.floor(Math.random() * 60) + 20,
+            failed: Math.floor(Math.random() * 15),
+            aborted: Math.floor(Math.random() * 8),
+          }
+        ];
     }
   }
   return [];
@@ -111,7 +140,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="flybase-card p-200 border border-outline-primary">
+        <div className="flybase-card p-200 border border-outline-primary bg-background-level-2">
           <p className="fb-body1-medium text-text-icon-01">{`${label}`}</p>
           {payload.map((entry: any, index: number) => (
             <p 
@@ -126,6 +155,21 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
       );
     }
     return null;
+  };
+
+  // Custom cursor for the chart to create a better hover effect
+  const CustomCursor = ({ x, y, width, height }: any) => {
+    return (
+      <rect
+        x={x}
+        y={y}
+        width={width}
+        height={height}
+        fill="rgba(73, 109, 200, 0.15)"
+        fillOpacity={0.3}
+        style={{ pointerEvents: 'none' }}
+      />
+    );
   };
 
   return (
@@ -147,15 +191,48 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
               tick={{ fill: 'rgba(255,255,255,0.54)' }} 
               axisLine={{ stroke: 'rgba(255,255,255,0.12)' }}
             />
-            <Tooltip content={<CustomTooltip />} />
+            <Tooltip 
+              content={<CustomTooltip />} 
+              cursor={<CustomCursor />}
+              wrapperStyle={{ outline: 'none' }}
+            />
             {viewType === 'total' ? (
-              <Bar dataKey="flights" fill="#3399FF" name="Flights" radius={[4, 4, 0, 0]} />
+              <Bar 
+                dataKey="flights" 
+                fill="#3399FF" 
+                name="Flights" 
+                radius={[4, 4, 0, 0]} 
+                animationDuration={500}
+                activeBar={{ fill: '#33BBFF', stroke: '#77DDFF', strokeWidth: 2 }}
+              />
             ) : (
               <>
                 <Legend />
-                <Bar dataKey="successful" stackId="a" fill="#1EAE6D" name="Successful" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="failed" stackId="a" fill="#F8473A" name="Failed" />
-                <Bar dataKey="aborted" stackId="a" fill="#FDB022" name="Aborted" />
+                <Bar 
+                  dataKey="successful" 
+                  stackId="a" 
+                  fill="#1EAE6D" 
+                  name="Successful" 
+                  radius={[4, 4, 0, 0]} 
+                  animationDuration={500}
+                  activeBar={{ fill: '#25D684', stroke: '#77DDFF', strokeWidth: 1 }}
+                />
+                <Bar 
+                  dataKey="failed" 
+                  stackId="a" 
+                  fill="#F8473A" 
+                  name="Failed" 
+                  animationDuration={500}
+                  activeBar={{ fill: '#FF5F52', stroke: '#77DDFF', strokeWidth: 1 }}
+                />
+                <Bar 
+                  dataKey="aborted" 
+                  stackId="a" 
+                  fill="#FDB022" 
+                  name="Aborted" 
+                  animationDuration={500}
+                  activeBar={{ fill: '#FFCC44', stroke: '#77DDFF', strokeWidth: 1 }}
+                />
               </>
             )}
           </BarChart>
