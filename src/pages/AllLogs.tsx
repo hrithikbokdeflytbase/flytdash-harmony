@@ -1,13 +1,13 @@
 
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import DateRangeFilter, { DateRangeType } from '@/components/dashboard/DateRangeFilter';
+import { DateRangeType } from '@/components/dashboard/DateRangeFilter';
 import RecentFlightsTable from '@/components/dashboard/RecentFlightsTable';
-import { Loader } from 'lucide-react';
+import FiltersBar from '@/components/dashboard/FiltersBar';
 
 const AllLogs = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [dateRange, setDateRange] = useState<DateRangeType>('this-month');
+  const [dateRange, setDateRange] = useState<DateRangeType>('monthly');
   
   // Simulate loading state for demonstration
   const handleDateRangeChange = (range: DateRangeType) => {
@@ -32,10 +32,10 @@ const AllLogs = () => {
       </div>
       
       {/* Filters Section */}
-      <div className="flybase-card p-400 mb-600">
-        <DateRangeFilter 
-          currentRange={dateRange} 
-          onRangeChange={handleDateRangeChange} 
+      <div className="mb-600">
+        <FiltersBar
+          dateRange={dateRange}
+          onDateRangeChange={handleDateRangeChange}
           isLoading={isLoading}
         />
       </div>

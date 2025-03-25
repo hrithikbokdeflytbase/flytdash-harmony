@@ -5,11 +5,12 @@ import DateRangeFilter, { DateRangeType } from '@/components/dashboard/DateRange
 import MetricCard from '@/components/dashboard/MetricCard';
 import FlightTimeline from '@/components/dashboard/FlightTimeline';
 import RecentFlightsTable from '@/components/dashboard/RecentFlightsTable';
-import { Calendar, AlertCircle, Loader } from 'lucide-react';
+import FiltersBar from '@/components/dashboard/FiltersBar';
+import { AlertCircle, Calendar, Loader } from 'lucide-react';
 
 const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [dateRange, setDateRange] = useState<DateRangeType>('this-month');
+  const [dateRange, setDateRange] = useState<DateRangeType>('monthly');
   const [timelineView, setTimelineView] = useState<'total' | 'status'>('total');
   
   // Simulate loading state for demonstration
@@ -34,11 +35,11 @@ const Index = () => {
         </div>
       </div>
       
-      {/* Filters Section */}
-      <div className="flybase-card p-400 mb-600">
-        <DateRangeFilter 
-          currentRange={dateRange} 
-          onRangeChange={handleDateRangeChange} 
+      {/* New Filters Section */}
+      <div className="mb-600">
+        <FiltersBar 
+          dateRange={dateRange}
+          onDateRangeChange={handleDateRangeChange}
           isLoading={isLoading}
         />
       </div>

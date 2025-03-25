@@ -2,7 +2,7 @@
 import React from 'react';
 import { Calendar } from 'lucide-react';
 
-export type DateRangeType = 'this-week' | 'this-month' | 'monthly';
+export type DateRangeType = 'daily' | 'weekly' | 'monthly';
 
 interface DateRangeFilterProps {
   currentRange: DateRangeType;
@@ -17,12 +17,12 @@ const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
 }) => {
   const formatDateDisplay = () => {
     switch (currentRange) {
-      case 'this-week':
-        return 'This Week';
-      case 'this-month':
-        return 'This Month';
+      case 'daily':
+        return 'Daily';
+      case 'weekly':
+        return 'Weekly';
       case 'monthly':
-        return 'Monthly View';
+        return 'Monthly';
       default:
         return 'Select Date Range';
     }
@@ -49,26 +49,26 @@ const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
             Monthly
           </button>
           <button
-            onClick={() => onRangeChange('this-week')}
+            onClick={() => onRangeChange('weekly')}
             disabled={isLoading}
             className={`px-300 py-200 rounded-full text-sm transition-colors ${
-              currentRange === 'this-week'
+              currentRange === 'weekly'
                 ? 'bg-primary-200 text-text-icon-01'
                 : 'text-text-icon-02 hover:bg-surface-states-hover hover:text-text-icon-01'
             }`}
           >
-            This Week
+            Weekly
           </button>
           <button
-            onClick={() => onRangeChange('this-month')}
+            onClick={() => onRangeChange('daily')}
             disabled={isLoading}
             className={`px-300 py-200 rounded-full text-sm transition-colors ${
-              currentRange === 'this-month'
+              currentRange === 'daily'
                 ? 'bg-primary-200 text-text-icon-01'
                 : 'text-text-icon-02 hover:bg-surface-states-hover hover:text-text-icon-01'
             }`}
           >
-            This Month
+            Daily
           </button>
         </div>
         
