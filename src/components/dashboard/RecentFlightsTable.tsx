@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { Eye, FileText, Loader } from 'lucide-react';
+import { Eye, FileText, Loader, CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -112,6 +111,19 @@ const getStatusText = (status: FlightStatus): string => {
   }
 };
 
+const getStatusIcon = (status: FlightStatus) => {
+  switch (status) {
+    case 'completed':
+      return <CheckCircle className="w-4 h-4 mr-100" />;
+    case 'failed':
+      return <XCircle className="w-4 h-4 mr-100" />;
+    case 'warning':
+      return <AlertTriangle className="w-4 h-4 mr-100" />;
+    default:
+      return null;
+  }
+};
+
 const RecentFlightsTable: React.FC<RecentFlightsTableProps> = ({ isLoading = false }) => {
   if (isLoading) {
     return (
@@ -143,7 +155,8 @@ const RecentFlightsTable: React.FC<RecentFlightsTableProps> = ({ isLoading = fal
               className="hover:bg-surface-states-hover cursor-pointer border-b border-outline-primary last:border-0"
             >
               <TableCell>
-                <span className={`px-200 py-50 rounded-full text-tiny1-medium inline-block ${getStatusBadgeClass(flight.status)}`}>
+                <span className={`px-200 py-50 rounded-full text-tiny1-medium inline-flex items-center ${getStatusBadgeClass(flight.status)}`}>
+                  {getStatusIcon(flight.status)}
                   {getStatusText(flight.status)}
                 </span>
               </TableCell>
