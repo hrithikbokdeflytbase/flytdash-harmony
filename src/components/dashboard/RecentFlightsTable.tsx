@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Eye, FileText, Tag, Loader } from 'lucide-react';
+import { Eye, FileText, Loader } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -9,82 +9,102 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { cn } from '@/lib/utils';
 
 interface RecentFlightsTableProps {
   isLoading?: boolean;
 }
 
-type FlightStatus = 'successful' | 'failed' | 'aborted';
+type FlightStatus = 'completed' | 'warning' | 'failed';
 
 interface Flight {
   id: string;
-  drone: string;
-  location: string;
-  startTime: string;
-  duration: string;
+  missionName: string;
+  operationType: string;
+  pilotName: string;
+  droneName: string;
+  mediaCount: number;
+  dateTime: string;
   status: FlightStatus;
-  operator: string;
 }
 
 // Mock data for recent flights
 const mockFlights: Flight[] = [
   {
     id: 'FLT-1234',
-    drone: 'DJI Mavic 3',
-    location: 'Site Alpha',
-    startTime: '10:30 AM, Today',
-    duration: '12m 45s',
-    status: 'successful',
-    operator: 'John Doe',
+    missionName: 'Site Inspection Alpha',
+    operationType: 'Inspection',
+    pilotName: 'John Doe',
+    droneName: 'DJI Mavic 3',
+    mediaCount: 24,
+    dateTime: '10:30 AM, Today',
+    status: 'completed',
   },
   {
     id: 'FLT-1235',
-    drone: 'DJI Phantom 4',
-    location: 'Site Bravo',
-    startTime: '11:45 AM, Today',
-    duration: '8m 20s',
+    missionName: 'Construction Survey',
+    operationType: 'Survey',
+    pilotName: 'Jane Smith',
+    droneName: 'DJI Phantom 4',
+    mediaCount: 12,
+    dateTime: '11:45 AM, Today',
     status: 'failed',
-    operator: 'Jane Smith',
   },
   {
     id: 'FLT-1236',
-    drone: 'Autel EVO II',
-    location: 'Site Charlie',
-    startTime: '2:15 PM, Today',
-    duration: '15m 10s',
-    status: 'successful',
-    operator: 'Mike Johnson',
+    missionName: 'Perimeter Security',
+    operationType: 'Security',
+    pilotName: 'Mike Johnson',
+    droneName: 'Autel EVO II',
+    mediaCount: 35,
+    dateTime: '2:15 PM, Today',
+    status: 'completed',
   },
   {
     id: 'FLT-1237',
-    drone: 'Skydio 2',
-    location: 'Site Delta',
-    startTime: '3:30 PM, Today',
-    duration: '20m 30s',
-    status: 'aborted',
-    operator: 'Sarah Williams',
+    missionName: 'Roof Inspection',
+    operationType: 'Inspection',
+    pilotName: 'Sarah Williams',
+    droneName: 'Skydio 2',
+    mediaCount: 18,
+    dateTime: '3:30 PM, Today',
+    status: 'warning',
   },
   {
     id: 'FLT-1238',
-    drone: 'DJI Mavic Air',
-    location: 'Site Echo',
-    startTime: '9:00 AM, Yesterday',
-    duration: '10m 15s',
-    status: 'successful',
-    operator: 'Alex Chen',
+    missionName: 'Agricultural Mapping',
+    operationType: 'Mapping',
+    pilotName: 'Alex Chen',
+    droneName: 'DJI Mavic Air',
+    mediaCount: 47,
+    dateTime: '9:00 AM, Yesterday',
+    status: 'completed',
   },
 ];
 
 const getStatusBadgeClass = (status: FlightStatus) => {
   switch (status) {
-    case 'successful':
+    case 'completed':
       return 'bg-container-success text-success-200';
     case 'failed':
       return 'bg-container-error text-error-200';
-    case 'aborted':
+    case 'warning':
       return 'bg-container-warning text-warning-200';
     default:
       return 'bg-container-info text-info-200';
+  }
+};
+
+const getStatusText = (status: FlightStatus) => {
+  switch (status) {
+    case 'completed':
+      return 'Completed';
+    case 'failed':
+      return 'Failed';
+    case 'warning':
+      return 'Warning';
+    default:
+      return status.charAt(0).toUpperCase() + status.slice(1);
   }
 };
 
@@ -99,16 +119,16 @@ const RecentFlightsTable: React.FC<RecentFlightsTableProps> = ({ isLoading = fal
 
   return (
     <div className="overflow-x-auto -mx-400">
-      <Table>
+      <Table className="w-full border-collapse">
         <TableHeader>
-          <TableRow>
-            <TableHead className="text-text-icon-02 fb-body4-medium">Flight ID</TableHead>
-            <TableHead className="text-text-icon-02 fb-body4-medium">Drone</TableHead>
-            <TableHead className="text-text-icon-02 fb-body4-medium">Location</TableHead>
-            <TableHead className="text-text-icon-02 fb-body4-medium">Start Time</TableHead>
-            <TableHead className="text-text-icon-02 fb-body4-medium">Duration</TableHead>
+          <TableRow className="border-b border-outline-primary">
             <TableHead className="text-text-icon-02 fb-body4-medium">Status</TableHead>
-            <TableHead className="text-text-icon-02 fb-body4-medium">Operator</TableHead>
+            <TableHead className="text-text-icon-02 fb-body4-medium">Mission Name</TableHead>
+            <TableHead className="text-text-icon-02 fb-body4-medium">Operation Type</TableHead>
+            <TableHead className="text-text-icon-02 fb-body4-medium">Pilot</TableHead>
+            <TableHead className="text-text-icon-02 fb-body4-medium">Drone</TableHead>
+            <TableHead className="text-text-icon-02 fb-body4-medium">Media</TableHead>
+            <TableHead className="text-text-icon-02 fb-body4-medium">Date & Time</TableHead>
             <TableHead className="text-text-icon-02 fb-body4-medium text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -116,19 +136,31 @@ const RecentFlightsTable: React.FC<RecentFlightsTableProps> = ({ isLoading = fal
           {mockFlights.map((flight) => (
             <TableRow 
               key={flight.id}
-              className="hover:bg-surface-states-hover cursor-pointer"
+              className="hover:bg-surface-states-hover cursor-pointer border-b border-outline-primary last:border-0"
             >
-              <TableCell className="font-medium text-text-icon-01">{flight.id}</TableCell>
-              <TableCell className="text-text-icon-01">{flight.drone}</TableCell>
-              <TableCell className="text-text-icon-01">{flight.location}</TableCell>
-              <TableCell className="text-text-icon-02">{flight.startTime}</TableCell>
-              <TableCell className="text-text-icon-01">{flight.duration}</TableCell>
               <TableCell>
-                <span className={`px-200 py-50 rounded-full text-tiny1-medium ${getStatusBadgeClass(flight.status)}`}>
-                  {flight.status.charAt(0).toUpperCase() + flight.status.slice(1)}
+                <span className={`px-200 py-50 rounded-full text-tiny1-medium inline-block ${getStatusBadgeClass(flight.status)}`}>
+                  {getStatusText(flight.status)}
                 </span>
               </TableCell>
-              <TableCell className="text-text-icon-02">{flight.operator}</TableCell>
+              <TableCell className="font-medium text-text-icon-01">
+                {flight.missionName}
+              </TableCell>
+              <TableCell className="text-text-icon-02">
+                {flight.operationType}
+              </TableCell>
+              <TableCell className="text-text-icon-02">
+                {flight.pilotName}
+              </TableCell>
+              <TableCell className="text-text-icon-01">
+                {flight.droneName}
+              </TableCell>
+              <TableCell className="text-text-icon-01">
+                {flight.mediaCount}
+              </TableCell>
+              <TableCell className="text-text-icon-02">
+                {flight.dateTime}
+              </TableCell>
               <TableCell className="text-right">
                 <div className="flex justify-end space-x-200">
                   <button className="p-100 rounded-full hover:bg-surface-states-hover transition-colors" title="View Details">
@@ -136,9 +168,6 @@ const RecentFlightsTable: React.FC<RecentFlightsTableProps> = ({ isLoading = fal
                   </button>
                   <button className="p-100 rounded-full hover:bg-surface-states-hover transition-colors" title="View Report">
                     <FileText className="w-4 h-4 text-text-icon-02 hover:text-text-icon-01" />
-                  </button>
-                  <button className="p-100 rounded-full hover:bg-surface-states-hover transition-colors" title="Add Tags">
-                    <Tag className="w-4 h-4 text-text-icon-02 hover:text-text-icon-01" />
                   </button>
                 </div>
               </TableCell>

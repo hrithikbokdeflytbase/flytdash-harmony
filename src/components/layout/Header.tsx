@@ -1,15 +1,14 @@
 
 import React from 'react';
-import { User, Bell, Menu } from 'lucide-react';
+import { User, Bell } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface HeaderProps {
   title: string;
   className?: string;
-  onMenuToggle?: () => void;
 }
 
-const Header = ({ title, className, onMenuToggle }: HeaderProps) => {
+const Header = ({ title, className }: HeaderProps) => {
   return (
     <header 
       className={cn(
@@ -19,14 +18,6 @@ const Header = ({ title, className, onMenuToggle }: HeaderProps) => {
       )}
     >
       <div className="flex items-center space-x-400">
-        <button 
-          onClick={onMenuToggle}
-          className="p-200 rounded-full hover:bg-surface-states-hover lg:hidden transition-colors"
-          aria-label="Toggle menu"
-        >
-          <Menu className="w-5 h-5 text-text-icon-01" />
-        </button>
-        
         <div className="flex items-center space-x-300">
           <div className="relative h-8 w-8">
             <div className="absolute inset-0 bg-primary-200 rounded-full flex items-center justify-center">

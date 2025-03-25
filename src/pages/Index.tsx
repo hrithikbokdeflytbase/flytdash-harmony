@@ -45,10 +45,10 @@ const Index = () => {
         />
       </div>
       
-      {/* Dashboard Overview Section */}
+      {/* Dashboard Overview Section - Updated to stretch cards */}
       <div className="mb-600">
         <h2 className="fb-title1-medium text-text-icon-01 mb-400">Dashboard Overview</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-400">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-400">
           <MetricCard
             title="Total Flights"
             value={isLoading ? <Loader className="w-6 h-6 animate-spin text-primary-100" /> : "287"}
@@ -56,6 +56,7 @@ const Index = () => {
             trend={{ value: 12, isPositive: true }}
             iconColor="text-primary-100"
             iconBgColor="bg-container-info"
+            className="w-full"
           />
           <MetricCard
             title="Failed Flights"
@@ -64,6 +65,7 @@ const Index = () => {
             trend={{ value: 5, isPositive: false }}
             iconColor="text-error-200"
             iconBgColor="bg-container-error"
+            className="w-full"
           />
         </div>
       </div>
