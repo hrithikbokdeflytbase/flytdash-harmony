@@ -104,6 +104,7 @@ const getStatusText = (status: FlightStatus): string => {
     case 'warning':
       return 'Warning';
     default:
+      // Use type assertion to tell TypeScript that status is a string
       return status.charAt(0).toUpperCase() + status.slice(1);
   }
 };
