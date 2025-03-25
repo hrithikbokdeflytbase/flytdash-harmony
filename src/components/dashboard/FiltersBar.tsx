@@ -212,14 +212,14 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
                     <div className="flex gap-200 items-center justify-between">
                       <Select value={dateRange} onValueChange={(value) => onDateRangeChange(value as DateRangeType)}>
                         <SelectTrigger 
-                          className="h-8 bg-background-level-1 border-outline-primary"
+                          className="h-8 bg-background-level-1 border-outline-primary text-text-icon-01/84"
                         >
                           <SelectValue placeholder="Preset" />
                         </SelectTrigger>
                         <SelectContent className="bg-background-level-2 border-outline-primary">
-                          <SelectItem value="daily">Daily</SelectItem>
-                          <SelectItem value="weekly">Weekly</SelectItem>
-                          <SelectItem value="monthly">Monthly</SelectItem>
+                          <SelectItem value="daily" className="text-text-icon-01/84">Daily</SelectItem>
+                          <SelectItem value="weekly" className="text-text-icon-01/84">Weekly</SelectItem>
+                          <SelectItem value="monthly" className="text-text-icon-01/84">Monthly</SelectItem>
                         </SelectContent>
                       </Select>
                       

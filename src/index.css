@@ -129,7 +129,6 @@
   }
   
   .rdp-caption_label, 
-  .rdp-head_cell,
   .rdp-day {
     color: rgba(255, 255, 255, 0.84); /* Text-1 color with 84% opacity */
   }
@@ -140,6 +139,18 @@
   
   .rdp-day_outside {
     color: rgba(255, 255, 255, 0.4); /* Even dimmer for outside days */
+  }
+  
+  /* All calendar month and day text */
+  .react-datepicker__month-text,
+  .react-datepicker__day-text,
+  .react-datepicker__current-month {
+    color: rgba(255, 255, 255, 0.84) !important; /* Text-1 color with 84% opacity */
+  }
+  
+  /* Day names (Su, Mo, etc.) */
+  .react-datepicker__day-name {
+    color: rgba(255, 255, 255, 0.64) !important; /* Text-2 color with lower opacity */
   }
 }
 
