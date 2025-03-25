@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import DateRangeFilter, { DateRangeType } from '@/components/dashboard/DateRangeFilter';
@@ -8,7 +9,7 @@ import { Calendar, AlertCircle, Loader } from 'lucide-react';
 
 const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [dateRange, setDateRange] = useState<DateRangeType>('today');
+  const [dateRange, setDateRange] = useState<DateRangeType>('this-month');
   const [timelineView, setTimelineView] = useState<'total' | 'status'>('total');
   
   // Simulate loading state for demonstration

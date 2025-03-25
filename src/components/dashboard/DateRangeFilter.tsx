@@ -2,7 +2,7 @@
 import React from 'react';
 import { Calendar } from 'lucide-react';
 
-export type DateRangeType = 'today' | 'this-week' | 'this-month';
+export type DateRangeType = 'this-week' | 'this-month' | 'monthly';
 
 interface DateRangeFilterProps {
   currentRange: DateRangeType;
@@ -17,12 +17,12 @@ const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
 }) => {
   const formatDateDisplay = () => {
     switch (currentRange) {
-      case 'today':
-        return 'Today';
       case 'this-week':
         return 'This Week';
       case 'this-month':
         return 'This Month';
+      case 'monthly':
+        return 'Monthly View';
       default:
         return 'Select Date Range';
     }
@@ -38,15 +38,15 @@ const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
       <div className="flex items-center space-x-300">
         <div className="flex space-x-200 bg-background-level-3 rounded-full p-100">
           <button
-            onClick={() => onRangeChange('today')}
+            onClick={() => onRangeChange('monthly')}
             disabled={isLoading}
             className={`px-300 py-200 rounded-full text-sm transition-colors ${
-              currentRange === 'today'
+              currentRange === 'monthly'
                 ? 'bg-primary-200 text-text-icon-01'
                 : 'text-text-icon-02 hover:bg-surface-states-hover hover:text-text-icon-01'
             }`}
           >
-            Today
+            Monthly
           </button>
           <button
             onClick={() => onRangeChange('this-week')}

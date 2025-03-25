@@ -16,10 +16,21 @@ interface FlightTimelineProps {
 const generateMockData = (dateRange: DateRangeType, viewType: ViewType) => {
   if (viewType === 'total') {
     switch (dateRange) {
-      case 'today':
-        // Single day data - just show the total for today
+      case 'monthly':
+        // Monthly data showing each month
         return [
-          { name: 'Today', flights: Math.floor(Math.random() * 30) + 10 }
+          { name: 'Jan', flights: Math.floor(Math.random() * 70) + 30 },
+          { name: 'Feb', flights: Math.floor(Math.random() * 70) + 30 },
+          { name: 'Mar', flights: Math.floor(Math.random() * 70) + 30 },
+          { name: 'Apr', flights: Math.floor(Math.random() * 70) + 30 },
+          { name: 'May', flights: Math.floor(Math.random() * 70) + 30 },
+          { name: 'Jun', flights: Math.floor(Math.random() * 70) + 30 },
+          { name: 'Jul', flights: Math.floor(Math.random() * 70) + 30 },
+          { name: 'Aug', flights: Math.floor(Math.random() * 70) + 30 },
+          { name: 'Sep', flights: Math.floor(Math.random() * 70) + 30 },
+          { name: 'Oct', flights: Math.floor(Math.random() * 70) + 30 },
+          { name: 'Nov', flights: Math.floor(Math.random() * 70) + 30 },
+          { name: 'Dec', flights: Math.floor(Math.random() * 70) + 30 },
         ];
       case 'this-week':
         // Weekly data
@@ -44,15 +55,81 @@ const generateMockData = (dateRange: DateRangeType, viewType: ViewType) => {
   } else {
     // Status view
     switch (dateRange) {
-      case 'today':
-        // Single day data - just show the total for today
+      case 'monthly':
+        // Monthly data showing each month with status breakdown
         return [
-          { 
-            name: 'Today', 
-            successful: Math.floor(Math.random() * 25) + 10,
-            failed: Math.floor(Math.random() * 5),
-            aborted: Math.floor(Math.random() * 3),
-          }
+          {
+            name: 'Jan',
+            successful: Math.floor(Math.random() * 60) + 20,
+            failed: Math.floor(Math.random() * 15),
+            aborted: Math.floor(Math.random() * 8),
+          },
+          {
+            name: 'Feb',
+            successful: Math.floor(Math.random() * 60) + 20,
+            failed: Math.floor(Math.random() * 15),
+            aborted: Math.floor(Math.random() * 8),
+          },
+          {
+            name: 'Mar',
+            successful: Math.floor(Math.random() * 60) + 20,
+            failed: Math.floor(Math.random() * 15),
+            aborted: Math.floor(Math.random() * 8),
+          },
+          {
+            name: 'Apr',
+            successful: Math.floor(Math.random() * 60) + 20,
+            failed: Math.floor(Math.random() * 15),
+            aborted: Math.floor(Math.random() * 8),
+          },
+          {
+            name: 'May',
+            successful: Math.floor(Math.random() * 60) + 20,
+            failed: Math.floor(Math.random() * 15),
+            aborted: Math.floor(Math.random() * 8),
+          },
+          {
+            name: 'Jun',
+            successful: Math.floor(Math.random() * 60) + 20,
+            failed: Math.floor(Math.random() * 15),
+            aborted: Math.floor(Math.random() * 8),
+          },
+          {
+            name: 'Jul',
+            successful: Math.floor(Math.random() * 60) + 20,
+            failed: Math.floor(Math.random() * 15),
+            aborted: Math.floor(Math.random() * 8),
+          },
+          {
+            name: 'Aug',
+            successful: Math.floor(Math.random() * 60) + 20,
+            failed: Math.floor(Math.random() * 15),
+            aborted: Math.floor(Math.random() * 8),
+          },
+          {
+            name: 'Sep',
+            successful: Math.floor(Math.random() * 60) + 20,
+            failed: Math.floor(Math.random() * 15),
+            aborted: Math.floor(Math.random() * 8),
+          },
+          {
+            name: 'Oct',
+            successful: Math.floor(Math.random() * 60) + 20,
+            failed: Math.floor(Math.random() * 15),
+            aborted: Math.floor(Math.random() * 8),
+          },
+          {
+            name: 'Nov',
+            successful: Math.floor(Math.random() * 60) + 20,
+            failed: Math.floor(Math.random() * 15),
+            aborted: Math.floor(Math.random() * 8),
+          },
+          {
+            name: 'Dec',
+            successful: Math.floor(Math.random() * 60) + 20,
+            failed: Math.floor(Math.random() * 15),
+            aborted: Math.floor(Math.random() * 8),
+          },
         ];
       case 'this-week':
         // Weekly data
