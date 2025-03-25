@@ -9,7 +9,6 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { 
   Command,
@@ -24,7 +23,7 @@ import {
   PopoverContent,
   PopoverTrigger
 } from '@/components/ui/popover';
-import { Check, ChevronsUpDown, BellRing, AlertCircle, Zap } from 'lucide-react';
+import { Check, ChevronsUpDown, Zap, BellRing, CheckSquare, Search, Target, Route } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 
@@ -80,33 +79,24 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
               id="trigger-type" 
               className="w-full bg-background-level-3 border-outline-primary"
             >
-              <div className="flex items-center gap-2">
-                {triggerType === 'normal' ? (
-                  <Zap className="h-4 w-4 text-primary-100" />
-                ) : triggerType === 'alarm' ? (
-                  <BellRing className="h-4 w-4 text-primary-100" />
-                ) : (
-                  <AlertCircle className="h-4 w-4 text-primary-100" />
-                )}
-                <SelectValue placeholder="Select trigger type" />
-              </div>
+              <SelectValue placeholder="Select trigger type" />
             </SelectTrigger>
-            <SelectContent className="bg-background-level-2 border-outline-primary">
+            <SelectContent className="bg-background-level-2 border-[rgba(255,255,255,0.08)]">
               <SelectItem value="all">
                 <div className="flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4" />
+                  <CheckSquare className="h-4 w-4 text-primary-100" />
                   <span>All Types</span>
                 </div>
               </SelectItem>
               <SelectItem value="normal">
                 <div className="flex items-center gap-2">
-                  <Zap className="h-4 w-4" />
+                  <Zap className="h-4 w-4 text-primary-100" />
                   <span>Normal</span>
                 </div>
               </SelectItem>
               <SelectItem value="alarm">
                 <div className="flex items-center gap-2">
-                  <BellRing className="h-4 w-4" />
+                  <BellRing className="h-4 w-4 text-primary-100" />
                   <span>Alarm Sensor</span>
                 </div>
               </SelectItem>
@@ -122,7 +112,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                 variant="outline"
                 disabled={isLoading}
                 aria-expanded={open}
-                className="flex w-full justify-between items-center rounded-md border border-outline-primary bg-background-level-3 px-300 py-200 text-sm text-text-icon-01 hover:bg-background-level-2 transition-colors"
+                className="flex w-full justify-between items-center rounded-md border border-outline-primary bg-background-level-3 px-300 py-200 text-sm text-text-icon-01 hover:bg-surface-states-hover transition-colors"
               >
                 <span>{selectedDrones.length > 0 
                   ? `${selectedDrones.length} drone${selectedDrones.length > 1 ? 's' : ''} selected` 
@@ -131,22 +121,25 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                 <ChevronsUpDown className="h-4 w-4 opacity-50" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[300px] p-0 bg-background-level-2 border-outline-primary shadow-lg" align="start">
+            <PopoverContent className="w-[300px] p-0 bg-background-level-2 border-[rgba(255,255,255,0.08)] shadow-lg" align="start">
               <Command className="bg-background-level-2">
-                <CommandInput placeholder="Search drones..." className="h-9 border-b border-outline-primary" />
+                <div className="flex items-center border-b border-outline-primary px-3">
+                  <Search className="mr-2 h-4 w-4 shrink-0 text-text-icon-02" />
+                  <CommandInput placeholder="Search drones..." className="h-9 text-text-icon-01 bg-transparent flex-1" />
+                </div>
                 <CommandList className="max-h-[200px]">
                   <CommandEmpty>No drones found</CommandEmpty>
                   <CommandGroup>
                     <CommandItem
                       value="select-all"
                       onSelect={handleSelectAllDrones}
-                      className="flex items-center gap-2 w-full py-2 hover:bg-background-level-3"
+                      className="flex items-center gap-2 w-full py-2 hover:bg-surface-states-hover"
                     >
                       <Checkbox 
                         checked={selectedDrones.length === DRONES.length} 
-                        className="data-[state=checked]:bg-primary-100 border-outline-primary h-4 w-4"
+                        className="data-[state=checked]:bg-primary-200 border-primary-200 h-4 w-4"
                       />
-                      <span className="font-medium">Select All</span>
+                      <span className="font-medium text-text-icon-01">Select All</span>
                     </CommandItem>
                     <Separator className="my-1 bg-outline-primary opacity-30" />
                     {DRONES.map((drone) => (
@@ -154,13 +147,13 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                         key={drone.value}
                         value={drone.value}
                         onSelect={() => handleSelectDrone(drone.value)}
-                        className="flex items-center gap-2 w-full py-2 hover:bg-background-level-3"
+                        className="flex items-center gap-2 w-full py-2 hover:bg-surface-states-hover"
                       >
                         <Checkbox 
                           checked={selectedDrones.includes(drone.value)} 
-                          className="data-[state=checked]:bg-primary-100 border-outline-primary h-4 w-4"
+                          className="data-[state=checked]:bg-primary-200 border-outline-primary h-4 w-4"
                         />
-                        <span>{drone.label}</span>
+                        <span className="text-text-icon-01">{drone.label}</span>
                         {selectedDrones.includes(drone.value) && (
                           <Check className="h-4 w-4 ml-auto text-primary-100" />
                         )}

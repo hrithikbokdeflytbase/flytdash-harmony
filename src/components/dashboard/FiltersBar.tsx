@@ -12,9 +12,12 @@ import {
   ChevronDown, 
   Filter, 
   RefreshCw, 
-  Rocket, 
+  CheckSquare,
   Target,
-  Info
+  Route,
+  Zap,
+  BellRing,
+  Search
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -188,7 +191,7 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
                     id="date-range"
                     variant="outline" 
                     className={cn(
-                      "w-full justify-start text-left font-normal bg-background-level-2 border-outline-primary",
+                      "w-full justify-start text-left font-normal bg-background-level-3 border-outline-primary",
                       isLoading && "opacity-70 cursor-not-allowed"
                     )}
                     disabled={isLoading}
@@ -217,14 +220,14 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
                     <div className="flex gap-200 items-center justify-between">
                       <Select value={dateRange} onValueChange={(value) => onDateRangeChange(value as DateRangeType)}>
                         <SelectTrigger 
-                          className="h-8 bg-background-level-1 border-outline-primary text-text-icon-01/84"
+                          className="h-8 bg-background-level-2 border-outline-primary text-text-icon-01/84"
                         >
                           <SelectValue placeholder="Preset" />
                         </SelectTrigger>
-                        <SelectContent className="bg-background-level-4 border-outline-primary">
-                          <SelectItem value="daily" className="text-text-icon-01/84 focus:bg-primary-200 focus:text-white">Daily</SelectItem>
-                          <SelectItem value="weekly" className="text-text-icon-01/84 focus:bg-primary-200 focus:text-white">Weekly</SelectItem>
-                          <SelectItem value="monthly" className="text-text-icon-01/84 focus:bg-primary-200 focus:text-white">Monthly</SelectItem>
+                        <SelectContent className="bg-background-level-2 border-[rgba(255,255,255,0.08)]">
+                          <SelectItem value="daily" className="text-text-icon-01/84 focus:bg-primary-200 focus:text-white data-[highlighted]:bg-background-level-4">Daily</SelectItem>
+                          <SelectItem value="weekly" className="text-text-icon-01/84 focus:bg-primary-200 focus:text-white data-[highlighted]:bg-background-level-4">Weekly</SelectItem>
+                          <SelectItem value="monthly" className="text-text-icon-01/84 focus:bg-primary-200 focus:text-white data-[highlighted]:bg-background-level-4">Monthly</SelectItem>
                         </SelectContent>
                       </Select>
                       
@@ -250,35 +253,26 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
               <SelectTrigger 
                 id="operation-type"
                 disabled={isLoading}
-                className="h-10 w-full bg-background-level-2 border-outline-primary"
+                className="h-10 w-full bg-background-level-3 border-outline-primary"
               >
-                <div className="flex items-center gap-2">
-                  {operationType === 'gtl' ? (
-                    <Target className="h-4 w-4 text-primary-100" />
-                  ) : operationType === 'mission' ? (
-                    <Rocket className="h-4 w-4 text-primary-100" />
-                  ) : (
-                    <Info className="h-4 w-4 text-primary-100" />
-                  )}
-                  <SelectValue placeholder="Operation Type" />
-                </div>
+                <SelectValue placeholder="Operation Type" />
               </SelectTrigger>
-              <SelectContent className="bg-background-level-2 border-outline-primary">
+              <SelectContent className="bg-background-level-2 border-[rgba(255,255,255,0.08)]">
                 <SelectItem value="all">
                   <div className="flex items-center gap-2">
-                    <Info className="h-4 w-4" />
+                    <CheckSquare className="h-4 w-4 text-primary-100" />
                     <span>All Operations</span>
                   </div>
                 </SelectItem>
                 <SelectItem value="gtl">
                   <div className="flex items-center gap-2">
-                    <Target className="h-4 w-4" />
+                    <Target className="h-4 w-4 text-primary-100" />
                     <span>GTL</span>
                   </div>
                 </SelectItem>
                 <SelectItem value="mission">
                   <div className="flex items-center gap-2">
-                    <Rocket className="h-4 w-4" />
+                    <Route className="h-4 w-4 text-primary-100" />
                     <span>Mission</span>
                   </div>
                 </SelectItem>
@@ -293,7 +287,7 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
                 id="manual-ops" 
                 checked={includeManual} 
                 onCheckedChange={(checked) => setIncludeManual(checked as boolean)}
-                className="data-[state=checked]:bg-primary-100 border-outline-primary h-5 w-5"
+                className="data-[state=checked]:bg-primary-200 border-outline-primary h-5 w-5"
               />
               <Label htmlFor="manual-ops" className="text-text-icon-01 cursor-pointer">
                 Include manual operations
