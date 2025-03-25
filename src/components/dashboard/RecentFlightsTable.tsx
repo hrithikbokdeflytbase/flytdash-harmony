@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Eye, FileText, Loader, CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
+import { Loader, CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -10,7 +10,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface RecentFlightsTableProps {
@@ -148,7 +147,6 @@ const RecentFlightsTable: React.FC<RecentFlightsTableProps> = ({ isLoading = fal
             <TableHead className="text-text-icon-02 fb-body4-medium">Drone</TableHead>
             <TableHead className="text-text-icon-02 fb-body4-medium">Media</TableHead>
             <TableHead className="text-text-icon-02 fb-body4-medium">Date & Time</TableHead>
-            <TableHead className="text-text-icon-02 fb-body4-medium text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -188,16 +186,6 @@ const RecentFlightsTable: React.FC<RecentFlightsTableProps> = ({ isLoading = fal
               </TableCell>
               <TableCell className="text-text-icon-02">
                 {flight.dateTime}
-              </TableCell>
-              <TableCell className="text-right">
-                <div className="flex justify-end space-x-200">
-                  <button className="p-100 rounded-full hover:bg-surface-states-hover transition-colors" title="View Details">
-                    <Eye className="w-4 h-4 text-text-icon-02 hover:text-text-icon-01" />
-                  </button>
-                  <button className="p-100 rounded-full hover:bg-surface-states-hover transition-colors" title="View Report">
-                    <FileText className="w-4 h-4 text-text-icon-02 hover:text-text-icon-01" />
-                  </button>
-                </div>
               </TableCell>
             </TableRow>
           ))}
