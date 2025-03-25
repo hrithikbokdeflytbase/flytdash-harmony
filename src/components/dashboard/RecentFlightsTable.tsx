@@ -95,7 +95,7 @@ const getStatusBadgeClass = (status: FlightStatus) => {
   }
 };
 
-const getStatusText = (status: FlightStatus) => {
+const getStatusText = (status: FlightStatus): string => {
   switch (status) {
     case 'completed':
       return 'Completed';
