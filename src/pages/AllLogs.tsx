@@ -31,7 +31,7 @@ const AllLogs = () => {
         </div>
       </div>
       
-      {/* Filters Section */}
+      {/* Improved Filters Section */}
       <div className="mb-600">
         <FiltersBar
           dateRange={dateRange}
@@ -41,7 +41,7 @@ const AllLogs = () => {
       </div>
       
       {/* Flight Logs Table */}
-      <div className="flybase-card p-400 mb-600">
+      <div className="flybase-card p-400 mb-600 rounded-xl shadow-sm">
         <h2 className="fb-title1-medium text-text-icon-01 mb-400">Flight Logs</h2>
         <RecentFlightsTable isLoading={isLoading} />
       </div>

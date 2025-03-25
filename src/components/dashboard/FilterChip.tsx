@@ -13,9 +13,10 @@ const FilterChip: React.FC<FilterChipProps> = ({ label, onRemove, className }) =
   return (
     <div 
       className={cn(
-        "inline-flex items-center gap-100 px-200 py-100 bg-background-level-4 rounded-full",
-        "text-text-icon-01 text-sm",
-        "border border-outline-primary",
+        "inline-flex items-center gap-100 px-200 py-100 bg-background-level-2 rounded-full",
+        "text-text-icon-01 text-sm shadow-sm",
+        "border border-outline-primary transition-all",
+        "hover:bg-background-level-1",
         className
       )}
     >

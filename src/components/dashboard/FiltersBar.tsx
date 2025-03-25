@@ -8,14 +8,32 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Calendar, ChevronDown, Filter, RefreshCw, X } from 'lucide-react';
+import { 
+  Calendar, 
+  ChevronDown, 
+  Filter, 
+  RefreshCw, 
+  Rocket, 
+  Target,
+  Info
+} from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger
+} from '@/components/ui/popover';
 import { DateRangeType } from './DateRangeFilter';
 import AdvancedFilters from './AdvancedFilters';
 import FilterChip from './FilterChip';
 import { cn } from '@/lib/utils';
+import { DateRange } from 'react-day-picker';
+import { format } from 'date-fns';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 
 export interface FiltersBarProps {
   dateRange: DateRangeType;
@@ -33,6 +51,10 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
   const [showAdvancedFilters, setShowAdvancedFilters] = useState<boolean>(false);
   const [triggerType, setTriggerType] = useState<string>('all');
   const [selectedDrones, setSelectedDrones] = useState<string[]>([]);
+  const [date, setDate] = useState<DateRange | undefined>({
+    from: new Date(),
+    to: new Date(new Date().setDate(new Date().getDate() + 7))
+  });
   
   const formatDateDisplay = () => {
     switch (dateRange) {
@@ -53,6 +75,10 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
     setIncludeManual(false);
     setTriggerType('all');
     setSelectedDrones([]);
+    setDate({
+      from: new Date(),
+      to: new Date(new Date().setDate(new Date().getDate() + 7))
+    });
   };
 
   const advancedFilterCount = 
@@ -87,60 +113,160 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
   };
 
   return (
-    <div className="rounded-200 overflow-hidden">
+    <div className="rounded-xl overflow-hidden shadow-sm border border-outline-primary">
       <div className="bg-background-level-3 p-400">
-        <div className="flex flex-col space-y-300 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between gap-400">
+        <div className="flex flex-col space-y-300 sm:space-y-0 sm:flex-row sm:items-start sm:justify-between gap-400">
           <div>
-            <h3 className="fb-title1-medium text-text-icon-01">Flight Data Filters</h3>
-            <p className="fb-body2-regular text-text-icon-02">Filter flight data</p>
+            <h3 className="text-xl font-semibold text-text-icon-01">Flight Data Filters</h3>
+            <p className="fb-body2-regular text-text-icon-02 mt-100">Filter flight data</p>
           </div>
 
-          <div className="flex flex-wrap gap-300 items-center">
-            {/* Date Range Filter */}
-            <div className="flex-1 min-w-[180px] sm:flex-none">
-              <Select value={dateRange} onValueChange={(value) => onDateRangeChange(value as DateRangeType)}>
-                <SelectTrigger 
-                  disabled={isLoading}
-                  className="flex gap-200 h-auto py-200 bg-background-level-2 border-outline-primary"
-                >
-                  <Calendar className="h-4 w-4 text-primary-100" />
-                  <SelectValue placeholder="Select date range" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="daily">Daily</SelectItem>
-                  <SelectItem value="weekly">Weekly</SelectItem>
-                  <SelectItem value="monthly">Monthly</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="flex items-center gap-200">
+            {/* Reset Button with Tooltip */}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="border-outline-primary text-text-icon-01 bg-background-level-2 hover:bg-background-level-4 transition-colors"
+                    onClick={resetFilters}
+                    disabled={isLoading || (
+                      dateRange === 'monthly' && 
+                      operationType === 'all' && 
+                      !includeManual && 
+                      triggerType === 'all' && 
+                      selectedDrones.length === 0
+                    )}
+                  >
+                    <RefreshCw className="h-4 w-4 mr-1" />
+                    Reset
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Reset all filters to default values</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        </div>
 
-            {/* Operation Type Filter */}
-            <div className="flex-1 min-w-[180px] sm:flex-none">
-              <Select value={operationType} onValueChange={setOperationType}>
-                <SelectTrigger 
-                  disabled={isLoading}
-                  className="h-auto py-200 bg-background-level-2 border-outline-primary"
-                >
+        <div className="mt-400 grid grid-cols-1 md:grid-cols-3 gap-400">
+          {/* Date Range Filter */}
+          <div>
+            <Label htmlFor="date-range" className="text-sm text-text-icon-02 mb-100 block">Date Range</Label>
+            <div className="flex gap-200 items-center">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button 
+                    id="date-range"
+                    variant="outline" 
+                    className={cn(
+                      "w-full justify-start text-left font-normal bg-background-level-2 border-outline-primary",
+                      isLoading && "opacity-70 cursor-not-allowed"
+                    )}
+                    disabled={isLoading}
+                  >
+                    <Calendar className="h-4 w-4 mr-2 text-primary-100" />
+                    {date?.from ? (
+                      date.to ? (
+                        <>
+                          {format(date.from, "MMM d, yyyy")} - {format(date.to, "MMM d, yyyy")}
+                        </>
+                      ) : (
+                        format(date.from, "MMM d, yyyy")
+                      )
+                    ) : (
+                      <span>Select date range</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 bg-background-level-2" align="start">
+                  <div className="p-300 border-b border-outline-primary">
+                    <div className="flex gap-200 items-center justify-between">
+                      <Select value={dateRange} onValueChange={(value) => onDateRangeChange(value as DateRangeType)}>
+                        <SelectTrigger 
+                          className="h-8 bg-background-level-1 border-outline-primary"
+                        >
+                          <SelectValue placeholder="Preset" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="daily">Daily</SelectItem>
+                          <SelectItem value="weekly">Weekly</SelectItem>
+                          <SelectItem value="monthly">Monthly</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      
+                      <span className="text-sm text-text-icon-02">{formatDateDisplay()}</span>
+                    </div>
+                  </div>
+                  <CalendarComponent
+                    mode="range"
+                    defaultMonth={date?.from}
+                    selected={date}
+                    onSelect={setDate}
+                    numberOfMonths={2}
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+
+          {/* Operation Type Filter */}
+          <div>
+            <Label htmlFor="operation-type" className="text-sm text-text-icon-02 mb-100 block">Operation Type</Label>
+            <Select value={operationType} onValueChange={setOperationType}>
+              <SelectTrigger 
+                id="operation-type"
+                disabled={isLoading}
+                className="h-10 w-full bg-background-level-2 border-outline-primary"
+              >
+                <div className="flex items-center gap-2">
+                  {operationType === 'gtl' ? (
+                    <Target className="h-4 w-4 text-primary-100" />
+                  ) : operationType === 'mission' ? (
+                    <Rocket className="h-4 w-4 text-primary-100" />
+                  ) : (
+                    <Info className="h-4 w-4 text-primary-100" />
+                  )}
                   <SelectValue placeholder="Operation Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Operations</SelectItem>
-                  <SelectItem value="gtl">GTL</SelectItem>
-                  <SelectItem value="mission">Mission</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+                </div>
+              </SelectTrigger>
+              <SelectContent className="bg-background-level-2 border-outline-primary">
+                <SelectItem value="all">
+                  <div className="flex items-center gap-2">
+                    <Info className="h-4 w-4" />
+                    <span>All Operations</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="gtl">
+                  <div className="flex items-center gap-2">
+                    <Target className="h-4 w-4" />
+                    <span>GTL</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="mission">
+                  <div className="flex items-center gap-2">
+                    <Rocket className="h-4 w-4" />
+                    <span>Mission</span>
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
+          <div className="flex flex-col justify-between">
             {/* Include Manual Operations Checkbox */}
-            <div className="flex items-center space-x-200">
+            <div className="flex items-center gap-200 mb-300">
               <Checkbox 
                 id="manual-ops" 
                 checked={includeManual} 
                 onCheckedChange={(checked) => setIncludeManual(checked as boolean)}
-                className="data-[state=checked]:bg-primary-100"
+                className="data-[state=checked]:bg-primary-100 border-outline-primary h-5 w-5"
               />
-              <Label htmlFor="manual-ops" className="text-sm text-text-icon-01">
-                Include manual
+              <Label htmlFor="manual-ops" className="text-text-icon-01 cursor-pointer">
+                Include manual operations
               </Label>
             </div>
 
@@ -149,7 +275,7 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
               variant="outline" 
               size="sm"
               className={cn(
-                "border-outline-primary bg-background-level-2", 
+                "border-outline-primary bg-background-level-2 hover:bg-background-level-4 transition-colors", 
                 showAdvancedFilters && "bg-background-level-4"
               )}
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
@@ -163,34 +289,16 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
                 </Badge>
               )}
               <ChevronDown className={cn(
-                "ml-1 h-3 w-3 transition-transform", 
+                "ml-1 h-3 w-3 transition-transform duration-200", 
                 showAdvancedFilters && "transform rotate-180"
               )} />
-            </Button>
-
-            {/* Reset Button */}
-            <Button 
-              variant="ghost" 
-              size="sm"
-              className="border-outline-primary text-text-icon-01"
-              onClick={resetFilters}
-              disabled={isLoading || (
-                dateRange === 'monthly' && 
-                operationType === 'all' && 
-                !includeManual && 
-                triggerType === 'all' && 
-                selectedDrones.length === 0
-              )}
-            >
-              <RefreshCw className="h-4 w-4 mr-1" />
-              Reset
             </Button>
           </div>
         </div>
 
         {/* Active Filters */}
         {activeFilters.length > 0 && (
-          <div className="mt-300 flex flex-wrap gap-200">
+          <div className="mt-400 flex flex-wrap gap-200">
             {activeFilters.map(filter => (
               <FilterChip 
                 key={filter.id}
@@ -202,14 +310,17 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
         )}
       </div>
 
-      {/* Advanced Filters Panel */}
+      {/* Advanced Filters Panel with animation */}
       {showAdvancedFilters && (
-        <AdvancedFilters 
-          triggerType={triggerType}
-          setTriggerType={setTriggerType}
-          selectedDrones={selectedDrones}
-          setSelectedDrones={setSelectedDrones}
-        />
+        <div className="animate-accordion-down">
+          <AdvancedFilters 
+            triggerType={triggerType}
+            setTriggerType={setTriggerType}
+            selectedDrones={selectedDrones}
+            setSelectedDrones={setSelectedDrones}
+            isLoading={isLoading}
+          />
+        </div>
       )}
     </div>
   );

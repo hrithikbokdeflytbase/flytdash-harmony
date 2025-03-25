@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import DateRangeFilter, { DateRangeType } from '@/components/dashboard/DateRangeFilter';
+import { DateRangeType } from '@/components/dashboard/DateRangeFilter';
 import MetricCard from '@/components/dashboard/MetricCard';
 import FlightTimeline from '@/components/dashboard/FlightTimeline';
 import RecentFlightsTable from '@/components/dashboard/RecentFlightsTable';
@@ -35,7 +35,7 @@ const Index = () => {
         </div>
       </div>
       
-      {/* New Filters Section */}
+      {/* Improved Filters Section */}
       <div className="mb-600">
         <FiltersBar 
           dateRange={dateRange}
@@ -70,7 +70,7 @@ const Index = () => {
       </div>
       
       {/* Flight Timeline Section */}
-      <div className="flybase-card p-400 mb-600">
+      <div className="flybase-card p-400 mb-600 rounded-xl shadow-sm">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-400">
           <h2 className="fb-title1-medium text-text-icon-01">Flight Timeline</h2>
           <div className="flex items-center mt-200 sm:mt-0 space-x-200 bg-background-level-3 rounded-full p-100">
@@ -97,7 +97,7 @@ const Index = () => {
       </div>
       
       {/* Recent Flights Section */}
-      <div className="flybase-card p-400 mb-600">
+      <div className="flybase-card p-400 mb-600 rounded-xl shadow-sm">
         <h2 className="fb-title1-medium text-text-icon-01 mb-400">Recent Flights</h2>
         <RecentFlightsTable isLoading={isLoading} />
       </div>
