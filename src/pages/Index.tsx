@@ -5,11 +5,12 @@ import StatusCard from '@/components/dashboard/StatusCard';
 import RecentActivity from '@/components/dashboard/RecentActivity';
 import QuickStats from '@/components/dashboard/QuickStats';
 import { 
-  Drone, 
+  Send, 
   FileText, 
   BarChart2, 
   AlertCircle, 
-  Plus 
+  Plus,
+  ArrowRight
 } from 'lucide-react';
 
 const recentActivities = [
@@ -60,7 +61,7 @@ const Index = () => {
         <StatusCard 
           title="Active Drones" 
           value="12" 
-          icon={Drone} 
+          icon={Send} 
           iconColor="text-primary-100" 
           iconBgColor="bg-container-info"
           trend={{ value: 20, isPositive: true }}
