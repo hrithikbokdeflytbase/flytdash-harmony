@@ -156,3 +156,6 @@ export const DateRangeIndicator: React.FC<{
     </TooltipProvider>
   );
 };
+
+// Delete the extra DateRangeFilter.ts file since we now have everything in the .tsx file
+<lov-delete file_path="src/components/dashboard/DateRangeFilter.ts" />
