@@ -21,7 +21,7 @@ interface TimelinePosition {
 }
 
 type MissionPhase = {
-  type: 'takeoff' | 'mission' | 'rtl' | 'landing' | 'hover' | 'manual';
+  type: 'manual' | 'gtl' | 'mission' | 'rtds';
   startTime: string; // Format: "HH:MM:SS"
   endTime: string;   // Format: "HH:MM:SS"
   label: string;
@@ -146,15 +146,13 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
     return ((endSeconds - startSeconds) / flightDurationSeconds) * 100;
   };
   
-  // Get color for mission phase - Enhanced contrast & refined colors
+  // Get color for mission phase - Updated for new phase types
   const getMissionPhaseColor = (phaseType: MissionPhase['type']) => {
     switch (phaseType) {
-      case 'takeoff': return 'from-green-500/80 to-green-600/80 border-green-700/40';
       case 'mission': return 'from-blue-500/80 to-blue-600/80 border-blue-700/40';
-      case 'hover': return 'from-purple-500/80 to-purple-600/80 border-purple-700/40';
       case 'manual': return 'from-yellow-500/80 to-yellow-600/80 border-yellow-700/40';
-      case 'rtl': return 'from-orange-500/80 to-orange-600/80 border-orange-700/40';
-      case 'landing': return 'from-red-500/80 to-red-600/80 border-red-700/40';
+      case 'gtl': return 'from-green-500/80 to-green-600/80 border-green-700/40';
+      case 'rtds': return 'from-orange-500/80 to-orange-600/80 border-orange-700/40';
       default: return 'from-gray-500/80 to-gray-600/80 border-gray-700/40';
     }
   };
@@ -413,13 +411,13 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
     return renderMarker(cluster.events[0]);
   };
   
-  // Mission Phases Track
+  // Operation Phases Track (renamed from Mission Phases)
   const renderMissionPhasesTrack = () => {
     return (
       <div className="track-section">
         <div className="bg-background-level-3 rounded-[4px] overflow-hidden">
           <div className="px-3 py-1 flex items-center justify-between">
-            <span className="text-[11px] text-text-icon-01 font-medium">Mission Phases</span>
+            <span className="text-[11px] text-text-icon-01 font-medium">Operation Phases</span>
           </div>
           
           <div className="px-3 py-1">

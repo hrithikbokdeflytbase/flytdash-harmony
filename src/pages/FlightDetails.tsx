@@ -28,7 +28,7 @@ type VideoSegment = {
 
 // Mission phase type
 type MissionPhase = {
-  type: 'takeoff' | 'mission' | 'rtl' | 'landing' | 'hover' | 'manual';
+  type: 'manual' | 'gtl' | 'mission' | 'rtds';
   startTime: string; // Format: "HH:MM:SS"
   endTime: string;   // Format: "HH:MM:SS"
   label: string;
@@ -99,14 +99,12 @@ const FlightDetails = () => {
     { startTime: '00:22:15', endTime: '00:25:00', url: '/videos/segment3.mp4' }
   ]);
 
-  // Mock mission phases
+  // Mock mission phases - Updated to use only the allowed phase types
   const [missionPhases, setMissionPhases] = useState<MissionPhase[]>([
-    { type: 'takeoff', startTime: '00:00:00', endTime: '00:01:30', label: 'Takeoff' },
-    { type: 'mission', startTime: '00:01:30', endTime: '00:15:00', label: 'Mission' },
-    { type: 'hover', startTime: '00:15:00', endTime: '00:18:30', label: 'Hover' },
-    { type: 'manual', startTime: '00:18:30', endTime: '00:22:00', label: 'Manual Control' },
-    { type: 'rtl', startTime: '00:22:00', endTime: '00:24:30', label: 'Return to Launch' },
-    { type: 'landing', startTime: '00:24:30', endTime: '00:25:30', label: 'Landing' },
+    { type: 'mission', startTime: '00:00:00', endTime: '00:08:30', label: 'Mission' },
+    { type: 'manual', startTime: '00:08:30', endTime: '00:15:00', label: 'Manual Control' },
+    { type: 'gtl', startTime: '00:15:00', endTime: '00:22:00', label: 'GTL' },
+    { type: 'rtds', startTime: '00:22:00', endTime: '00:25:30', label: 'Return to Docking Station' },
   ]);
 
   // Mock system events
