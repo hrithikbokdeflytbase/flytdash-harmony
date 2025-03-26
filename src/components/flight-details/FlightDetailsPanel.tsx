@@ -119,7 +119,7 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
             <TelemetryPanel telemetryData={telemetryData} />
           </TabsContent>
           
-          <TabsContent value="timeline" className="p-0">
+          <TabsContent value="timeline" className="p-0 h-[calc(100vh-95px)] flex flex-col overflow-hidden">
             <TimelinePanel />
           </TabsContent>
         </Tabs>
