@@ -2,6 +2,9 @@
 import React from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Toggle, toggleVariants } from '@/components/ui/toggle';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn } from '@/lib/utils';
 
 interface FlightDetailsPanelProps {
@@ -60,11 +63,68 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
           </TabsList>
 
           {/* Tab Contents */}
-          <TabsContent value="overview" className="px-400 py-300">
-            <div className="space-y-300">
-              <div className="p-300 bg-background-level-3 rounded-200">
-                <h3 className="fb-body1-medium text-text-icon-01">Flight Overview</h3>
-                <p className="text-text-icon-02 fb-body2-regular">Flight details will be displayed here</p>
+          <TabsContent value="overview" className="p-0">
+            {/* Critical Telemetry Section */}
+            <div className="space-y-0">
+              {/* Critical Telemetry Header */}
+              <div className="h-[35px] bg-background-level-2 flex items-center justify-between px-400 border-t border-b border-outline-primary">
+                <h3 className="fb-body1-medium text-text-icon-01">Critical Telemetry</h3>
+                <div className="flex items-center gap-200">
+                  <span className="text-[10px] text-text-icon-02">GPS 31</span>
+                  <span className="text-[10px] text-success-200">RTK 27 Fixed</span>
+                </div>
+              </div>
+              
+              {/* Telemetry Cards Grid */}
+              <div className="grid grid-cols-2 gap-[10px] p-400">
+                {/* Card 1 - Battery */}
+                <div className="bg-background-level-2 p-300 rounded-[4px]">
+                  <div className="flex flex-col">
+                    <span className="text-xs text-text-icon-02 mb-100">Battery</span>
+                    <span className="text-lg text-text-icon-01 font-medium mb-200">91%</span>
+                    <div className="mb-200">
+                      <Progress value={91} className="h-[10px] w-[80px] bg-background-level-1 rounded-full" />
+                    </div>
+                    <span className="text-[10px] text-text-icon-02">Est. Remaining: 27 minutes</span>
+                  </div>
+                </div>
+                
+                {/* Card 2 - Altitude */}
+                <div className="bg-background-level-2 p-300 rounded-[4px]">
+                  <div className="flex flex-col">
+                    <span className="text-xs text-text-icon-02 mb-100">Altitude</span>
+                    <span className="text-lg text-text-icon-01 font-medium">4.1 m</span>
+                    <div className="mt-200">
+                      <ToggleGroup type="single" defaultValue="rlt" className="bg-background-level-3 p-[2px] rounded-full w-fit">
+                        <ToggleGroupItem value="rlt" size="sm" className="rounded-full text-[10px] px-200 py-[2px]">
+                          RLT
+                        </ToggleGroupItem>
+                        <ToggleGroupItem value="agl" size="sm" className="rounded-full text-[10px] px-200 py-[2px]">
+                          AGL
+                        </ToggleGroupItem>
+                        <ToggleGroupItem value="asl" size="sm" className="rounded-full text-[10px] px-200 py-[2px]">
+                          ASL
+                        </ToggleGroupItem>
+                      </ToggleGroup>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Card 3 - Horizontal Speed */}
+                <div className="bg-background-level-2 p-300 rounded-[4px]">
+                  <div className="flex flex-col">
+                    <span className="text-xs text-text-icon-02 mb-100">Horizontal Speed</span>
+                    <span className="text-lg text-text-icon-01 font-medium">0 m/s</span>
+                  </div>
+                </div>
+                
+                {/* Card 4 - Vertical Speed */}
+                <div className="bg-background-level-2 p-300 rounded-[4px]">
+                  <div className="flex flex-col">
+                    <span className="text-xs text-text-icon-02 mb-100">Vertical Speed</span>
+                    <span className="text-lg text-text-icon-01 font-medium">3.9 m/s</span>
+                  </div>
+                </div>
               </div>
             </div>
           </TabsContent>
