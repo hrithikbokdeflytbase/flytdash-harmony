@@ -1,65 +1,13 @@
 
 import React, { useState } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Activity, Clock, Wifi, Battery } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Activity, Clock } from 'lucide-react';
 import { Card } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
 
 // Import our components
-import TelemetryMetricCard from './TelemetryMetricCard';
-import ConnectionStatusCard from './ConnectionStatusCard';
-import BatteryStatusCard from './BatteryStatusCard';
-import SectionHeader from './SectionHeader';
-
-// Define interface for telemetry data to use across tabs
-interface TelemetryData {
-  battery: {
-    percentage: number;
-    estimatedRemaining: string;
-  };
-  altitude: {
-    value: number;
-    unit: string;
-  };
-  distance: {
-    value: number;
-    unit: string;
-  };
-  horizontalSpeed: {
-    value: number;
-    unit: string;
-  };
-  verticalSpeed: {
-    value: number;
-    unit: string;
-  };
-  timeElapsed: string;
-  timeRemaining: string;
-  coordinates: {
-    latitude: number;
-    longitude: number;
-  };
-  gpsStatus: {
-    count: number;
-    signal: string;
-  };
-  connections: {
-    rfLink: {
-      status: 'active' | 'inactive' | 'poor';
-      details: string;
-    };
-    ethernet: {
-      status: 'active' | 'inactive' | 'poor';
-      details: string;
-    };
-    cellular: {
-      status: 'active' | 'inactive' | 'poor';
-      details: string;
-    };
-  }
-}
+import DetailsPanelHeader from './DetailsPanelHeader';
+import TelemetryPanel, { TelemetryData } from './TelemetryPanel';
+import TimelinePanel from './TimelinePanel';
 
 interface FlightDetailsPanelProps {
   flightId: string;
@@ -131,20 +79,11 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
   return (
     <Card className="h-full flex flex-col">
       {/* Header Section */}
-      <div className="flex items-center justify-between px-4 h-[50px] border-b border-outline-primary">
-        <div className="flex items-center gap-2">
-          <Badge 
-            variant="flight"
-            className="bg-primary-200 text-text-icon-01 rounded-[10px] py-1 px-3 text-xs font-medium"
-          >
-            {flightMode}
-          </Badge>
-          <span className="text-text-icon-02 fb-body1-medium">{flightId}</span>
-        </div>
-        <div className="bg-background-level-3 px-3 py-1 rounded-md">
-          <span className="text-text-icon-01 fb-body2-regular">{timestamp}</span>
-        </div>
-      </div>
+      <DetailsPanelHeader 
+        flightId={flightId} 
+        flightMode={flightMode} 
+        timestamp={timestamp} 
+      />
 
       {/* Tab Navigation */}
       <div className="h-[45px] border-b border-outline-primary">
@@ -177,115 +116,11 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
 
           {/* Tab Contents */}
           <TabsContent value="telemetry" className="p-0 h-[calc(100vh-95px)] flex flex-col overflow-hidden">
-            <ScrollArea className="flex-1">
-              <div className="space-y-0 pb-6">
-                {/* Battery Section */}
-                <div className="px-4 py-3">
-                  <BatteryStatusCard 
-                    percentage={telemetryData.battery.percentage}
-                    estimatedRemaining={telemetryData.battery.estimatedRemaining}
-                  />
-                </div>
-                
-                {/* General Telemetry Section */}
-                <SectionHeader title="Flight Metrics" icon={Activity}>
-                  <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 rounded-full bg-success-200"></div>
-                    <span className="text-xs text-text-icon-01">GPS {telemetryData.gpsStatus.count}</span>
-                  </div>
-                </SectionHeader>
-                
-                {/* Telemetry Metrics Grid */}
-                <div className="px-4 py-2">
-                  <div className="grid grid-cols-2 gap-2">
-                    <TelemetryMetricCard 
-                      label="Altitude" 
-                      value={telemetryData.altitude.value} 
-                      unit={telemetryData.altitude.unit}
-                      trend="up"
-                    />
-                    <TelemetryMetricCard 
-                      label="Distance" 
-                      value={telemetryData.distance.value} 
-                      unit={telemetryData.distance.unit}
-                      trend="neutral"
-                    />
-                    <TelemetryMetricCard 
-                      label="Vertical Speed" 
-                      value={telemetryData.verticalSpeed.value} 
-                      unit={telemetryData.verticalSpeed.unit}
-                      trend="down"
-                    />
-                    <TelemetryMetricCard 
-                      label="Horizontal Speed" 
-                      value={telemetryData.horizontalSpeed.value} 
-                      unit={telemetryData.horizontalSpeed.unit}
-                      trend="up"
-                    />
-                  </div>
-                </div>
-                
-                {/* Time and Position Section */}
-                <SectionHeader title="Position Data" icon={Clock} />
-                
-                <div className="px-4 py-2">
-                  <div className="grid grid-cols-2 gap-2">
-                    <TelemetryMetricCard 
-                      label="Time Elapsed" 
-                      value={telemetryData.timeElapsed}
-                    />
-                    <TelemetryMetricCard 
-                      label="Time Remaining" 
-                      value={telemetryData.timeRemaining}
-                    />
-                    <TelemetryMetricCard 
-                      label="Latitude" 
-                      value={telemetryData.coordinates.latitude.toFixed(5)}
-                    />
-                    <TelemetryMetricCard 
-                      label="Longitude" 
-                      value={telemetryData.coordinates.longitude.toFixed(5)}
-                    />
-                  </div>
-                </div>
-                
-                {/* Network Section */}
-                <SectionHeader title="Network Status" icon={Wifi} />
-                
-                <div className="px-4 py-2">
-                  <div className="bg-background-level-1 border border-outline-primary rounded overflow-hidden">
-                    <ConnectionStatusCard 
-                      label="Dock Drone RF Link"
-                      status={telemetryData.connections.rfLink.status}
-                      details={telemetryData.connections.rfLink.details}
-                    />
-                    
-                    <ConnectionStatusCard 
-                      label="Dock Ethernet"
-                      status={telemetryData.connections.ethernet.status}
-                      details={telemetryData.connections.ethernet.details}
-                    />
-                    
-                    <ConnectionStatusCard 
-                      label="Dock 4G"
-                      status={telemetryData.connections.cellular.status}
-                      details={telemetryData.connections.cellular.details}
-                    />
-                  </div>
-                </div>
-              </div>
-            </ScrollArea>
+            <TelemetryPanel telemetryData={telemetryData} />
           </TabsContent>
           
           <TabsContent value="timeline" className="p-0">
-            {/* Timeline placeholder */}
-            <div className="flex flex-col items-center justify-center space-y-4 h-[400px] text-center p-4 text-text-icon-02 border border-dashed border-outline-primary mx-4 my-4 rounded-md">
-              <Clock size={48} className="text-primary-200 opacity-50" />
-              <div className="space-y-2">
-                <h3 className="text-lg text-text-icon-01">Timeline View</h3>
-                <p className="text-sm">Flight timeline details will be implemented in the next step.</p>
-              </div>
-            </div>
+            <TimelinePanel />
           </TabsContent>
         </Tabs>
       </div>
