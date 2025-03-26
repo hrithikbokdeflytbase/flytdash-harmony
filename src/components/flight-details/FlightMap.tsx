@@ -433,12 +433,12 @@ const FlightMap: React.FC<FlightMapProps> = ({
       <div ref={mapContainer} className="absolute inset-0 bg-background-level-2"></div>
       
       {/* Focus controls (top-right) */}
-      <div className="absolute top-2 right-14 flex flex-col items-end space-y-2 z-10">
+      <div className="absolute top-2 right-12 flex flex-col items-end space-y-1 z-10">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button onClick={focusOnDrone} variant="outline" size="icon" className="h-10 w-10 rounded-md bg-background-level-3/70 backdrop-blur-sm hover:bg-background-level-3/90" disabled={!currentPosition}>
-                <PlaneTakeoff className="h-5 w-5" />
+              <Button onClick={focusOnDrone} variant="outline" size="icon" className="h-8 w-8 rounded-md bg-background-level-3/70 backdrop-blur-sm hover:bg-background-level-3/90" disabled={!currentPosition}>
+                <PlaneTakeoff className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="left">
@@ -450,7 +450,9 @@ const FlightMap: React.FC<FlightMapProps> = ({
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              
+              <Button onClick={focusOnDock} variant="outline" size="icon" className="h-8 w-8 rounded-md bg-background-level-3/70 backdrop-blur-sm hover:bg-background-level-3/90" disabled={!dockLocation}>
+                <Anchor className="h-4 w-4" />
+              </Button>
             </TooltipTrigger>
             <TooltipContent side="left">
               <p>Focus on dock</p>
@@ -461,8 +463,8 @@ const FlightMap: React.FC<FlightMapProps> = ({
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button onClick={showEntirePath} variant="outline" size="icon" className="h-10 w-10 rounded-md bg-background-level-3/70 backdrop-blur-sm hover:bg-background-level-3/90" disabled={flightPath.length === 0}>
-                <Maximize className="h-5 w-5" />
+              <Button onClick={showEntirePath} variant="outline" size="icon" className="h-8 w-8 rounded-md bg-background-level-3/70 backdrop-blur-sm hover:bg-background-level-3/90" disabled={flightPath.length === 0}>
+                <Maximize className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="left">
@@ -473,24 +475,24 @@ const FlightMap: React.FC<FlightMapProps> = ({
       </div>
       
       {/* Main controls (bottom-right) */}
-      <div className="absolute bottom-2 right-2 flex flex-col items-end space-y-2 z-10">
-        <div className="flex flex-col items-center bg-background-level-3 rounded-md overflow-hidden">
-          <Button variant="ghost" size="icon" className="h-10 w-10 rounded-none" onClick={zoomIn}>
-            <Plus className="h-5 w-5" />
+      <div className="absolute bottom-2 right-2 flex flex-col items-end space-y-1 z-10">
+        <div className="flex flex-col items-center bg-background-level-3/80 rounded-md overflow-hidden">
+          <Button variant="ghost" size="icon" className="h-7 w-7 rounded-none p-0" onClick={zoomIn}>
+            <Plus className="h-4 w-4" />
           </Button>
-          <div className="text-xs text-text-icon-02 py-1">
+          <div className="text-xs text-text-icon-02 py-0.5">
             {zoomLevel}x
           </div>
-          <Button variant="ghost" size="icon" className="h-10 w-10 rounded-none" onClick={zoomOut}>
-            <Minus className="h-5 w-5" />
+          <Button variant="ghost" size="icon" className="h-7 w-7 rounded-none p-0" onClick={zoomOut}>
+            <Minus className="h-4 w-4" />
           </Button>
         </div>
         
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button onClick={toggleMapStyle} variant="outline" size="icon" className="h-10 w-10 rounded-md bg-background-level-3">
-                <MapIcon className="h-5 w-5" />
+              <Button onClick={toggleMapStyle} variant="outline" size="icon" className="h-7 w-7 rounded-md bg-background-level-3/80 p-0">
+                <MapIcon className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="left">
@@ -504,8 +506,8 @@ const FlightMap: React.FC<FlightMapProps> = ({
             <Tooltip>
               <TooltipTrigger asChild>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="icon" className="h-10 w-10 rounded-md bg-background-level-3">
-                    <Layers className="h-5 w-5" />
+                  <Button variant="outline" size="icon" className="h-7 w-7 rounded-md bg-background-level-3/80 p-0">
+                    <Layers className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
               </TooltipTrigger>
@@ -514,7 +516,7 @@ const FlightMap: React.FC<FlightMapProps> = ({
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end" className="w-40">
             <DropdownMenuItem onSelect={() => console.log('Toggle flight path')}>
               Show flight path
             </DropdownMenuItem>
@@ -533,7 +535,9 @@ const FlightMap: React.FC<FlightMapProps> = ({
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              
+              <div className="h-6 w-6 flex items-center justify-center bg-background-level-3/70 backdrop-blur-sm rounded-md">
+                <Compass className="h-4 w-4 text-text-icon-01" />
+              </div>
             </TooltipTrigger>
             <TooltipContent>
               <p>North</p>
@@ -543,7 +547,7 @@ const FlightMap: React.FC<FlightMapProps> = ({
       </div>
       
       {/* Coordinates display (bottom) */}
-      {showCoordinates && <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-background-level-3/80 backdrop-blur-sm px-3 py-1 rounded-md text-xs text-text-icon-02 z-10">
+      {showCoordinates && <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-background-level-3/80 backdrop-blur-sm px-2 py-0.5 rounded-md text-xs text-text-icon-02 z-10">
           Lng: {showCoordinates.lng} | Lat: {showCoordinates.lat}
         </div>}
       
