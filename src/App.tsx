@@ -8,6 +8,7 @@ import React from 'react'; // Add explicit React import
 import Index from "./pages/Index";
 import AllLogs from "./pages/AllLogs";
 import NotFound from "./pages/NotFound";
+import FlightDetails from "./pages/FlightDetails";
 
 // Create the client outside of the component
 const queryClient = new QueryClient();
@@ -23,6 +24,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/all-logs" element={<AllLogs />} />
+            <Route path="/flight-details" element={<FlightDetails />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
