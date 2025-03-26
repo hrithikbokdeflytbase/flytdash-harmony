@@ -2,7 +2,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Plus, Minus, Layers, Map as MapIcon, Drone, Anchor, Maximize, Compass, Info } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 // Flight path point interface
 interface FlightPathPoint {
@@ -21,7 +24,7 @@ interface FlightMapProps {
   landingPoint?: { lat: number; lng: number };
   dockLocation?: { lat: number; lng: number };
   waypoints?: Array<{ lat: number; lng: number; index: number }>;
-  currentPosition?: { lat: number; lng: number };
+  currentPosition?: { lat: number; lng: number; altitude?: number; heading?: number };
   isLoading?: boolean;
 }
 
@@ -42,6 +45,9 @@ const FlightMap: React.FC<FlightMapProps> = ({
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [mapStyle, setMapStyle] = useState<'dark' | 'satellite'>('dark');
+  const [showCoordinates, setShowCoordinates] = useState<{lng: number, lat: number} | null>(null);
+  const [zoomLevel, setZoomLevel] = useState<number>(13);
 
   // Initialize map
   useEffect(() => {
@@ -69,11 +75,39 @@ const FlightMap: React.FC<FlightMapProps> = ({
       }),
       'top-right'
     );
+
+    // Add scale control
+    map.current.addControl(
+      new mapboxgl.ScaleControl({
+        maxWidth: 100,
+        unit: 'metric'
+      }),
+      'bottom-left'
+    );
     
     // Handle map load event
     map.current.on('load', () => {
       setMapLoaded(true);
       console.log(`Map for flight ${flightId} loaded successfully`);
+    });
+    
+    // Track zoom level
+    map.current.on('zoom', () => {
+      if (map.current) {
+        setZoomLevel(Math.floor(map.current.getZoom()));
+      }
+    });
+    
+    // Track mouse position for coordinates display
+    map.current.on('mousemove', (e) => {
+      setShowCoordinates({
+        lng: parseFloat(e.lngLat.lng.toFixed(4)),
+        lat: parseFloat(e.lngLat.lat.toFixed(4))
+      });
+    });
+    
+    map.current.on('mouseout', () => {
+      setShowCoordinates(null);
     });
     
     // Cleanup on unmount
@@ -84,6 +118,17 @@ const FlightMap: React.FC<FlightMapProps> = ({
       }
     };
   }, [flightId]);
+  
+  // Handle map style change
+  useEffect(() => {
+    if (!mapLoaded || !map.current) return;
+    
+    const styleUrl = mapStyle === 'dark' 
+      ? 'mapbox://styles/mapbox/dark-v11' 
+      : 'mapbox://styles/mapbox/satellite-streets-v12';
+    
+    map.current.setStyle(styleUrl);
+  }, [mapStyle, mapLoaded]);
   
   // Add flight path when map is loaded and path data is available
   useEffect(() => {
@@ -307,14 +352,25 @@ const FlightMap: React.FC<FlightMapProps> = ({
     
     // Add current position marker if available
     if (currentPosition) {
+      const heading = currentPosition.heading || 0;
+      const altitude = currentPosition.altitude || 0;
+      
       const currentPosMarkerEl = document.createElement('div');
-      currentPosMarkerEl.className = 'flex items-center justify-center w-10 h-10';
+      currentPosMarkerEl.className = 'flex items-center justify-center w-10 h-10 relative';
       currentPosMarkerEl.innerHTML = `
+        <div class="absolute w-15 h-15 bg-primary-200/10 rounded-full animate-ping"></div>
         <div class="absolute w-4 h-4 bg-primary-200 rounded-full shadow-lg shadow-primary-200/50 z-10"></div>
-        <div class="absolute w-8 h-8 bg-primary-200/20 rounded-full animate-ping"></div>
+        <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-background-level-3 px-2 py-0.5 rounded text-xs whitespace-nowrap">
+          ${altitude.toFixed(0)}m
+        </div>
+        <div class="absolute w-6 h-1 bg-white" style="transform: rotate(${heading}deg); transform-origin: center left;"></div>
       `;
       
-      new mapboxgl.Marker(currentPosMarkerEl)
+      new mapboxgl.Marker({
+        element: currentPosMarkerEl,
+        rotation: heading,
+        rotationAlignment: 'map'
+      })
         .setLngLat([currentPosition.lng, currentPosition.lat])
         .addTo(map.current);
         
@@ -327,15 +383,214 @@ const FlightMap: React.FC<FlightMapProps> = ({
     
   }, [mapLoaded, takeoffPoint, landingPoint, dockLocation, waypoints, currentPosition]);
   
+  // Focus map on drone
+  const focusOnDrone = () => {
+    if (!map.current || !currentPosition) return;
+    
+    map.current.flyTo({
+      center: [currentPosition.lng, currentPosition.lat],
+      zoom: 16,
+      duration: 1000
+    });
+  };
+  
+  // Focus map on dock
+  const focusOnDock = () => {
+    if (!map.current || !dockLocation) return;
+    
+    map.current.flyTo({
+      center: [dockLocation.lng, dockLocation.lat],
+      zoom: 16,
+      duration: 1000
+    });
+  };
+  
+  // Show entire flight path
+  const showEntirePath = () => {
+    if (!map.current || flightPath.length === 0) return;
+    
+    const bounds = new mapboxgl.LngLatBounds();
+    
+    flightPath.forEach(point => {
+      bounds.extend([point.lng, point.lat] as mapboxgl.LngLatLike);
+    });
+    
+    map.current.fitBounds(bounds, {
+      padding: 50,
+      maxZoom: 15,
+      duration: 1000
+    });
+  };
+  
+  // Change map style
+  const toggleMapStyle = () => {
+    setMapStyle(prev => prev === 'dark' ? 'satellite' : 'dark');
+  };
+  
+  // Handle zoom in
+  const zoomIn = () => {
+    if (!map.current) return;
+    map.current.zoomIn({ duration: 500 });
+  };
+  
+  // Handle zoom out
+  const zoomOut = () => {
+    if (!map.current) return;
+    map.current.zoomOut({ duration: 500 });
+  };
+  
   return (
     <div className="relative w-full h-full rounded-200 overflow-hidden border border-[rgba(255,255,255,0.08)]">
       {/* Map container */}
       <div ref={mapContainer} className="absolute inset-0 bg-background-level-2"></div>
       
-      {/* Controls overlay container */}
-      <div className="absolute top-0 right-0 p-400 z-10">
-        {/* Additional custom controls can be added here */}
+      {/* Focus controls (top-right) */}
+      <div className="absolute top-2 right-14 flex flex-col items-end space-y-2 z-10">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                onClick={focusOnDrone}
+                variant="outline" 
+                size="icon" 
+                className="h-10 w-10 rounded-md bg-background-level-3/70 backdrop-blur-sm hover:bg-background-level-3/90"
+                disabled={!currentPosition}
+              >
+                <Drone className="h-5 w-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="left">
+              <p>Focus on drone</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                onClick={focusOnDock}
+                variant="outline" 
+                size="icon" 
+                className="h-10 w-10 rounded-md bg-background-level-3/70 backdrop-blur-sm hover:bg-background-level-3/90"
+                disabled={!dockLocation}
+              >
+                <Anchor className="h-5 w-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="left">
+              <p>Focus on dock</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                onClick={showEntirePath}
+                variant="outline" 
+                size="icon" 
+                className="h-10 w-10 rounded-md bg-background-level-3/70 backdrop-blur-sm hover:bg-background-level-3/90"
+                disabled={flightPath.length === 0}
+              >
+                <Maximize className="h-5 w-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="left">
+              <p>View entire path</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
+      
+      {/* Main controls (bottom-right) */}
+      <div className="absolute bottom-2 right-2 flex flex-col items-end space-y-2 z-10">
+        <div className="flex flex-col items-center bg-background-level-3 rounded-md overflow-hidden">
+          <Button variant="ghost" size="icon" className="h-10 w-10 rounded-none" onClick={zoomIn}>
+            <Plus className="h-5 w-5" />
+          </Button>
+          <div className="text-xs text-text-icon-02 py-1">
+            {zoomLevel}x
+          </div>
+          <Button variant="ghost" size="icon" className="h-10 w-10 rounded-none" onClick={zoomOut}>
+            <Minus className="h-5 w-5" />
+          </Button>
+        </div>
+        
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                onClick={toggleMapStyle}
+                variant="outline" 
+                size="icon" 
+                className="h-10 w-10 rounded-md bg-background-level-3"
+              >
+                <MapIcon className="h-5 w-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="left">
+              <p>Toggle map style ({mapStyle === 'dark' ? 'Dark' : 'Satellite'} view)</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        
+        <DropdownMenu>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    className="h-10 w-10 rounded-md bg-background-level-3"
+                  >
+                    <Layers className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent side="left">
+                <p>Map layers</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onSelect={() => console.log('Toggle flight path')}>
+              Show flight path
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => console.log('Toggle markers')}>
+              Show markers
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => console.log('Toggle terrain')}>
+              Show terrain
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+      
+      {/* North arrow (top-left) */}
+      <div className="absolute top-2 left-2 z-10">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center justify-center h-10 w-10 bg-background-level-3/70 backdrop-blur-sm rounded-md">
+                <Compass className="h-6 w-6 text-text-icon-01" />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>North</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+      
+      {/* Coordinates display (bottom) */}
+      {showCoordinates && (
+        <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-background-level-3/80 backdrop-blur-sm px-3 py-1 rounded-md text-xs text-text-icon-02 z-10">
+          Lng: {showCoordinates.lng} | Lat: {showCoordinates.lat}
+        </div>
+      )}
       
       {/* Loading indicator */}
       {isLoading && (
