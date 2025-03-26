@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Clock } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import SectionHeader from './SectionHeader';
 import TelemetryMetricCard from './TelemetryMetricCard';
 
@@ -16,7 +16,7 @@ const PositionDataSection: React.FC<PositionDataSectionProps> = ({
 }) => {
   return (
     <>
-      <SectionHeader title="Position Data" icon={Clock} />
+      <SectionHeader title="Position Data" icon={MapPin} />
       
       <div className="px-4 py-2">
         <div className="grid grid-cols-2 gap-2">

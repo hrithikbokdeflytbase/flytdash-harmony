@@ -60,48 +60,56 @@ export interface TelemetryData {
 
 interface TelemetryPanelProps {
   telemetryData: TelemetryData;
+  className?: string;
 }
 
 const TelemetryPanel: React.FC<TelemetryPanelProps> = ({
-  telemetryData
+  telemetryData,
+  className
 }) => {
   return (
     <div className="flex flex-col h-full">
-      <ScrollArea className="flex-1">
-        <div className="space-y-0 pb-8">
-          {/* Battery Section */}
-          <div className="px-4 py-3">
-            <BatteryStatusCard 
-              percentage={telemetryData.battery.percentage}
-              estimatedRemaining={telemetryData.battery.estimatedRemaining}
+      {/* Battery Section - Outside of ScrollArea */}
+      <div className="px-4 py-3">
+        <BatteryStatusCard 
+          percentage={telemetryData.battery.percentage}
+          estimatedRemaining={telemetryData.battery.estimatedRemaining}
+        />
+      </div>
+      
+      {/* Scrollable Content */}
+      <div className="flex-1 relative overflow-hidden">
+        <ScrollArea className="h-full pr-1" type="always">
+          <div className="space-y-0 pb-6 relative">
+            {/* General Telemetry Section */}
+            <SectionHeader title="Flight Metrics" icon={Activity}>
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 rounded-full bg-success-200"></div>
+                <span className="text-xs text-text-icon-01">GPS {telemetryData.gpsStatus.count}</span>
+              </div>
+            </SectionHeader>
+            
+            {/* Telemetry Metrics Grid */}
+            <TelemetryMetricsGrid 
+              altitude={telemetryData.altitude}
+              distance={telemetryData.distance}
+              verticalSpeed={telemetryData.verticalSpeed}
+              horizontalSpeed={telemetryData.horizontalSpeed}
             />
+            
+            {/* Position Data Section */}
+            <PositionDataSection 
+              coordinates={telemetryData.coordinates}
+            />
+            
+            {/* Network Section */}
+            <NetworkStatusSection connections={telemetryData.connections} />
           </div>
-          
-          {/* General Telemetry Section */}
-          <SectionHeader title="Flight Metrics" icon={Activity}>
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 rounded-full bg-success-200"></div>
-              <span className="text-xs text-text-icon-01">GPS {telemetryData.gpsStatus.count}</span>
-            </div>
-          </SectionHeader>
-          
-          {/* Telemetry Metrics Grid */}
-          <TelemetryMetricsGrid 
-            altitude={telemetryData.altitude}
-            distance={telemetryData.distance}
-            verticalSpeed={telemetryData.verticalSpeed}
-            horizontalSpeed={telemetryData.horizontalSpeed}
-          />
-          
-          {/* Position Data Section */}
-          <PositionDataSection 
-            coordinates={telemetryData.coordinates}
-          />
-          
-          {/* Network Section */}
-          <NetworkStatusSection connections={telemetryData.connections} />
-        </div>
-      </ScrollArea>
+        </ScrollArea>
+        
+        {/* Fade gradient at bottom to indicate scrolling */}
+        <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-background-level-2 to-transparent pointer-events-none"></div>
+      </div>
     </div>
   );
 };

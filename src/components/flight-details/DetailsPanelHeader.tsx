@@ -1,20 +1,23 @@
 
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 interface DetailsPanelHeaderProps {
   flightId: string;
   flightMode: string;
   timestamp: string;
+  className?: string;
 }
 
 const DetailsPanelHeader: React.FC<DetailsPanelHeaderProps> = ({
   flightId,
   flightMode,
-  timestamp
+  timestamp,
+  className
 }) => {
   return (
-    <div className="flex items-center justify-between px-4 h-[50px] border-b border-outline-primary">
+    <div className={cn("flex items-center justify-between px-4 h-[50px] border-b border-outline-primary", className)}>
       <div className="flex items-center gap-2">
         <Badge 
           variant="flight"
