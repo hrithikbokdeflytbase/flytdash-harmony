@@ -421,7 +421,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
           const clusterPosition = currentCluster.reduce((sum, e) => sum + timeToSeconds(e.timestamp), 0) / currentCluster.length;
           clusters.push({
             isCluster: currentCluster.length > 1,
-            events: [...currentCluster],
+            events: [...currentCluster],\
             position: clusterPosition
           });
         }
@@ -781,4 +781,4 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
       >
         <div className="h-[60px] bg-background-level-3 rounded-[8px] overflow-hidden">
           <CollapsibleTrigger asChild>
-            <div className="px-[12px] py-[4px] flex items-center justify-between cursor-pointer hover
+            <div className="px-[12px] py-[4px] flex items-center justify-between cursor-pointer hover:bg-
