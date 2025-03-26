@@ -137,30 +137,44 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
         
       </div>
 
-      <div className={cn("relative flex-1 rounded-200 border overflow-hidden", getCameraBorderColor(cameraType))} aria-label={`Video feed showing ${cameraType} camera view`} role="region">
-        {videoState === 'loading' && (/* Loading state */
-      <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-400 bg-background-level-3">
+      <div className={cn("relative flex-1 rounded-200 border overflow-hidden", getCameraBorderColor(cameraType))} 
+           aria-label={`Video feed showing ${cameraType} camera view`} 
+           role="region" 
+           style={{ maxHeight: 'calc(100% - 20px)' }}>
+        {videoState === 'loading' && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-400 bg-background-level-3">
             <Loader2 className="h-[60px] w-[60px] text-primary-200 mb-400 animate-spin" />
             <p className="text-text-icon-01 text-base font-medium mb-200">Loading video...</p>
-          </div>)}
+          </div>
+        )}
 
-        {videoState === 'error' && (/* Error state */
-      <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-400 bg-background-level-3">
+        {videoState === 'error' && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-400 bg-background-level-3">
             <p className="text-text-icon-01 text-base font-medium mb-200">Video unavailable</p>
             <p className="text-text-icon-02 text-sm mb-400">There was a problem loading this video</p>
-          </div>)}
+          </div>
+        )}
 
-        {videoState === 'empty' && (/* Empty state */
-      <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-400 bg-background-level-3">
+        {videoState === 'empty' && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-400 bg-background-level-3">
             <Square className="h-[60px] w-[60px] text-text-icon-02 mb-400" />
             <p className="text-text-icon-01 text-base font-medium mb-200">No video available at current position</p>
-          </div>)}
+          </div>
+        )}
 
         {videoState === 'playing' && <>
             {/* Video Element */}
             <div className="absolute inset-0 bg-background-level-3">
               {/* Actual video element */}
-              <video ref={videoRef} className={cn("w-full h-full object-cover", isTransitioning && "opacity-0 transition-opacity duration-500", !isTransitioning && "opacity-100 transition-opacity duration-500")} src={activeSegment?.url || ""} /* Will be populated with actual video source */ muted={true} autoPlay={true} playsInline aria-label={`${cameraType} camera video feed`} />
+              <video ref={videoRef} 
+                     className={cn("w-full h-full object-cover", 
+                                 isTransitioning && "opacity-0 transition-opacity duration-500", 
+                                 !isTransitioning && "opacity-100 transition-opacity duration-500")} 
+                     src={activeSegment?.url || ""} 
+                     muted={true} 
+                     autoPlay={true} 
+                     playsInline 
+                     aria-label={`${cameraType} camera video feed`} />
             </div>
 
             {/* Top overlay - Camera badge only */}

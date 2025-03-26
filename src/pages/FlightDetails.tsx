@@ -404,8 +404,8 @@ const FlightDetails = () => {
         </ToggleGroup>
       </header>
       
-      {/* Main Content Area - Three Column Layout */}
-      <main className="flex-1 p-400 overflow-hidden">
+      {/* Main Content Area - Three Column Layout - Adjusted height to prevent timeline overlap */}
+      <main className="flex-1 p-400 pb-0 overflow-hidden" style={{ maxHeight: 'calc(100vh - 230px)' }}>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-200 h-full">
           {/* Video Panel */}
           <div className={`bg-background-level-2 rounded-200 p-400 flex flex-col ${viewMode === 'video' ? 'lg:col-span-12' : viewMode === 'split' ? 'lg:col-span-5' : 'hidden lg:block lg:col-span-5'}`}>
@@ -460,8 +460,8 @@ const FlightDetails = () => {
         </div>
       </main>
       
-      {/* Bottom Section - Timeline */}
-      <footer className="bg-background-level-1">
+      {/* Bottom Section - Timeline - Now with fixed height */}
+      <footer className="bg-background-level-1" style={{ height: '200px' }}>
         <FlightTimeline currentPosition={timelinePosition} videoSegments={videoSegments} flightDuration="00:25:30" onPositionChange={handleTimelinePositionChange} missionPhases={missionPhases} systemEvents={systemEvents} warningEvents={warningEvents} mediaActions={mediaActions} />
       </footer>
     </div>;
