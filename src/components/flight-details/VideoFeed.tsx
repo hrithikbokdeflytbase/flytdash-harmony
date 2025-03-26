@@ -11,6 +11,17 @@ type CameraType = 'wide' | 'zoom' | 'thermal';
 
 type VideoState = 'loading' | 'error' | 'empty' | 'playing';
 
+type VideoSegment = {
+  startTime: string; // Format: "HH:MM:SS"
+  endTime: string;   // Format: "HH:MM:SS"
+  url: string;
+};
+
+interface TimelinePosition {
+  timestamp: string; // Format: "HH:MM:SS"
+  hasVideo: boolean;
+}
+
 type VideoFeedProps = {
   isRecording?: boolean;
   currentTimestamp?: string;
@@ -18,6 +29,9 @@ type VideoFeedProps = {
   hasVideoContent?: boolean;
   videoState?: VideoState;
   recordingDuration?: string;
+  timelinePosition?: TimelinePosition;
+  videoSegments?: VideoSegment[];
+  onPositionUpdate?: (position: string) => void;
 };
 
 const VideoFeed: React.FC<VideoFeedProps> = ({
@@ -27,6 +41,9 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
   hasVideoContent = false,
   videoState = 'empty',
   recordingDuration = '00:00:00',
+  timelinePosition,
+  videoSegments = [],
+  onPositionUpdate,
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -37,15 +54,30 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [prevCameraType, setPrevCameraType] = useState<CameraType>(cameraType);
   const [showCameraSwitch, setShowCameraSwitch] = useState(false);
+  const [activeSegment, setActiveSegment] = useState<VideoSegment | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [prevTimelinePosition, setPrevTimelinePosition] = useState<string | undefined>(timelinePosition?.timestamp);
+  const [positionChanged, setPositionChanged] = useState(false);
   
   const videoContainerRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const progressTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   // For demo purposes, simulate video progress
   useEffect(() => {
     if (isPlaying && hasVideoContent) {
       progressTimeoutRef.current = setTimeout(() => {
-        setProgress(prev => (prev < 100 ? prev + 0.5 : 0));
+        setProgress(prev => {
+          const newProgress = prev < 100 ? prev + 0.5 : 0;
+          
+          // If we have the onPositionUpdate callback, use it to update the timeline position
+          if (onPositionUpdate) {
+            const currentTime = progressToTime(newProgress);
+            onPositionUpdate(currentTime);
+          }
+          
+          return newProgress;
+        });
       }, 200);
     }
     return () => {
@@ -53,7 +85,7 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
         clearTimeout(progressTimeoutRef.current);
       }
     };
-  }, [isPlaying, progress, hasVideoContent]);
+  }, [isPlaying, progress, hasVideoContent, onPositionUpdate]);
 
   // Detect camera type changes
   useEffect(() => {
@@ -67,6 +99,92 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
       return () => clearTimeout(timer);
     }
   }, [cameraType, prevCameraType, hasVideoContent]);
+
+  // Handle timeline position changes
+  useEffect(() => {
+    if (!timelinePosition) return;
+    
+    // Check if timeline position has changed
+    if (timelinePosition.timestamp !== prevTimelinePosition) {
+      setPrevTimelinePosition(timelinePosition.timestamp);
+      
+      // Show position changed indicator
+      setPositionChanged(true);
+      setTimeout(() => setPositionChanged(false), 2000);
+      
+      // If we have video content at this position
+      if (timelinePosition.hasVideo) {
+        // Find the appropriate video segment
+        const segment = findVideoSegmentForTimestamp(timelinePosition.timestamp);
+        
+        if (segment) {
+          // Start transition effect
+          setIsTransitioning(true);
+          
+          // Set the active segment after a short delay to simulate loading
+          setTimeout(() => {
+            setActiveSegment(segment);
+            setIsTransitioning(false);
+            
+            // Calculate progress based on position within segment
+            const segmentProgress = calculateProgressInSegment(timelinePosition.timestamp, segment);
+            setProgress(segmentProgress);
+            
+            // If video element exists, seek to the correct position
+            if (videoRef.current) {
+              const segmentDurationInSeconds = timeToSeconds(segment.endTime) - timeToSeconds(segment.startTime);
+              const positionInSegment = timeToSeconds(timelinePosition.timestamp) - timeToSeconds(segment.startTime);
+              videoRef.current.currentTime = positionInSegment;
+            }
+            
+            // Update video state if needed
+            if (videoState !== 'playing') {
+              videoState = 'playing';
+            }
+          }, 500);
+        } else {
+          // No segment found for this timestamp despite hasVideo being true
+          console.warn("No video segment found for timestamp", timelinePosition.timestamp);
+        }
+      } else {
+        // No video at this position
+        videoState = 'empty';
+        setActiveSegment(null);
+      }
+    }
+  }, [timelinePosition, prevTimelinePosition, videoState, hasVideoContent]);
+
+  // Find the appropriate video segment for a given timestamp
+  const findVideoSegmentForTimestamp = (timestamp: string): VideoSegment | null => {
+    // Convert timestamp to seconds for easier comparison
+    const timeInSeconds = timeToSeconds(timestamp);
+    
+    // Find a segment that contains this timestamp
+    const segment = videoSegments.find(seg => {
+      const startSeconds = timeToSeconds(seg.startTime);
+      const endSeconds = timeToSeconds(seg.endTime);
+      return timeInSeconds >= startSeconds && timeInSeconds <= endSeconds;
+    });
+    
+    return segment || null;
+  };
+
+  // Calculate progress percentage within a segment
+  const calculateProgressInSegment = (timestamp: string, segment: VideoSegment): number => {
+    const timeInSeconds = timeToSeconds(timestamp);
+    const startSeconds = timeToSeconds(segment.startTime);
+    const endSeconds = timeToSeconds(segment.endTime);
+    const segmentDuration = endSeconds - startSeconds;
+    const positionInSegment = timeInSeconds - startSeconds;
+    
+    return (positionInSegment / segmentDuration) * 100;
+  };
+
+  // Convert "HH:MM:SS" format to seconds
+  const timeToSeconds = (timeString: string): number => {
+    const [hours, minutes, seconds] = timeString.split(':').map(Number);
+    return hours * 3600 + minutes * 60 + seconds;
+  };
 
   // Toggle fullscreen
   const toggleFullscreen = () => {
@@ -147,13 +265,54 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
     return <Volume2 className="w-5 h-5" />;
   };
 
+  // Determine if there are segments available before or after the current one
+  const hasPreviousSegment = (): boolean => {
+    if (!activeSegment || videoSegments.length <= 1) return false;
+    const currentIndex = videoSegments.findIndex(seg => seg === activeSegment);
+    return currentIndex > 0;
+  };
+
+  const hasNextSegment = (): boolean => {
+    if (!activeSegment || videoSegments.length <= 1) return false;
+    const currentIndex = videoSegments.findIndex(seg => seg === activeSegment);
+    return currentIndex < videoSegments.length - 1;
+  };
+
+  // Preload adjacent video segments
+  useEffect(() => {
+    if (!activeSegment) return;
+    
+    // In a real implementation, you would create hidden video elements 
+    // to preload the next and previous segments
+    const preloadNextSegment = () => {
+      if (hasNextSegment()) {
+        const currentIndex = videoSegments.findIndex(seg => seg === activeSegment);
+        const nextSegment = videoSegments[currentIndex + 1];
+        
+        const preloadLink = document.createElement('link');
+        preloadLink.rel = 'preload';
+        preloadLink.as = 'video';
+        preloadLink.href = nextSegment.url;
+        document.head.appendChild(preloadLink);
+        
+        // Clean up
+        return () => {
+          document.head.removeChild(preloadLink);
+        };
+      }
+    };
+    
+    const cleanup = preloadNextSegment();
+    return cleanup;
+  }, [activeSegment, videoSegments]);
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between mb-300">
         <h2 className="fb-title1-medium text-text-icon-01">Video Feed</h2>
         <div className="flex items-center text-text-icon-02">
           <Clock className="w-4 h-4 mr-2" />
-          <span>{currentTimestamp}</span>
+          <span>{timelinePosition?.timestamp || currentTimestamp}</span>
         </div>
       </div>
 
@@ -195,7 +354,7 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-400 bg-background-level-3">
             <LayoutGrid className="h-[60px] w-[60px] text-text-icon-02 mb-400" />
             <p className="text-text-icon-01 text-base font-medium mb-200">No video recorded at this time</p>
-            <p className="text-text-icon-02 text-sm mb-400">Current position: {currentTimestamp}</p>
+            <p className="text-text-icon-02 text-sm mb-400">Current position: {timelinePosition?.timestamp || currentTimestamp}</p>
             <Button variant="secondary" size="sm">
               Jump to nearest video
             </Button>
@@ -206,12 +365,60 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
           <>
             {/* Video Element */}
             <div className="absolute inset-0 bg-background-level-3">
+              {/* Actual video element */}
               <video 
-                className="w-full h-full object-cover" 
-                src="" /* Will be populated with actual video source */
+                ref={videoRef}
+                className={cn(
+                  "w-full h-full object-cover",
+                  isTransitioning && "opacity-0 transition-opacity duration-500",
+                  !isTransitioning && "opacity-100 transition-opacity duration-500"
+                )}
+                src={activeSegment?.url || ""} /* Will be populated with actual video source */
                 muted={isMuted}
+                autoPlay={isPlaying}
+                playsInline
                 aria-label={`${cameraType} camera video feed`}
               />
+              
+              {/* Video segment indicators */}
+              {videoState === 'playing' && (
+                <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-background-level-4">
+                  {videoSegments.map((segment, index) => {
+                    // Calculate start and end percentages based on segment times
+                    const startTime = timeToSeconds(segment.startTime);
+                    const endTime = timeToSeconds(segment.endTime);
+                    const totalTime = timeToSeconds('05:30:00'); // Assuming total timeline is 5:30:00
+                    
+                    const startPercent = (startTime / totalTime) * 100;
+                    const endPercent = (endTime / totalTime) * 100;
+                    const segmentWidth = endPercent - startPercent;
+                    
+                    const isActive = activeSegment === segment;
+                    
+                    return (
+                      <div 
+                        key={index}
+                        className={cn(
+                          "absolute h-full",
+                          isActive ? "bg-primary-200" : "bg-primary-200/30"
+                        )}
+                        style={{
+                          left: `${startPercent}%`,
+                          width: `${segmentWidth}%`
+                        }}
+                        title={`Video segment ${segment.startTime} - ${segment.endTime}`}
+                      />
+                    );
+                  })}
+                </div>
+              )}
+              
+              {/* Timeline position changed indicator */}
+              {positionChanged && (
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black/60 text-white px-4 py-2 rounded animate-fade-in">
+                  Position updated to {timelinePosition?.timestamp}
+                </div>
+              )}
               
               {/* Semi-transparent overlay when paused */}
               {!isPlaying && hasVideoContent && (
@@ -266,6 +473,11 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
                   </Badge>
                 </div>
               )}
+
+              {/* Current position indicator (bottom-right) */}
+              <div className="absolute bottom-12 right-4 bg-black/60 text-white text-sm py-1 px-2 rounded">
+                {timelinePosition?.timestamp || currentTimestamp}
+              </div>
 
               {/* Bottom overlay - Video progress & controls */}
               <div 

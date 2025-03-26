@@ -12,6 +12,19 @@ type ViewMode = 'map' | 'video' | 'split';
 // Video state type
 type VideoState = 'loading' | 'error' | 'empty' | 'playing';
 
+// Timeline position type
+interface TimelinePosition {
+  timestamp: string; // Format: "HH:MM:SS"
+  hasVideo: boolean;
+}
+
+// Video segment type
+type VideoSegment = {
+  startTime: string; // Format: "HH:MM:SS"
+  endTime: string;   // Format: "HH:MM:SS"
+  url: string;
+};
+
 const FlightDetails = () => {
   const { flightId } = useParams();
   const navigate = useNavigate();
@@ -24,6 +37,19 @@ const FlightDetails = () => {
   const [cameraType, setCameraType] = useState<'wide' | 'zoom' | 'thermal'>('wide');
   const [recordingDuration, setRecordingDuration] = useState('00:03:45');
   
+  // Timeline synchronization state
+  const [timelinePosition, setTimelinePosition] = useState<TimelinePosition>({
+    timestamp: '00:15:32',
+    hasVideo: false
+  });
+  
+  // Mock video segments (would come from API in real app)
+  const [videoSegments, setVideoSegments] = useState<VideoSegment[]>([
+    { startTime: '00:10:00', endTime: '00:12:30', url: '/videos/segment1.mp4' },
+    { startTime: '00:15:00', endTime: '00:18:45', url: '/videos/segment2.mp4' },
+    { startTime: '00:22:15', endTime: '00:25:00', url: '/videos/segment3.mp4' }
+  ]);
+  
   // Simulate loading state and transitions for demo purposes
   useEffect(() => {
     // First show loading state
@@ -31,7 +57,20 @@ const FlightDetails = () => {
     
     // Then transition to either empty or playing after 2 seconds
     const loadTimer = setTimeout(() => {
-      if (Math.random() > 0.3) { // 70% chance of success
+      // Check if current timeline position is within a video segment
+      const currentPositionHasVideo = videoSegments.some(segment => {
+        const timeInSeconds = timeToSeconds(timelinePosition.timestamp);
+        const startInSeconds = timeToSeconds(segment.startTime);
+        const endInSeconds = timeToSeconds(segment.endTime);
+        return timeInSeconds >= startInSeconds && timeInSeconds <= endInSeconds;
+      });
+      
+      setTimelinePosition(prev => ({
+        ...prev,
+        hasVideo: currentPositionHasVideo
+      }));
+      
+      if (currentPositionHasVideo) {
         setVideoState('playing');
         setHasVideo(true);
       } else {
@@ -42,6 +81,12 @@ const FlightDetails = () => {
     
     return () => clearTimeout(loadTimer);
   }, []);
+  
+  // Convert "HH:MM:SS" format to seconds for comparison
+  const timeToSeconds = (timeString: string): number => {
+    const [hours, minutes, seconds] = timeString.split(':').map(Number);
+    return hours * 3600 + minutes * 60 + seconds;
+  };
   
   // Simulate camera type switching for demo purposes
   useEffect(() => {
@@ -55,6 +100,44 @@ const FlightDetails = () => {
     
     return () => clearInterval(cameraTimer);
   }, []);
+  
+  // Handle timeline position updates (would be triggered by timeline interactions)
+  const handleTimelinePositionChange = (newPosition: string) => {
+    // Check if the new position has video content
+    const positionHasVideo = videoSegments.some(segment => {
+      const timeInSeconds = timeToSeconds(newPosition);
+      const startInSeconds = timeToSeconds(segment.startTime);
+      const endInSeconds = timeToSeconds(segment.endTime);
+      return timeInSeconds >= startInSeconds && timeInSeconds <= endInSeconds;
+    });
+    
+    setTimelinePosition({
+      timestamp: newPosition,
+      hasVideo: positionHasVideo
+    });
+    
+    // Update video state based on whether there's video content
+    if (positionHasVideo) {
+      setVideoState('playing');
+      setHasVideo(true);
+    } else {
+      setVideoState('empty');
+      setHasVideo(false);
+    }
+    
+    console.log(`Timeline position updated to ${newPosition} (has video: ${positionHasVideo})`);
+  };
+  
+  // Handle position updates from video feed (e.g., during playback)
+  const handleVideoPositionUpdate = (position: string) => {
+    // Update the timestamp but don't change the hasVideo property
+    setTimelinePosition(prev => ({
+      ...prev,
+      timestamp: position
+    }));
+    
+    setTimestamp(position);
+  };
   
   // Fetch flight details (placeholder)
   useEffect(() => {
@@ -107,6 +190,9 @@ const FlightDetails = () => {
               isRecording={hasVideo} // Just for demo
               videoState={videoState}
               recordingDuration={recordingDuration}
+              timelinePosition={timelinePosition}
+              videoSegments={videoSegments}
+              onPositionUpdate={handleVideoPositionUpdate}
             />
           </div>
           
@@ -141,7 +227,7 @@ const FlightDetails = () => {
                 </div>
                 <div className="p-300 bg-background-level-4 rounded-200">
                   <h3 className="fb-body1-medium text-text-icon-01">Flight Time</h3>
-                  <p className="text-text-icon-02">00:15:32</p>
+                  <p className="text-text-icon-02">{timelinePosition.timestamp}</p>
                 </div>
               </div>
             </div>
@@ -153,8 +239,68 @@ const FlightDetails = () => {
       <footer className="bg-background-level-1 h-[240px] p-400">
         <div className="bg-background-level-2 h-full rounded-200 p-400">
           <h2 className="fb-title1-medium text-text-icon-01 mb-300">Flight Timeline</h2>
-          <div className="bg-background-level-3 h-[160px] rounded-200 flex items-center justify-center">
-            <p className="text-text-icon-02">Timeline data will be displayed here</p>
+          {/* Timeline with video segment indicators */}
+          <div className="bg-background-level-3 h-[160px] rounded-200 flex flex-col">
+            <div className="flex-1 flex items-center justify-center relative">
+              {/* Video segment markers */}
+              <div className="absolute left-0 right-0 h-[20px] top-1/2 transform -translate-y-1/2">
+                {videoSegments.map((segment, index) => {
+                  // Calculate segment position and width as percentage of timeline
+                  const timelineStart = timeToSeconds('00:00:00');
+                  const timelineEnd = timeToSeconds('05:30:00'); // Total flight duration
+                  const duration = timelineEnd - timelineStart;
+                  
+                  const segmentStart = timeToSeconds(segment.startTime);
+                  const segmentEnd = timeToSeconds(segment.endTime);
+                  
+                  const startPercent = ((segmentStart - timelineStart) / duration) * 100;
+                  const endPercent = ((segmentEnd - timelineStart) / duration) * 100;
+                  const width = endPercent - startPercent;
+                  
+                  return (
+                    <div
+                      key={index}
+                      className="absolute h-full bg-primary-200 rounded-[4px]"
+                      style={{
+                        left: `${startPercent}%`,
+                        width: `${width}%`
+                      }}
+                      title={`Video segment: ${segment.startTime} - ${segment.endTime}`}
+                      onClick={() => handleTimelinePositionChange(segment.startTime)}
+                      role="button"
+                      tabIndex={0}
+                    />
+                  );
+                })}
+                
+                {/* Current position indicator */}
+                <div 
+                  className="absolute top-0 bottom-0 w-[2px] bg-white transform translate-x(-50%)"
+                  style={{
+                    left: `${((timeToSeconds(timelinePosition.timestamp) - timeToSeconds('00:00:00')) / (timeToSeconds('05:30:00') - timeToSeconds('00:00:00'))) * 100}%`
+                  }}
+                >
+                  <div className="h-[12px] w-[12px] rounded-full bg-white absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+                </div>
+              </div>
+              
+              <p className="text-text-icon-02">
+                {!videoSegments.length 
+                  ? "No video segments available for this flight" 
+                  : `${videoSegments.length} video segments available. Click to navigate.`
+                }
+              </p>
+            </div>
+            
+            {/* Timestamp markers */}
+            <div className="h-[40px] flex justify-between px-[20px] items-center text-text-icon-02 text-xs">
+              <span>00:00:00</span>
+              <span>01:00:00</span>
+              <span>02:00:00</span>
+              <span>03:00:00</span>
+              <span>04:00:00</span>
+              <span>05:00:00</span>
+            </div>
           </div>
         </div>
       </footer>
