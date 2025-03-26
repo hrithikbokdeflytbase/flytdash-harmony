@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
@@ -9,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { DateRangeType } from './DateRangeFilter';
+import { DateRangeType, DateRangeIndicator, getDateRangeInfo } from './DateRangeFilter';
 import AdvancedFilters from './AdvancedFilters';
 import FilterChip from './FilterChip';
 import { cn } from '@/lib/utils';
@@ -105,6 +104,8 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
     }
   };
   
+  const dateRangeInfo = getDateRangeInfo(dateRange);
+  
   return (
     <div className="rounded-xl overflow-hidden shadow-sm border border-outline-primary">
       <div className="bg-background-level-3 p-400">
@@ -187,32 +188,37 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
           {/* Time Period Toggle Group */}
           <div>
             <Label className="text-sm text-text-icon-02 mb-100 block">Time Period</Label>
-            <ToggleGroup 
-              type="single" 
-              value={dateRange} 
-              onValueChange={(value) => value && onDateRangeChange(value as DateRangeType)}
-              className="h-10 bg-background-level-2 border border-[rgba(255,255,255,0.08)] rounded-lg"
-              disabled={isLoading}
-            >
-              <ToggleGroupItem 
-                value="daily" 
-                className="h-10 data-[state=on]:bg-primary-200 data-[state=on]:text-text-icon-01 rounded-md font-normal"
+            <div className="flex items-center">
+              <ToggleGroup 
+                type="single" 
+                value={dateRange} 
+                onValueChange={(value) => value && onDateRangeChange(value as DateRangeType)}
+                className="h-10 bg-background-level-2 border border-[rgba(255,255,255,0.08)] rounded-lg"
+                disabled={isLoading}
               >
-                Daily
-              </ToggleGroupItem>
-              <ToggleGroupItem 
-                value="weekly"
-                className="h-10 data-[state=on]:bg-primary-200 data-[state=on]:text-text-icon-01 rounded-md font-normal"
-              >
-                Weekly
-              </ToggleGroupItem>
-              <ToggleGroupItem 
-                value="monthly"
-                className="h-10 data-[state=on]:bg-primary-200 data-[state=on]:text-text-icon-01 rounded-md font-normal"
-              >
-                Monthly
-              </ToggleGroupItem>
-            </ToggleGroup>
+                <ToggleGroupItem 
+                  value="daily" 
+                  className="h-10 data-[state=on]:bg-primary-200 data-[state=on]:text-text-icon-01 rounded-md font-normal"
+                >
+                  Daily
+                </ToggleGroupItem>
+                <ToggleGroupItem 
+                  value="weekly"
+                  className="h-10 data-[state=on]:bg-primary-200 data-[state=on]:text-text-icon-01 rounded-md font-normal"
+                >
+                  Weekly
+                </ToggleGroupItem>
+                <ToggleGroupItem 
+                  value="monthly"
+                  className="h-10 data-[state=on]:bg-primary-200 data-[state=on]:text-text-icon-01 rounded-md font-normal"
+                >
+                  Monthly
+                </ToggleGroupItem>
+              </ToggleGroup>
+              
+              {/* New Date Range Indicator */}
+              <DateRangeIndicator dateRange={dateRange} />
+            </div>
           </div>
 
           {/* Operation Type Filter */}
@@ -308,7 +314,6 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
         )}
       </div>
 
-      {/* Advanced Filters Panel with animation */}
       {showAdvancedFilters && (
         <div className="animate-accordion-down">
           <AdvancedFilters 
