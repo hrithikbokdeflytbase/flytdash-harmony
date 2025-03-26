@@ -1,10 +1,12 @@
+
 import React, { useState } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Activity, Clock, Network } from 'lucide-react';
+import { Activity, Clock, Network, Battery } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Card, CardContent } from '@/components/ui/card';
 
-// Import our new components
+// Import our components
 import TelemetryMetricCard from './TelemetryMetricCard';
 import ConnectionStatusCard from './ConnectionStatusCard';
 import BatteryStatusCard from './BatteryStatusCard';
@@ -126,28 +128,28 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
   };
 
   return (
-    <div 
-      className="fixed-width-panel bg-background-bg border-l border-outline-primary flex flex-col h-full overflow-hidden"
+    <Card 
+      className="fixed-width-panel border-l border-outline-primary flex flex-col h-full overflow-hidden"
       style={{ width: '380px' }}
     >
       {/* Header Section */}
-      <div className="flex items-center justify-between px-400 h-[50px] border-b border-outline-primary">
-        <div className="flex items-center gap-200">
+      <div className="flex items-center justify-between px-4 h-[50px] border-b border-outline-primary">
+        <div className="flex items-center gap-2">
           <Badge 
             variant="flight"
-            className="bg-primary-200 text-text-icon-01 rounded-[10px] py-1 px-300 text-xs font-medium"
+            className="bg-primary-200 text-text-icon-01 rounded-[10px] py-1 px-3 text-xs font-medium"
           >
             {flightMode}
           </Badge>
           <span className="text-text-icon-02 fb-body1-medium">{flightId}</span>
         </div>
-        <div className="bg-background-level-2 px-300 py-1 rounded-200">
+        <div className="bg-background-level-3 px-3 py-1 rounded-md">
           <span className="text-text-icon-01 fb-body2-regular">{timestamp}</span>
         </div>
       </div>
 
       {/* Tab Navigation */}
-      <div className="h-[45px] bg-background-level-1">
+      <div className="h-[45px] border-b border-outline-primary">
         <Tabs 
           defaultValue="telemetry" 
           className="w-full" 
@@ -157,18 +159,18 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
           <TabsList className="flex w-full h-[45px] bg-transparent">
             <TabsTrigger 
               value="telemetry" 
-              className="flex-1 h-full rounded-none data-[state=active]:bg-background-level-2 data-[state=active]:text-text-icon-01 data-[state=inactive]:text-text-icon-02 relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-primary-200 after:transform after:scale-x-0 data-[state=active]:after:scale-x-100 after:transition-transform"
+              className="flex-1 h-full rounded-none data-[state=active]:bg-transparent data-[state=active]:text-text-icon-01 data-[state=inactive]:text-text-icon-02 relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-primary-200 after:transform after:scale-x-0 data-[state=active]:after:scale-x-100 after:transition-transform"
             >
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-2">
                 <Activity className="w-4 h-4" />
                 Telemetry
               </div>
             </TabsTrigger>
             <TabsTrigger 
               value="timeline" 
-              className="flex-1 h-full rounded-none data-[state=active]:bg-background-level-2 data-[state=active]:text-text-icon-01 data-[state=inactive]:text-text-icon-02 relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-primary-200 after:transform after:scale-x-0 data-[state=active]:after:scale-x-100 after:transition-transform"
+              className="flex-1 h-full rounded-none data-[state=active]:bg-transparent data-[state=active]:text-text-icon-01 data-[state=inactive]:text-text-icon-02 relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-primary-200 after:transform after:scale-x-0 data-[state=active]:after:scale-x-100 after:transition-transform"
             >
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4" />
                 Timeline
               </div>
@@ -181,23 +183,27 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
             <div className="space-y-0">
               {/* Telemetry Header */}
               <SectionHeader title="Drone Telemetry">
-                <div className="flex items-center gap-100">
-                  <div className="w-[8px] h-[8px] rounded-full bg-success-200"></div>
-                  <span className="text-[10px] text-text-icon-01">GPS {telemetryData.gpsStatus.count}</span>
+                <div className="flex items-center gap-1">
+                  <div className="w-2 h-2 rounded-full bg-success-200"></div>
+                  <span className="text-xs text-text-icon-01">GPS {telemetryData.gpsStatus.count}</span>
                 </div>
               </SectionHeader>
               
               {/* Battery Section */}
-              <div className="p-400">
-                <BatteryStatusCard 
-                  percentage={telemetryData.battery.percentage}
-                  estimatedRemaining={telemetryData.battery.estimatedRemaining}
-                />
+              <div className="px-4 py-2">
+                <Card className="bg-background-level-3 border-outline-primary">
+                  <CardContent className="p-4">
+                    <BatteryStatusCard 
+                      percentage={telemetryData.battery.percentage}
+                      estimatedRemaining={telemetryData.battery.estimatedRemaining}
+                    />
+                  </CardContent>
+                </Card>
               </div>
               
               {/* Telemetry Metrics Grid */}
-              <div className="px-400 py-200">
-                <div className="grid grid-cols-2 gap-x-[16px] gap-y-[24px]">
+              <div className="px-4 py-4">
+                <div className="grid grid-cols-2 gap-x-4 gap-y-6">
                   {/* Left Column */}
                   <TelemetryMetricCard 
                     label="Altitude" 
@@ -239,25 +245,39 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
               </div>
               
               {/* Network Section */}
-              <div className="mt-200">
+              <div className="mt-2 pb-4">
                 <SectionHeader title="Network" icon={Network} />
                 
-                <div className="p-400 space-y-300">
-                  <ConnectionStatusCard 
-                    label="Dock Drone RF Link"
-                    status={telemetryData.connections.rfLink.status}
-                    details={telemetryData.connections.rfLink.details}
-                  />
-                  <ConnectionStatusCard 
-                    label="Dock Ethernet"
-                    status={telemetryData.connections.ethernet.status}
-                    details={telemetryData.connections.ethernet.details}
-                  />
-                  <ConnectionStatusCard 
-                    label="Dock 4G"
-                    status={telemetryData.connections.cellular.status}
-                    details={telemetryData.connections.cellular.details}
-                  />
+                <div className="px-4 pt-2 space-y-3">
+                  <Card className="bg-background-level-3 border-outline-primary">
+                    <CardContent className="p-3">
+                      <ConnectionStatusCard 
+                        label="Dock Drone RF Link"
+                        status={telemetryData.connections.rfLink.status}
+                        details={telemetryData.connections.rfLink.details}
+                      />
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="bg-background-level-3 border-outline-primary">
+                    <CardContent className="p-3">
+                      <ConnectionStatusCard 
+                        label="Dock Ethernet"
+                        status={telemetryData.connections.ethernet.status}
+                        details={telemetryData.connections.ethernet.details}
+                      />
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="bg-background-level-3 border-outline-primary">
+                    <CardContent className="p-3">
+                      <ConnectionStatusCard 
+                        label="Dock 4G"
+                        status={telemetryData.connections.cellular.status}
+                        details={telemetryData.connections.cellular.details}
+                      />
+                    </CardContent>
+                  </Card>
                 </div>
               </div>
             </div>
@@ -265,9 +285,9 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
           
           <TabsContent value="timeline" className="p-0">
             {/* Timeline placeholder */}
-            <div className="flex flex-col items-center justify-center space-y-400 h-[400px] text-center p-400 text-text-icon-02 border border-dashed border-outline-primary mx-400 my-400 rounded-md">
+            <div className="flex flex-col items-center justify-center space-y-4 h-[400px] text-center p-4 text-text-icon-02 border border-dashed border-outline-primary mx-4 my-4 rounded-md">
               <Clock size={48} className="text-primary-200 opacity-50" />
-              <div className="space-y-200">
+              <div className="space-y-2">
                 <h3 className="text-lg text-text-icon-01">Timeline View</h3>
                 <p className="text-sm">Flight timeline details will be implemented in the next step.</p>
               </div>
@@ -275,7 +295,7 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+    </Card>
   );
 };
 

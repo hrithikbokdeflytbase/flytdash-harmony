@@ -16,11 +16,11 @@ const TelemetryMetricCard: React.FC<TelemetryMetricCardProps> = ({
   className
 }) => {
   return (
-    <div className={cn("space-y-100", className)}>
-      <span className="text-[10px] text-text-icon-02 block">{label}</span>
-      <span className="text-md text-text-icon-01 font-medium">
+    <div className={cn("space-y-2", className)}>
+      <span className="text-xs text-text-icon-02 block">{label}</span>
+      <span className="text-xl text-text-icon-01 font-medium">
         {value}
-        {unit && <span> {unit}</span>}
+        {unit && <span className="text-lg ml-1">{unit}</span>}
       </span>
     </div>
   );
