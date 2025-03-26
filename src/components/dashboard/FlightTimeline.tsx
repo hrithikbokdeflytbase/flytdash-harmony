@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { BarChart, XAxis, YAxis, Bar, Tooltip, CartesianGrid, Legend } from 'recharts';
 import { Loader, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -388,7 +387,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
           <ChartContainer config={chartConfig} className="w-full h-[350px]">
             <BarChart 
               data={data} 
-              margin={{ top: 10, right: 30, left: 20, bottom: 30 }}
+              margin={{ top: 10, right: 30, left: 20, bottom: 45 }}
               width={800}
               height={350}
             >
@@ -397,10 +396,10 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
                 dataKey="name" 
                 tick={{ fill: 'rgba(255,255,255,0.54)' }} 
                 axisLine={{ stroke: 'rgba(255,255,255,0.12)' }}
-                tickMargin={15}
+                tickMargin={25}
                 scale="point"
                 padding={{ left: 30, right: 30 }}
-                height={30}
+                height={45}
                 tickSize={0}
               />
               <YAxis 
