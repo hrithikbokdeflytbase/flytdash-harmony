@@ -36,16 +36,34 @@ interface FailedFlightsPopupProps {
   totalCount: number;
 }
 
-// Updated failure data with generic error messages
-const failureData = [
+// Define error severity types
+type ErrorSeverity = 'critical' | 'warning';
+
+interface FlightError {
+  id: string;
+  date: string;
+  type: string;
+  details: string;
+  severity: ErrorSeverity;
+}
+
+interface ErrorCategory {
+  cause: string;
+  count: number;
+  icon: React.ElementType;
+  flights: FlightError[];
+}
+
+// Updated failure data with generic error messages and severity levels
+const failureData: ErrorCategory[] = [
   {
     cause: 'Airspace Issues',
     count: 3,
     icon: AlertCircle,
     flights: [
-      { id: 'Flight #1204', date: 'Mar 19', type: 'Site Survey', details: 'Aircraft Detected' },
-      { id: 'Flight #1198', date: 'Mar 18', type: 'Perimeter Scan', details: 'Restricted Airspace' },
-      { id: 'Flight #1187', date: 'Mar 16', type: 'Equipment Check', details: 'Aircraft Approaching' },
+      { id: 'Flight #1204', date: 'Mar 19', type: 'Site Survey', details: 'Aircraft Detected', severity: 'critical' },
+      { id: 'Flight #1198', date: 'Mar 18', type: 'Perimeter Scan', details: 'Restricted Airspace', severity: 'critical' },
+      { id: 'Flight #1187', date: 'Mar 16', type: 'Equipment Check', details: 'Aircraft Approaching', severity: 'warning' },
     ]
   },
   {
@@ -53,9 +71,9 @@ const failureData = [
     count: 3,
     icon: Wind,
     flights: [
-      { id: 'Flight #1201', date: 'Mar 20', type: 'Inspection', details: 'High Wind Speed' },
-      { id: 'Flight #1195', date: 'Mar 17', type: 'Site Survey', details: 'Rain Detected' },
-      { id: 'Flight #1183', date: 'Mar 15', type: 'GTL', details: 'Lightning Risk' },
+      { id: 'Flight #1201', date: 'Mar 20', type: 'Inspection', details: 'High Wind Speed', severity: 'warning' },
+      { id: 'Flight #1195', date: 'Mar 17', type: 'Site Survey', details: 'Rain Detected', severity: 'critical' },
+      { id: 'Flight #1183', date: 'Mar 15', type: 'GTL', details: 'Lightning Risk', severity: 'critical' },
     ]
   },
   {
@@ -63,9 +81,9 @@ const failureData = [
     count: 3,
     icon: Shield,
     flights: [
-      { id: 'Flight #1192', date: 'Mar 17', type: 'Manual Flight', details: 'NFZ Breach' },
-      { id: 'Flight #1185', date: 'Mar 16', type: 'Mission', details: 'Geofence Breach' },
-      { id: 'Flight #1176', date: 'Mar 14', type: 'Perimeter Scan', details: 'Max Altitude Limit' },
+      { id: 'Flight #1192', date: 'Mar 17', type: 'Manual Flight', details: 'NFZ Breach', severity: 'critical' },
+      { id: 'Flight #1185', date: 'Mar 16', type: 'Mission', details: 'Geofence Breach', severity: 'warning' },
+      { id: 'Flight #1176', date: 'Mar 14', type: 'Perimeter Scan', details: 'Max Altitude Limit', severity: 'warning' },
     ]
   },
   {
@@ -73,8 +91,8 @@ const failureData = [
     count: 2,
     icon: MapPin,
     flights: [
-      { id: 'Flight #1178', date: 'Mar 14', type: 'Infrastructure', details: 'GPS Signal Loss' },
-      { id: 'Flight #1177', date: 'Mar 14', type: 'Inspection', details: 'Compass Interference' },
+      { id: 'Flight #1178', date: 'Mar 14', type: 'Infrastructure', details: 'GPS Signal Loss', severity: 'warning' },
+      { id: 'Flight #1177', date: 'Mar 14', type: 'Inspection', details: 'Compass Interference', severity: 'warning' },
     ]
   },
   {
@@ -82,8 +100,8 @@ const failureData = [
     count: 2,
     icon: Battery,
     flights: [
-      { id: 'Flight #1190', date: 'Mar 16', type: 'GTL', details: 'Critical Battery Level' },
-      { id: 'Flight #1186', date: 'Mar 15', type: 'Site Survey', details: 'Battery Cell Imbalance' },
+      { id: 'Flight #1190', date: 'Mar 16', type: 'GTL', details: 'Critical Battery Level', severity: 'critical' },
+      { id: 'Flight #1186', date: 'Mar 15', type: 'Site Survey', details: 'Battery Cell Imbalance', severity: 'warning' },
     ]
   },
   {
@@ -91,8 +109,8 @@ const failureData = [
     count: 2,
     icon: Cpu,
     flights: [
-      { id: 'Flight #1188', date: 'Mar 16', type: 'Mission', details: 'IMU Calibration Error' },
-      { id: 'Flight #1182', date: 'Mar 15', type: 'Manual Flight', details: 'Flight Controller Malfunction' },
+      { id: 'Flight #1188', date: 'Mar 16', type: 'Mission', details: 'IMU Calibration Error', severity: 'critical' },
+      { id: 'Flight #1182', date: 'Mar 15', type: 'Manual Flight', details: 'Flight Controller Malfunction', severity: 'critical' },
     ]
   }
 ];
@@ -114,6 +132,11 @@ const FailedFlightsPopup = ({ open, onOpenChange, failedCount, totalCount }: Fai
       document.body.style.overflow = 'unset';
     };
   }, [open]);
+
+  // Function to get the appropriate color class based on severity
+  const getSeverityColorClass = (severity: ErrorSeverity): string => {
+    return severity === 'critical' ? 'text-error-200' : 'text-caution-200';
+  };
 
   const handleFlightClick = (flightId: string) => {
     // Simulate navigation to flight detail page
@@ -188,7 +211,7 @@ const FailedFlightsPopup = ({ open, onOpenChange, failedCount, totalCount }: Fai
                           <div className="text-sm text-text-icon-02 mb-1">
                             {flight.type}
                           </div>
-                          <div className="text-sm text-error-200">
+                          <div className={`text-sm ${getSeverityColorClass(flight.severity)}`}>
                             {flight.details}
                           </div>
                         </div>
