@@ -1,7 +1,7 @@
 
 import React from 'react';
 import Header from './Header';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
 interface DashboardLayoutProps {
@@ -10,6 +10,8 @@ interface DashboardLayoutProps {
 }
 
 const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
+  const location = useLocation();
+  
   return (
     <div className="min-h-screen bg-background-bg">
       <Header title={title} />
@@ -21,7 +23,7 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
             to="/" 
             className={cn(
               "text-text-icon-02 hover:text-text-icon-01 fb-body1-medium transition-colors",
-              window.location.pathname === "/" && "text-primary-100 border-b-2 border-primary-100"
+              location.pathname === "/" && "text-primary-100 border-b-2 border-primary-100"
             )}
           >
             Dashboard
@@ -30,7 +32,7 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
             to="/all-logs" 
             className={cn(
               "text-text-icon-02 hover:text-text-icon-01 fb-body1-medium transition-colors",
-              window.location.pathname === "/all-logs" && "text-primary-100 border-b-2 border-primary-100"
+              location.pathname === "/all-logs" && "text-primary-100 border-b-2 border-primary-100"
             )}
           >
             All Logs
