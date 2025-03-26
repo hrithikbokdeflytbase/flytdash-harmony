@@ -23,29 +23,57 @@ interface FailedFlightsPopupProps {
   totalCount: number;
 }
 
-// Sample failure data - in a real app, this would come from props or an API
+// Updated failure data with the specified categories and examples
 const failureData = [
   {
-    cause: 'Battery Failure',
-    count: 2,
+    cause: 'Airspace Issues',
+    count: 3,
     flights: [
-      { id: 'F-2023-05', date: '2023-09-15', drone: 'DJI-001', details: 'Battery depleted mid-flight' },
-      { id: 'F-2023-12', date: '2023-09-22', drone: 'DJI-003', details: 'Battery connection issue' },
+      { id: 'Flight #1204', date: 'Mar 19', type: 'Site Survey', details: 'Aircraft Detected: 1.8km NE, 380ft above' },
+      { id: 'Flight #1198', date: 'Mar 18', type: 'Perimeter Scan', details: 'Restricted Airspace: 800m ahead' },
+      { id: 'Flight #1187', date: 'Mar 16', type: 'Equipment Check', details: 'Aircraft Approaching: 2.5km SW, 600ft above' },
     ]
   },
   {
-    cause: 'GPS Signal Loss',
-    count: 2,
+    cause: 'Weather Conditions',
+    count: 3,
     flights: [
-      { id: 'F-2023-08', date: '2023-09-18', drone: 'DJI-002', details: 'Lost GPS signal in urban canyon' },
-      { id: 'F-2023-15', date: '2023-09-25', drone: 'DJI-005', details: 'Weak GPS signal in heavy foliage' },
+      { id: 'Flight #1201', date: 'Mar 20', type: 'Inspection', details: 'High Wind Speed: 13.4 m/s, gusting to 16 m/s' },
+      { id: 'Flight #1195', date: 'Mar 17', type: 'Site Survey', details: 'Rain Detected in operation area' },
+      { id: 'Flight #1183', date: 'Mar 15', type: 'GTL', details: 'Lightning Risk: detected within 8km' },
     ]
   },
   {
-    cause: 'Software Malfunction',
-    count: 1,
+    cause: 'Zone Violations',
+    count: 3,
     flights: [
-      { id: 'F-2023-21', date: '2023-09-30', drone: 'DJI-004', details: 'Autopilot error during waypoint navigation' },
+      { id: 'Flight #1192', date: 'Mar 17', type: 'Manual Flight', details: 'NFZ Breach: 40m from No-Fly Zone boundary' },
+      { id: 'Flight #1185', date: 'Mar 16', type: 'Mission', details: 'Geofence Breach: 80m from boundary' },
+      { id: 'Flight #1176', date: 'Mar 14', type: 'Perimeter Scan', details: 'Max Altitude Limit: Exceeded by 15m' },
+    ]
+  },
+  {
+    cause: 'Navigation Issues',
+    count: 2,
+    flights: [
+      { id: 'Flight #1178', date: 'Mar 14', type: 'Infrastructure', details: 'GPS Signal Loss (8/14 satellites)' },
+      { id: 'Flight #1177', date: 'Mar 14', type: 'Inspection', details: 'Compass Interference Detected' },
+    ]
+  },
+  {
+    cause: 'Battery Issues',
+    count: 2,
+    flights: [
+      { id: 'Flight #1190', date: 'Mar 16', type: 'GTL', details: 'Critical Battery Level (12%)' },
+      { id: 'Flight #1186', date: 'Mar 15', type: 'Site Survey', details: 'Battery Cell Imbalance (0.4V)' },
+    ]
+  },
+  {
+    cause: 'System Failures',
+    count: 2,
+    flights: [
+      { id: 'Flight #1188', date: 'Mar 16', type: 'Mission', details: 'IMU Calibration Error' },
+      { id: 'Flight #1182', date: 'Mar 15', type: 'Manual Flight', details: 'Flight Controller Malfunction' },
     ]
   }
 ];
@@ -106,7 +134,7 @@ const FailedFlightsPopup = ({ open, onOpenChange, failedCount, totalCount }: Fai
                             <span className="text-sm text-text-icon-02">{flight.date}</span>
                           </div>
                           <div className="flex justify-between mb-1">
-                            <span className="text-sm text-text-icon-02">Drone: {flight.drone}</span>
+                            <span className="text-sm text-text-icon-02">Type: {flight.type}</span>
                           </div>
                           <div className="flex items-start">
                             <FileText className="h-4 w-4 text-text-icon-02 mt-0.5 mr-2" />
@@ -136,15 +164,19 @@ const FailedFlightsPopup = ({ open, onOpenChange, failedCount, totalCount }: Fai
             <ul className="space-y-2 text-sm text-text-icon-02">
               <li className="flex items-start">
                 <span className="text-warning-200 mr-2">•</span>
-                <span>Battery failures account for 40% of all flight failures</span>
+                <span>Airspace and weather issues account for 35% of all flight failures</span>
               </li>
               <li className="flex items-start">
                 <span className="text-warning-200 mr-2">•</span>
-                <span>GPS signal issues are most common in heavily forested areas</span>
+                <span>Zone violations are most common during manual flight operations</span>
               </li>
               <li className="flex items-start">
                 <span className="text-warning-200 mr-2">•</span>
-                <span>Software malfunctions increased by 15% after the latest firmware update</span>
+                <span>Navigation issues increased by 15% in areas with dense foliage</span>
+              </li>
+              <li className="flex items-start">
+                <span className="text-warning-200 mr-2">•</span>
+                <span>Battery issues most frequently occur after 15 minutes of operation</span>
               </li>
             </ul>
           </div>

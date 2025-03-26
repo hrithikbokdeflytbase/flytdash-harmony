@@ -26,6 +26,10 @@ const Index = () => {
     }, 800);
   };
 
+  // Updated counts to match the failure data
+  const totalFlights = 30;
+  const failedFlights = 15; // Sum of all failures in the categories
+
   return (
     <DashboardLayout title="Flight Logs Dashboard">
       <div className="mb-600">
@@ -52,7 +56,7 @@ const Index = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-400">
           <MetricCard
             title="Total Flights"
-            value={isLoading ? <Loader className="w-6 h-6 animate-spin text-primary-100" /> : "287"}
+            value={isLoading ? <Loader className="w-6 h-6 animate-spin text-primary-100" /> : totalFlights.toString()}
             icon={Calendar}
             trend={{ value: 12, isPositive: true }}
             iconColor="text-primary-100"
@@ -61,7 +65,7 @@ const Index = () => {
           />
           <MetricCard
             title="Failed Flights"
-            value={isLoading ? <Loader className="w-6 h-6 animate-spin text-error-200" /> : "24"}
+            value={isLoading ? <Loader className="w-6 h-6 animate-spin text-error-200" /> : failedFlights.toString()}
             icon={AlertCircle}
             trend={{ value: 5, isPositive: false }}
             iconColor="text-error-200"
@@ -76,8 +80,8 @@ const Index = () => {
       <FailedFlightsPopup 
         open={failedFlightsPopupOpen}
         onOpenChange={setFailedFlightsPopupOpen}
-        failedCount={24}
-        totalCount={287}
+        failedCount={failedFlights}
+        totalCount={totalFlights}
       />
       
       {/* Flight Timeline Section */}
