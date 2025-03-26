@@ -568,7 +568,8 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
           <ChartContainer config={chartConfig} className="w-full h-[350px]">
             <BarChart 
               data={data} 
-              margin={{ top: 10, right: 30, left: 20, bottom: 45 }}
+              // Increase top margin to prevent "CURRENT" tag from being cut off
+              margin={{ top: 30, right: 30, left: 20, bottom: 45 }}
               width={800}
               height={350}
               onClick={handleBarClick}
