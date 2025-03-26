@@ -5,6 +5,12 @@ import { Loader, ChevronLeft, ChevronRight } from 'lucide-react';
 import { DateRangeType } from './DateRangeFilter';
 import { Button } from '@/components/ui/button';
 import { format, addDays, addWeeks, addMonths, subDays, subWeeks, subMonths, startOfDay, startOfWeek, startOfMonth, isSameDay, isSameWeek, isSameMonth } from 'date-fns';
+import { cn } from '@/lib/utils';
+import { 
+  ChartContainer, 
+  ChartTooltip, 
+  ChartTooltipContent 
+} from "@/components/ui/chart";
 
 type ViewType = 'total' | 'status';
 
@@ -105,6 +111,143 @@ const generateMockData = (dateRange: DateRangeType, viewType: ViewType, currentD
   return [];
 };
 
+// Enhanced CustomBar component with improved current period highlighting
+const CustomBar = (props: any) => {
+  const { x, y, width, height, isCurrent, fill, dataKey, ...rest } = props;
+  
+  // Different styling based on whether it's the current period
+  if (isCurrent) {
+    // For current period, use a gradient and special styling
+    const gradientId = `currentPeriodGradient-${dataKey}`;
+    const baseColor = fill;
+    const lighterColor = (() => {
+      // Create a lighter version of the base color for the gradient
+      // This is a simple approach; you could use a color library for more control
+      if (baseColor === '#3399FF') return '#66BBFF'; // For total flights
+      if (baseColor === '#1EAE6D') return '#25D684'; // For successful
+      if (baseColor === '#F8473A') return '#FF5F52'; // For failed 
+      if (baseColor === '#FDB022') return '#FFCC44'; // For aborted
+      return baseColor; // Fallback
+    })();
+    
+    return (
+      <g>
+        <defs>
+          <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={lighterColor} />
+            <stop offset="100%" stopColor={baseColor} />
+          </linearGradient>
+        </defs>
+        {/* Bar with gradient fill */}
+        <rect 
+          x={x} 
+          y={y} 
+          width={width} 
+          height={height} 
+          fill={`url(#${gradientId})`}
+          stroke="#fff"
+          strokeWidth={1}
+          strokeOpacity={0.3}
+          rx={4}
+          ry={4}
+          className="drop-shadow-md"
+          {...rest}
+        />
+        {/* Glow effect */}
+        <rect
+          x={x}
+          y={y + height - 4}
+          width={width}
+          height={4}
+          fill="#9b87f5"
+          rx={2}
+          className="animate-pulse"
+          style={{ filter: 'drop-shadow(0 0 3px rgba(155, 135, 245, 0.7))' }}
+        />
+        {/* Additional highlight dot at the top */}
+        <circle
+          cx={x + width / 2}
+          cy={y}
+          r={2}
+          fill="#fff"
+          className="animate-pulse"
+          style={{ filter: 'drop-shadow(0 0 2px rgba(255, 255, 255, 0.9))' }}
+        />
+      </g>
+    );
+  }
+  
+  // Regular bar for non-current periods
+  return (
+    <rect 
+      x={x} 
+      y={y} 
+      width={width} 
+      height={height} 
+      fill={fill}
+      rx={4}
+      ry={0}
+      {...rest}
+    />
+  );
+};
+
+// Custom tooltip component with improved styling
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    const isCurrentPeriod = payload[0]?.payload?.isCurrent;
+    
+    return (
+      <div className={cn(
+        "flybase-card p-300 border shadow-lg rounded-lg", 
+        isCurrentPeriod 
+          ? "border-primary-100 bg-background-level-2/90 backdrop-blur-sm" 
+          : "border-outline-primary bg-background-level-2/80"
+      )}>
+        <p className={cn(
+          "fb-body1-medium mb-100", 
+          isCurrentPeriod ? "text-primary-100" : "text-text-icon-01"
+        )}>
+          {isCurrentPeriod && "● "}{label}{isCurrentPeriod ? " (Current)" : ""}
+        </p>
+        {payload.map((entry: any, index: number) => (
+          <p 
+            key={`item-${index}`} 
+            className="fb-body2-regular flex justify-between items-center gap-300" 
+          >
+            <span className="flex items-center gap-100">
+              <span className="inline-block w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }}></span>
+              {entry.name}:
+            </span>
+            <span className="font-medium">{entry.value}</span>
+          </p>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
+
+// Custom cursor for highlighting bars on hover
+const CustomCursor = ({ x, y, width, height, payload }: any) => {
+  const isCurrentPeriod = payload && payload[0]?.payload?.isCurrent;
+  
+  return (
+    <rect
+      x={x}
+      y={y}
+      width={width}
+      height={height}
+      fill={isCurrentPeriod ? "rgba(155, 135, 245, 0.2)" : "rgba(73, 109, 200, 0.15)"}
+      fillOpacity={0.4}
+      stroke={isCurrentPeriod ? "#9b87f5" : "none"}
+      strokeWidth={1}
+      strokeDasharray="3 3"
+      style={{ pointerEvents: 'none' }}
+    />
+  );
+};
+
 const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, isLoading }) => {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const data = React.useMemo(() => generateMockData(dateRange, viewType, currentDate), [dateRange, viewType, currentDate]);
@@ -158,69 +301,25 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
         return '';
     }
   };
-  
-  // Custom tooltip for the chart
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="flybase-card p-200 border border-outline-primary bg-background-level-2">
-          <p className="fb-body1-medium text-text-icon-01">{`${label}`}</p>
-          {payload.map((entry: any, index: number) => (
-            <p 
-              key={`item-${index}`} 
-              className="fb-body2-regular" 
-              style={{ color: entry.color }}
-            >
-              {`${entry.name}: ${entry.value}`}
-            </p>
-          ))}
-        </div>
-      );
+
+  // Define the color scheme for the chart
+  const chartConfig = {
+    flights: {
+      label: "Flights",
+      color: "#3399FF"
+    },
+    successful: {
+      label: "Successful",
+      color: "#1EAE6D"
+    },
+    failed: {
+      label: "Failed",
+      color: "#F8473A"
+    },
+    aborted: {
+      label: "Aborted",
+      color: "#FDB022"
     }
-    return null;
-  };
-
-  // Custom cursor for the chart to create a better hover effect
-  const CustomCursor = ({ x, y, width, height }: any) => {
-    return (
-      <rect
-        x={x}
-        y={y}
-        width={width}
-        height={height}
-        fill="rgba(73, 109, 200, 0.15)"
-        fillOpacity={0.3}
-        style={{ pointerEvents: 'none' }}
-      />
-    );
-  };
-
-  // Custom bar that highlights the current period
-  const CustomBar = (props: any) => {
-    const { x, y, width, height, isCurrent, fill, ...rest } = props;
-    const fillColor = isCurrent ? '#9b87f5' : fill; // Use theme primary color for current period
-    return (
-      <g>
-        <rect 
-          x={x} 
-          y={y} 
-          width={width} 
-          height={height} 
-          fill={fillColor}
-          {...rest}
-        />
-        {isCurrent && (
-          <rect
-            x={x}
-            y={y + height - 3}
-            width={width}
-            height={3}
-            fill="#D6BCFA"
-            rx={1}
-          />
-        )}
-      </g>
-    );
   };
 
   return (
@@ -258,9 +357,12 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
-            <div className="text-text-icon-01 font-medium">{getDateRangeLabel()}</div>
+            <div className="text-text-icon-01 font-medium bg-background-level-2 px-300 py-100 rounded-full text-sm border border-outline-primary">
+              {getDateRangeLabel()}
+            </div>
           </div>
-          <ResponsiveContainer width="100%" height={350}>
+          
+          <ChartContainer config={chartConfig} className="h-[350px]">
             <BarChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 10 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
               <XAxis 
@@ -272,7 +374,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
                 tick={{ fill: 'rgba(255,255,255,0.54)' }} 
                 axisLine={{ stroke: 'rgba(255,255,255,0.12)' }}
               />
-              <Tooltip 
+              <ChartTooltip 
                 content={<CustomTooltip />} 
                 cursor={<CustomCursor />}
                 wrapperStyle={{ outline: 'none' }}
@@ -325,7 +427,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
                 </>
               )}
             </BarChart>
-          </ResponsiveContainer>
+          </ChartContainer>
         </>
       )}
     </div>
