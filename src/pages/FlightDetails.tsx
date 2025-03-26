@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Video, Map, Columns } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { cn } from '@/lib/utils';
 import VideoFeed from '@/components/flight-details/VideoFeed';
 import FlightMap from '@/components/flight-details/FlightMap';
 import FlightTimeline from '@/components/flight-details/FlightTimeline';
@@ -406,8 +407,8 @@ const FlightDetails = () => {
         </ToggleGroup>
       </header>
       
-      {/* Main Content Area - Adjusted to ensure proper layout with panel */}
-      <main className="flex-1 p-400 pb-0 overflow-hidden flex" style={{ maxHeight: 'calc(100vh - 230px)' }}>
+      {/* Main Content Area - Updated to properly align with timeline */}
+      <main className="flex-1 p-400 pb-0 overflow-hidden flex" style={{ height: 'calc(100vh - 180px)' }}>
         <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-400 h-full">
           {/* Video Panel */}
           <div className={`bg-background-level-2 rounded-200 p-400 flex flex-col ${viewMode === 'video' ? 'lg:col-span-12' : viewMode === 'split' ? 'lg:col-span-6' : 'hidden lg:block lg:col-span-6'}`}>
@@ -443,8 +444,17 @@ const FlightDetails = () => {
       </main>
       
       {/* Bottom Section - Timeline */}
-      <footer className="bg-background-level-1" style={{ height: '200px' }}>
-        <FlightTimeline currentPosition={timelinePosition} videoSegments={videoSegments} flightDuration="00:25:30" onPositionChange={handleTimelinePositionChange} missionPhases={missionPhases} systemEvents={systemEvents} warningEvents={warningEvents} mediaActions={mediaActions} />
+      <footer className="bg-background-level-1">
+        <FlightTimeline 
+          currentPosition={timelinePosition} 
+          videoSegments={videoSegments} 
+          flightDuration="00:25:30" 
+          onPositionChange={handleTimelinePositionChange} 
+          missionPhases={missionPhases} 
+          systemEvents={systemEvents} 
+          warningEvents={warningEvents} 
+          mediaActions={mediaActions} 
+        />
       </footer>
     </div>;
 };

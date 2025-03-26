@@ -115,13 +115,13 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
             </TabsTrigger>
           </TabsList>
 
-          {/* Tab Contents - Calculated height based on the header (50px) and tabs (40px) height */}
-          <div className="flex-1 overflow-hidden" style={{ height: "calc(100% - 90px)" }}>
-            <TabsContent value="telemetry" className="h-full p-0 m-0 overflow-hidden">
+          {/* Tab Contents - Using flex-1 and overflow-auto to maintain contained scrolling */}
+          <div className="flex-1 overflow-hidden h-[calc(100%-90px)]">
+            <TabsContent value="telemetry" className="h-full p-0 m-0 overflow-auto">
               <TelemetryPanel telemetryData={telemetryData} />
             </TabsContent>
             
-            <TabsContent value="timeline" className="h-full p-0 m-0 overflow-hidden">
+            <TabsContent value="timeline" className="h-full p-0 m-0 overflow-auto">
               <TimelinePanel />
             </TabsContent>
           </div>

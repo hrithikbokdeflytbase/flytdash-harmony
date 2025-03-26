@@ -15,7 +15,7 @@ const PositionDataSection: React.FC<PositionDataSectionProps> = ({
   coordinates
 }) => {
   return (
-    <>
+    <div className="flex flex-col">
       <SectionHeader title="Position Data" icon={MapPin} />
       
       <div className="px-4 py-2">
@@ -30,7 +30,7 @@ const PositionDataSection: React.FC<PositionDataSectionProps> = ({
           />
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
