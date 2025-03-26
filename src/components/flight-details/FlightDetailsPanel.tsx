@@ -1,11 +1,14 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Separator } from '@/components/ui/separator';
 import { Activity, Clock, Network } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+// Import our new components
+import TelemetryMetricCard from './TelemetryMetricCard';
+import ConnectionStatusCard from './ConnectionStatusCard';
+import BatteryStatusCard from './BatteryStatusCard';
+import SectionHeader from './SectionHeader';
 
 // Define interface for telemetry data to use across tabs
 interface TelemetryData {
@@ -122,53 +125,16 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
     setActiveTab(value);
   };
 
-  // Helper function to render connection status indicator
-  const renderConnectionStatus = (status: 'active' | 'inactive' | 'poor') => {
-    const colors = {
-      active: {
-        bg: 'bg-success-200 bg-opacity-20',
-        border: 'border-success-200',
-        text: 'text-success-200',
-        dot: 'bg-success-200'
-      },
-      inactive: {
-        bg: 'bg-text-icon-02 bg-opacity-10',
-        border: 'border-text-icon-02 border-opacity-30',
-        text: 'text-text-icon-02',
-        dot: 'bg-text-icon-02'
-      },
-      poor: {
-        bg: 'bg-caution-200 bg-opacity-20',
-        border: 'border-caution-200 border-opacity-30',
-        text: 'text-caution-200',
-        dot: 'bg-caution-200'
-      }
-    };
-
-    return (
-      <div className={cn(
-        'flex items-center text-[10px] px-200 py-[2px] rounded-full',
-        colors[status].bg,
-        'border',
-        colors[status].border
-      )}>
-        <div className={cn('w-[6px] h-[6px] rounded-full mr-[6px]', colors[status].dot)} />
-        <span className={colors[status].text}>
-          {status.charAt(0).toUpperCase() + status.slice(1)}
-        </span>
-      </div>
-    );
-  };
-
   return (
     <div 
-      className="fixed-width-panel bg-background-bg border-l border-outline-primary flex flex-col h-full"
+      className="fixed-width-panel bg-background-bg border-l border-outline-primary flex flex-col h-full overflow-hidden"
       style={{ width: '380px' }}
     >
       {/* Header Section */}
       <div className="flex items-center justify-between px-400 h-[50px] border-b border-outline-primary">
         <div className="flex items-center gap-200">
           <Badge 
+            variant="flight"
             className="bg-primary-200 text-text-icon-01 rounded-[10px] py-1 px-300 text-xs font-medium"
           >
             {flightMode}
@@ -210,135 +176,88 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
           </TabsList>
 
           {/* Tab Contents */}
-          <TabsContent value="telemetry" className="p-0 overflow-y-auto">
+          <TabsContent value="telemetry" className="p-0 overflow-y-auto max-h-[calc(100vh-95px)]">
             {/* Drone Telemetry Section */}
             <div className="space-y-0">
               {/* Telemetry Header */}
-              <div className="h-[35px] bg-background-level-2 flex items-center justify-between px-400 border-t border-b border-outline-primary">
-                <h3 className="fb-body1-medium text-text-icon-01">Drone Telemetry</h3>
-                <div className="flex items-center gap-200">
-                  <div className="flex items-center gap-100">
-                    <div className="w-[8px] h-[8px] rounded-full bg-success-200"></div>
-                    <span className="text-[10px] text-text-icon-01">GPS {telemetryData.gpsStatus.count}</span>
-                  </div>
+              <SectionHeader title="Drone Telemetry">
+                <div className="flex items-center gap-100">
+                  <div className="w-[8px] h-[8px] rounded-full bg-success-200"></div>
+                  <span className="text-[10px] text-text-icon-01">GPS {telemetryData.gpsStatus.count}</span>
                 </div>
-              </div>
+              </SectionHeader>
               
               {/* Battery Section */}
               <div className="p-400">
-                <div className="bg-background-level-2 p-300 rounded-[4px]">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="text-xs text-text-icon-02">Battery</span>
-                      <div className="flex items-baseline gap-200">
-                        <span className="text-2xl text-text-icon-01 font-medium">{telemetryData.battery.percentage}%</span>
-                        <span className="text-[10px] text-text-icon-02">Est. Remaining: {telemetryData.battery.estimatedRemaining}</span>
-                      </div>
-                    </div>
-                    <div className="w-[120px]">
-                      <Progress value={telemetryData.battery.percentage} className="h-[8px] bg-background-level-1 rounded-full" />
-                    </div>
-                  </div>
-                </div>
+                <BatteryStatusCard 
+                  percentage={telemetryData.battery.percentage}
+                  estimatedRemaining={telemetryData.battery.estimatedRemaining}
+                />
               </div>
               
               {/* Telemetry Metrics Grid */}
-              <div className="px-400 pt-200">
-                <div className="grid grid-cols-2 gap-[16px]">
+              <div className="px-400 py-200">
+                <div className="grid grid-cols-2 gap-x-[16px] gap-y-[24px]">
                   {/* Left Column */}
-                  <div className="space-y-300">
-                    {/* Altitude */}
-                    <div>
-                      <span className="text-[10px] text-text-icon-02 block">Altitude</span>
-                      <span className="text-md text-text-icon-01 font-medium">{telemetryData.altitude.value} {telemetryData.altitude.unit}</span>
-                    </div>
-                    
-                    {/* Vertical Speed */}
-                    <div>
-                      <span className="text-[10px] text-text-icon-02 block">Vertical Speed</span>
-                      <span className="text-md text-text-icon-01 font-medium">{telemetryData.verticalSpeed.value} {telemetryData.verticalSpeed.unit}</span>
-                    </div>
-                    
-                    {/* Time Elapsed */}
-                    <div>
-                      <span className="text-[10px] text-text-icon-02 block">Time Elapsed</span>
-                      <span className="text-md text-text-icon-01 font-medium">{telemetryData.timeElapsed}</span>
-                    </div>
-                    
-                    {/* Latitude */}
-                    <div>
-                      <span className="text-[10px] text-text-icon-02 block">Latitude</span>
-                      <span className="text-md text-text-icon-01 font-medium">{telemetryData.coordinates.latitude.toFixed(5)}</span>
-                    </div>
-                  </div>
-                  
-                  {/* Right Column */}
-                  <div className="space-y-300">
-                    {/* Distance from Home */}
-                    <div>
-                      <span className="text-[10px] text-text-icon-02 block">Distance from Home</span>
-                      <span className="text-md text-text-icon-01 font-medium">{telemetryData.distance.value} {telemetryData.distance.unit}</span>
-                    </div>
-                    
-                    {/* Horizontal Speed */}
-                    <div>
-                      <span className="text-[10px] text-text-icon-02 block">Horizontal Speed</span>
-                      <span className="text-md text-text-icon-01 font-medium">{telemetryData.horizontalSpeed.value} {telemetryData.horizontalSpeed.unit}</span>
-                    </div>
-                    
-                    {/* Time Remaining */}
-                    <div>
-                      <span className="text-[10px] text-text-icon-02 block">Time Remaining</span>
-                      <span className="text-md text-text-icon-01 font-medium">{telemetryData.timeRemaining}</span>
-                    </div>
-                    
-                    {/* Longitude */}
-                    <div>
-                      <span className="text-[10px] text-text-icon-02 block">Longitude</span>
-                      <span className="text-md text-text-icon-01 font-medium">{telemetryData.coordinates.longitude.toFixed(5)}</span>
-                    </div>
-                  </div>
+                  <TelemetryMetricCard 
+                    label="Altitude" 
+                    value={telemetryData.altitude.value} 
+                    unit={telemetryData.altitude.unit}
+                  />
+                  <TelemetryMetricCard 
+                    label="Distance from Home" 
+                    value={telemetryData.distance.value} 
+                    unit={telemetryData.distance.unit}
+                  />
+                  <TelemetryMetricCard 
+                    label="Vertical Speed" 
+                    value={telemetryData.verticalSpeed.value} 
+                    unit={telemetryData.verticalSpeed.unit}
+                  />
+                  <TelemetryMetricCard 
+                    label="Horizontal Speed" 
+                    value={telemetryData.horizontalSpeed.value} 
+                    unit={telemetryData.horizontalSpeed.unit}
+                  />
+                  <TelemetryMetricCard 
+                    label="Time Elapsed" 
+                    value={telemetryData.timeElapsed}
+                  />
+                  <TelemetryMetricCard 
+                    label="Time Remaining" 
+                    value={telemetryData.timeRemaining}
+                  />
+                  <TelemetryMetricCard 
+                    label="Latitude" 
+                    value={telemetryData.coordinates.latitude.toFixed(5)}
+                  />
+                  <TelemetryMetricCard 
+                    label="Longitude" 
+                    value={telemetryData.coordinates.longitude.toFixed(5)}
+                  />
                 </div>
               </div>
               
-              {/* Network Section - Fixed to ensure it's visible */}
-              <div className="mt-400">
-                {/* Network Header */}
-                <div className="h-[35px] bg-background-level-2 flex items-center px-400 border-t border-b border-outline-primary">
-                  <div className="flex items-center gap-200">
-                    <Network className="w-4 h-4 text-text-icon-02" />
-                    <h3 className="fb-body1-medium text-text-icon-01">Network</h3>
-                  </div>
-                </div>
+              {/* Network Section */}
+              <div className="mt-200">
+                <SectionHeader title="Network" icon={Network} />
                 
-                {/* Connection Cards - Ensured visibility with clear padding and styling */}
                 <div className="p-400 space-y-300">
-                  {/* RF Link */}
-                  <div className="bg-background-level-2 rounded-[4px] p-300 flex items-center justify-between">
-                    <span className="text-xs text-text-icon-01">Dock Drone RF Link</span>
-                    <div className="flex items-center gap-200">
-                      {renderConnectionStatus(telemetryData.connections.rfLink.status)}
-                      <span className="text-[10px] text-text-icon-02">{telemetryData.connections.rfLink.details}</span>
-                    </div>
-                  </div>
-                  
-                  {/* Ethernet */}
-                  <div className="bg-background-level-2 rounded-[4px] p-300 flex items-center justify-between">
-                    <span className="text-xs text-text-icon-01">Dock Ethernet</span>
-                    <div className="flex items-center gap-200">
-                      {renderConnectionStatus(telemetryData.connections.ethernet.status)}
-                      <span className="text-[10px] text-text-icon-02">{telemetryData.connections.ethernet.details}</span>
-                    </div>
-                  </div>
-                  
-                  {/* 4G */}
-                  <div className="bg-background-level-2 rounded-[4px] p-300 flex items-center justify-between">
-                    <span className="text-xs text-text-icon-01">Dock 4G</span>
-                    <div className="flex items-center gap-200">
-                      {renderConnectionStatus(telemetryData.connections.cellular.status)}
-                      <span className="text-[10px] text-text-icon-02">{telemetryData.connections.cellular.details}</span>
-                    </div>
-                  </div>
+                  <ConnectionStatusCard 
+                    label="Dock Drone RF Link"
+                    status={telemetryData.connections.rfLink.status}
+                    details={telemetryData.connections.rfLink.details}
+                  />
+                  <ConnectionStatusCard 
+                    label="Dock Ethernet"
+                    status={telemetryData.connections.ethernet.status}
+                    details={telemetryData.connections.ethernet.details}
+                  />
+                  <ConnectionStatusCard 
+                    label="Dock 4G"
+                    status={telemetryData.connections.cellular.status}
+                    details={telemetryData.connections.cellular.details}
+                  />
                 </div>
               </div>
             </div>
@@ -361,4 +280,3 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
 };
 
 export default FlightDetailsPanel;
-

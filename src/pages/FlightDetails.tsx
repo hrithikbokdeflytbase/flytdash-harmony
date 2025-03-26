@@ -377,6 +377,7 @@ const FlightDetails = () => {
     console.log(`Fetching flight details for flight: ${flightId}`);
     // This would be replaced with actual API call
   }, [flightId]);
+
   return <div className="flex flex-col h-screen bg-[#111113]">
       {/* Top Bar - Map/Video Controls */}
       <header className="bg-background-level-1 p-400 flex items-center justify-between z-10">
@@ -405,7 +406,7 @@ const FlightDetails = () => {
         </ToggleGroup>
       </header>
       
-      {/* Main Content Area - Three Column Layout - Adjusted height to prevent timeline overlap */}
+      {/* Main Content Area - Adjusted to ensure proper layout with panel */}
       <main className="flex-1 p-400 pb-0 overflow-hidden flex" style={{ maxHeight: 'calc(100vh - 230px)' }}>
         <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-200 h-full">
           {/* Video Panel */}
@@ -430,8 +431,8 @@ const FlightDetails = () => {
             </div>
           </div>
           
-          {/* Flight Details Panel (Right Panel) */}
-          <div className={`lg:col-span-4`}>
+          {/* Flight Details Panel */}
+          <div className={`lg:col-span-4 h-full`}>
             <FlightDetailsPanel 
               flightId={flightId || 'unknown'} 
               flightMode="MISSION"
@@ -441,7 +442,7 @@ const FlightDetails = () => {
         </div>
       </main>
       
-      {/* Bottom Section - Timeline - Now with fixed height */}
+      {/* Bottom Section - Timeline */}
       <footer className="bg-background-level-1" style={{ height: '200px' }}>
         <FlightTimeline currentPosition={timelinePosition} videoSegments={videoSegments} flightDuration="00:25:30" onPositionChange={handleTimelinePositionChange} missionPhases={missionPhases} systemEvents={systemEvents} warningEvents={warningEvents} mediaActions={mediaActions} />
       </footer>
