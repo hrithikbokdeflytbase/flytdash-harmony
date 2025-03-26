@@ -716,3 +716,4 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
             <div className="text-xs text-text-icon-02 w-20">
               {flightDuration}
             </div>
+          </div>
