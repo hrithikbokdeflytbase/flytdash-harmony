@@ -787,4 +787,4 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
         onOpenChange={() => toggleTrackExpansion('missionPhases')}
         className="track-container"
       >
-        <div className="h-[
+        <div className
