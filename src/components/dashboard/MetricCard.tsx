@@ -14,6 +14,7 @@ interface MetricCardProps {
     isPositive: boolean;
   };
   className?: string;
+  onClick?: () => void;
 }
 
 const MetricCard = ({
@@ -23,15 +24,18 @@ const MetricCard = ({
   iconColor = "text-primary-100",
   iconBgColor = "bg-primary-100/10",
   trend,
-  className
+  className,
+  onClick
 }: MetricCardProps) => {
   return (
     <div 
       className={cn(
         "flybase-card p-400 transition-all duration-300 animate-fade-in",
         "hover:translate-y-[-2px]",
+        onClick && "cursor-pointer",
         className
       )}
+      onClick={onClick}
     >
       <div className="flex items-start justify-between">
         <div>

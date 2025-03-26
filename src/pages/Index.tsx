@@ -6,12 +6,14 @@ import MetricCard from '@/components/dashboard/MetricCard';
 import FlightTimeline from '@/components/dashboard/FlightTimeline';
 import RecentFlightsTable from '@/components/dashboard/RecentFlightsTable';
 import FiltersBar from '@/components/dashboard/FiltersBar';
+import FailedFlightsPopup from '@/components/dashboard/FailedFlightsPopup';
 import { AlertCircle, Calendar, Loader } from 'lucide-react';
 
 const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [dateRange, setDateRange] = useState<DateRangeType>('monthly');
   const [timelineView, setTimelineView] = useState<'total' | 'status'>('total');
+  const [failedFlightsPopupOpen, setFailedFlightsPopupOpen] = useState(false);
   
   // Simulate loading state for demonstration
   const handleDateRangeChange = (range: DateRangeType) => {
@@ -64,10 +66,19 @@ const Index = () => {
             trend={{ value: 5, isPositive: false }}
             iconColor="text-error-200"
             iconBgColor="bg-container-error"
-            className="w-full"
+            className="w-full cursor-pointer"
+            onClick={() => setFailedFlightsPopupOpen(true)}
           />
         </div>
       </div>
+      
+      {/* Failed Flights Popup */}
+      <FailedFlightsPopup 
+        open={failedFlightsPopupOpen}
+        onOpenChange={setFailedFlightsPopupOpen}
+        failedCount={24}
+        totalCount={287}
+      />
       
       {/* Flight Timeline Section */}
       <div className="flybase-card p-400 mb-600 rounded-xl shadow-sm">
