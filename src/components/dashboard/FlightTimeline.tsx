@@ -387,7 +387,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
           <ChartContainer config={chartConfig} className="w-full h-[400px]">
             <BarChart 
               data={data} 
-              margin={{ top: 20, right: 5, left: 5, bottom: 20 }}
+              margin={{ top: 20, right: 30, left: 20, bottom: 25 }}
               width={800}
               height={400}
             >
@@ -396,10 +396,14 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
                 dataKey="name" 
                 tick={{ fill: 'rgba(255,255,255,0.54)' }} 
                 axisLine={{ stroke: 'rgba(255,255,255,0.12)' }}
+                tickMargin={10}
+                scale="point"
+                padding={{ left: 20, right: 20 }}
               />
               <YAxis 
                 tick={{ fill: 'rgba(255,255,255,0.54)' }} 
                 axisLine={{ stroke: 'rgba(255,255,255,0.12)' }}
+                tickMargin={10}
               />
               <ChartTooltip 
                 content={<CustomTooltip />} 
@@ -416,6 +420,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
                   activeBar={{ fill: '#33BBFF', stroke: '#77DDFF', strokeWidth: 2 }}
                   shape={<CustomBar />}
                   isAnimationActive={true}
+                  barSize={dateRange === 'daily' ? 40 : 60}
                 />
               ) : (
                 <>
@@ -430,6 +435,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
                     activeBar={{ fill: '#25D684', stroke: '#77DDFF', strokeWidth: 1 }}
                     shape={<CustomBar />}
                     isAnimationActive={true}
+                    barSize={dateRange === 'daily' ? 40 : 60}
                   />
                   <Bar 
                     dataKey="failed" 
