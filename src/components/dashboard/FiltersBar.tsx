@@ -1,34 +1,13 @@
 import React, { useState } from 'react';
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { 
-  Calendar as CalendarIcon, 
-  ChevronDown, 
-  Filter, 
-  RefreshCw, 
-  CheckSquare,
-  Target,
-  Route,
-  Zap,
-  BellRing,
-  Search
-} from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronDown, Filter, RefreshCw, CheckSquare, Target, Route, Zap, BellRing, Search } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger
-} from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { DateRangeType } from './DateRangeFilter';
 import AdvancedFilters from './AdvancedFilters';
 import FilterChip from './FilterChip';
@@ -36,13 +15,11 @@ import { cn } from '@/lib/utils';
 import { DateRange } from 'react-day-picker';
 import { format, addDays } from 'date-fns';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-
 export interface FiltersBarProps {
   dateRange: DateRangeType;
   onDateRangeChange: (range: DateRangeType) => void;
   isLoading?: boolean;
 }
-
 const FiltersBar: React.FC<FiltersBarProps> = ({
   dateRange,
   onDateRangeChange,
@@ -53,16 +30,14 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
   const [showAdvancedFilters, setShowAdvancedFilters] = useState<boolean>(false);
   const [triggerType, setTriggerType] = useState<string>('all');
   const [selectedDrones, setSelectedDrones] = useState<string[]>([]);
-  
+
   // Initialize with today and a week from today
   const today = new Date();
   const oneWeekLater = addDays(today, 7);
-  
   const [date, setDate] = useState<DateRange | undefined>({
     from: today,
     to: oneWeekLater
   });
-  
   const formatDateDisplay = () => {
     switch (dateRange) {
       case 'weekly':
@@ -75,18 +50,14 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
         return 'Select Date Range';
     }
   };
-
   const handleDateRangeSelect = (selectedRange: DateRange | undefined) => {
     // Only update if we have a valid selection
     if (selectedRange) {
       setDate(selectedRange);
-      
+
       // Auto-detect date range type based on selection
       if (selectedRange.from && selectedRange.to) {
-        const diffInDays = Math.floor(
-          (selectedRange.to.getTime() - selectedRange.from.getTime()) / (1000 * 60 * 60 * 24)
-        );
-        
+        const diffInDays = Math.floor((selectedRange.to.getTime() - selectedRange.from.getTime()) / (1000 * 60 * 60 * 24));
         if (diffInDays <= 1) {
           onDateRangeChange('daily');
         } else if (diffInDays <= 7) {
@@ -97,7 +68,6 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
       }
     }
   };
-
   const resetFilters = () => {
     onDateRangeChange('monthly');
     setOperationType('all');
@@ -109,19 +79,22 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
       to: oneWeekLater
     });
   };
+  const advancedFilterCount = (triggerType !== 'all' ? 1 : 0) + (selectedDrones.length > 0 ? 1 : 0);
 
-  const advancedFilterCount = 
-    (triggerType !== 'all' ? 1 : 0) +
-    (selectedDrones.length > 0 ? 1 : 0);
-  
   // Get active filters for display
-  const activeFilters = [
-    ...(operationType !== 'all' ? [{ id: 'operation', label: `Operation: ${operationType === 'gtl' ? 'GTL' : 'Mission'}` }] : []),
-    ...(includeManual ? [{ id: 'manual', label: 'Including manual operations' }] : []),
-    ...(triggerType !== 'all' ? [{ id: 'trigger', label: `Trigger: ${triggerType === 'normal' ? 'Normal' : 'Alarm Sensor'}` }] : []),
-    ...(selectedDrones.length > 0 ? [{ id: 'drones', label: `${selectedDrones.length} Drone${selectedDrones.length > 1 ? 's' : ''}` }] : [])
-  ];
-
+  const activeFilters = [...(operationType !== 'all' ? [{
+    id: 'operation',
+    label: `Operation: ${operationType === 'gtl' ? 'GTL' : 'Mission'}`
+  }] : []), ...(includeManual ? [{
+    id: 'manual',
+    label: 'Including manual operations'
+  }] : []), ...(triggerType !== 'all' ? [{
+    id: 'trigger',
+    label: `Trigger: ${triggerType === 'normal' ? 'Normal' : 'Alarm Sensor'}`
+  }] : []), ...(selectedDrones.length > 0 ? [{
+    id: 'drones',
+    label: `${selectedDrones.length} Drone${selectedDrones.length > 1 ? 's' : ''}`
+  }] : [])];
   const removeFilter = (id: string) => {
     switch (id) {
       case 'operation':
@@ -140,9 +113,7 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
         break;
     }
   };
-
-  return (
-    <div className="rounded-xl overflow-hidden shadow-sm border border-outline-primary">
+  return <div className="rounded-xl overflow-hidden shadow-sm border border-outline-primary">
       <div className="bg-background-level-3 p-400">
         <div className="flex flex-col space-y-300 sm:space-y-0 sm:flex-row sm:items-start sm:justify-between gap-400">
           <div>
@@ -155,19 +126,7 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    className="border-outline-primary text-text-icon-01 bg-background-level-2 hover:bg-background-level-4 transition-colors"
-                    onClick={resetFilters}
-                    disabled={isLoading || (
-                      dateRange === 'monthly' && 
-                      operationType === 'all' && 
-                      !includeManual && 
-                      triggerType === 'all' && 
-                      selectedDrones.length === 0
-                    )}
-                  >
+                  <Button variant="outline" size="sm" className="border-outline-primary text-text-icon-01 bg-background-level-2 hover:bg-background-level-4 transition-colors" onClick={resetFilters} disabled={isLoading || dateRange === 'monthly' && operationType === 'all' && !includeManual && triggerType === 'all' && selectedDrones.length === 0}>
                     <RefreshCw className="h-4 w-4 mr-1" />
                     Reset
                   </Button>
@@ -187,60 +146,18 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
             <div className="flex gap-200 items-center">
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button 
-                    id="date-range"
-                    variant="outline" 
-                    className={cn(
-                      "w-full justify-start text-left font-normal bg-background-level-3 border-outline-primary",
-                      isLoading && "opacity-70 cursor-not-allowed"
-                    )}
-                    disabled={isLoading}
-                  >
+                  <Button id="date-range" variant="outline" className={cn("w-full justify-start text-left font-normal bg-background-level-3 border-outline-primary", isLoading && "opacity-70 cursor-not-allowed")} disabled={isLoading}>
                     <CalendarIcon className="h-4 w-4 mr-2 text-primary-100" />
                     <span className="text-text-icon-01/84">
-                      {date?.from ? (
-                        date.to ? (
-                          <>
+                      {date?.from ? date.to ? <>
                             {format(date.from, "MMM d, yyyy")} - {format(date.to, "MMM d, yyyy")}
-                          </>
-                        ) : (
-                          format(date.from, "MMM d, yyyy")
-                        )
-                      ) : (
-                        <span>Select date range</span>
-                      )}
+                          </> : format(date.from, "MMM d, yyyy") : <span>Select date range</span>}
                     </span>
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent 
-                  className="w-auto p-0 bg-background-level-3 border border-[rgba(255,255,255,0.08)] shadow-lg" 
-                  align="start"
-                >
-                  <div className="p-300 border-b border-outline-primary">
-                    <div className="flex gap-200 items-center justify-between">
-                      <Select value={dateRange} onValueChange={(value) => onDateRangeChange(value as DateRangeType)}>
-                        <SelectTrigger 
-                          className="h-8 bg-background-level-2 border-outline-primary text-text-icon-01/84"
-                        >
-                          <SelectValue placeholder="Preset" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-background-level-2 border-[rgba(255,255,255,0.08)]">
-                          <SelectItem value="daily" className="text-text-icon-01/84 focus:bg-primary-200 focus:text-white data-[highlighted]:bg-background-level-4">Daily</SelectItem>
-                          <SelectItem value="weekly" className="text-text-icon-01/84 focus:bg-primary-200 focus:text-white data-[highlighted]:bg-background-level-4">Weekly</SelectItem>
-                          <SelectItem value="monthly" className="text-text-icon-01/84 focus:bg-primary-200 focus:text-white data-[highlighted]:bg-background-level-4">Monthly</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      
-                      <span className="text-sm text-text-icon-01/84">{formatDateDisplay()}</span>
-                    </div>
-                  </div>
-                  <CalendarComponent
-                    mode="range"
-                    defaultMonth={date?.from}
-                    selected={date}
-                    onSelect={handleDateRangeSelect}
-                    numberOfMonths={2}
-                  />
+                <PopoverContent className="w-auto p-0 bg-background-level-3 border border-[rgba(255,255,255,0.08)] shadow-lg" align="start">
+                  
+                  <CalendarComponent mode="range" defaultMonth={date?.from} selected={date} onSelect={handleDateRangeSelect} numberOfMonths={2} />
                 </PopoverContent>
               </Popover>
             </div>
@@ -250,11 +167,7 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
           <div>
             <Label htmlFor="operation-type" className="text-sm text-text-icon-02 mb-100 block">Operation Type</Label>
             <Select value={operationType} onValueChange={setOperationType}>
-              <SelectTrigger 
-                id="operation-type"
-                disabled={isLoading}
-                className="h-10 w-full bg-background-level-3 border-outline-primary"
-              >
+              <SelectTrigger id="operation-type" disabled={isLoading} className="h-10 w-full bg-background-level-3 border-outline-primary">
                 <SelectValue placeholder="Operation Type" />
               </SelectTrigger>
               <SelectContent className="bg-background-level-2 border-[rgba(255,255,255,0.08)]">
@@ -283,71 +196,34 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
           <div className="flex flex-col justify-between">
             {/* Include Manual Operations Checkbox */}
             <div className="flex items-center gap-200 mb-300">
-              <Checkbox 
-                id="manual-ops" 
-                checked={includeManual} 
-                onCheckedChange={(checked) => setIncludeManual(checked as boolean)}
-                className="data-[state=checked]:bg-primary-200 border-outline-primary h-5 w-5"
-              />
+              <Checkbox id="manual-ops" checked={includeManual} onCheckedChange={checked => setIncludeManual(checked as boolean)} className="data-[state=checked]:bg-primary-200 border-outline-primary h-5 w-5" />
               <Label htmlFor="manual-ops" className="text-text-icon-01 cursor-pointer">
                 Include manual operations
               </Label>
             </div>
 
             {/* Advanced Filters Button */}
-            <Button 
-              variant="outline" 
-              size="sm"
-              className={cn(
-                "border-outline-primary bg-background-level-2 hover:bg-background-level-4 transition-colors", 
-                showAdvancedFilters && "bg-background-level-4"
-              )}
-              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-              disabled={isLoading}
-            >
+            <Button variant="outline" size="sm" className={cn("border-outline-primary bg-background-level-2 hover:bg-background-level-4 transition-colors", showAdvancedFilters && "bg-background-level-4")} onClick={() => setShowAdvancedFilters(!showAdvancedFilters)} disabled={isLoading}>
               <Filter className="h-4 w-4 mr-1" />
               More Filters
-              {advancedFilterCount > 0 && (
-                <Badge className="ml-1 bg-primary-100 text-background-level-1">
+              {advancedFilterCount > 0 && <Badge className="ml-1 bg-primary-100 text-background-level-1">
                   {advancedFilterCount}
-                </Badge>
-              )}
-              <ChevronDown className={cn(
-                "ml-1 h-3 w-3 transition-transform duration-200", 
-                showAdvancedFilters && "transform rotate-180"
-              )} />
+                </Badge>}
+              <ChevronDown className={cn("ml-1 h-3 w-3 transition-transform duration-200", showAdvancedFilters && "transform rotate-180")} />
             </Button>
           </div>
         </div>
 
         {/* Active Filters */}
-        {activeFilters.length > 0 && (
-          <div className="mt-400 flex flex-wrap gap-200">
-            {activeFilters.map(filter => (
-              <FilterChip 
-                key={filter.id}
-                label={filter.label}
-                onRemove={() => removeFilter(filter.id)}
-              />
-            ))}
-          </div>
-        )}
+        {activeFilters.length > 0 && <div className="mt-400 flex flex-wrap gap-200">
+            {activeFilters.map(filter => <FilterChip key={filter.id} label={filter.label} onRemove={() => removeFilter(filter.id)} />)}
+          </div>}
       </div>
 
       {/* Advanced Filters Panel with animation */}
-      {showAdvancedFilters && (
-        <div className="animate-accordion-down">
-          <AdvancedFilters 
-            triggerType={triggerType}
-            setTriggerType={setTriggerType}
-            selectedDrones={selectedDrones}
-            setSelectedDrones={setSelectedDrones}
-            isLoading={isLoading}
-          />
-        </div>
-      )}
-    </div>
-  );
+      {showAdvancedFilters && <div className="animate-accordion-down">
+          <AdvancedFilters triggerType={triggerType} setTriggerType={setTriggerType} selectedDrones={selectedDrones} setSelectedDrones={setSelectedDrones} isLoading={isLoading} />
+        </div>}
+    </div>;
 };
-
 export default FiltersBar;
