@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Drone, Camera, Video, Clock, Square, Maximize2 } from 'lucide-react';
+import { Camera, Video, Clock, Square, Maximize2, LayoutGrid } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -113,7 +113,7 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
         ) : (
           /* Empty state */
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-400 bg-background-level-3">
-            <Drone className="h-[60px] w-[60px] text-text-icon-02 mb-400" />
+            <LayoutGrid className="h-[60px] w-[60px] text-text-icon-02 mb-400" />
             <p className="text-text-icon-01 text-base font-medium mb-200">No video recorded at this time</p>
             <p className="text-text-icon-02 text-sm mb-400">Current position: {currentTimestamp}</p>
             <Button variant="secondary" size="sm">
