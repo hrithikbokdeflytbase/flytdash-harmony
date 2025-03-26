@@ -1,12 +1,41 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Toggle, toggleVariants } from '@/components/ui/toggle';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, AlertCircle, Activity, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+// Define interface for telemetry data to use across tabs
+interface TelemetryData {
+  battery: {
+    percentage: number;
+    estimatedRemaining: string;
+  };
+  altitude: {
+    value: number;
+    unit: string;
+    reference: 'rlt' | 'agl' | 'asl';
+  };
+  horizontalSpeed: {
+    value: number;
+    unit: string;
+  };
+  verticalSpeed: {
+    value: number;
+    unit: string;
+  };
+  gpsStatus: {
+    count: number;
+    signal: string;
+  };
+  rtkStatus: {
+    count: number;
+    signal: string;
+  };
+}
 
 interface FlightDetailsPanelProps {
   flightId: string;
@@ -19,6 +48,45 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
   flightMode,
   timestamp,
 }) => {
+  // State for active tab (handled by Radix UI Tabs)
+  const [activeTab, setActiveTab] = useState("overview");
+  
+  // Mock telemetry data (in a real app, this would come from props or API)
+  const [telemetryData, setTelemetryData] = useState<TelemetryData>({
+    battery: {
+      percentage: 91,
+      estimatedRemaining: "27 minutes"
+    },
+    altitude: {
+      value: 4.1,
+      unit: "m",
+      reference: "rlt"
+    },
+    horizontalSpeed: {
+      value: 0,
+      unit: "m/s"
+    },
+    verticalSpeed: {
+      value: 3.9,
+      unit: "m/s"
+    },
+    gpsStatus: {
+      count: 31,
+      signal: "Good"
+    },
+    rtkStatus: {
+      count: 27,
+      signal: "Fixed"
+    }
+  });
+  
+  // Handle tab change
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    // Additional logic if needed when tabs change
+    // e.g., fetching specific data for selected tab
+  };
+
   return (
     <div 
       className="fixed-width-panel bg-background-bg border-l border-outline-primary flex flex-col h-full"
@@ -41,7 +109,12 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
 
       {/* Tab Navigation */}
       <div className="h-[45px] bg-background-level-1">
-        <Tabs defaultValue="overview" className="w-full">
+        <Tabs 
+          defaultValue="overview" 
+          className="w-full" 
+          onValueChange={handleTabChange}
+          value={activeTab}
+        >
           <TabsList className="flex w-full h-[45px] bg-transparent">
             <TabsTrigger 
               value="overview" 
@@ -53,13 +126,19 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
               value="telemetry" 
               className="flex-1 h-full rounded-none data-[state=active]:bg-background-level-2 data-[state=active]:text-text-icon-01 data-[state=inactive]:text-text-icon-02 relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-primary-200 after:transform after:scale-x-0 data-[state=active]:after:scale-x-100 after:transition-transform"
             >
-              Telemetry
+              <div className="flex items-center gap-1">
+                <Activity className="w-4 h-4" />
+                Telemetry
+              </div>
             </TabsTrigger>
             <TabsTrigger 
               value="timeline" 
               className="flex-1 h-full rounded-none data-[state=active]:bg-background-level-2 data-[state=active]:text-text-icon-01 data-[state=inactive]:text-text-icon-02 relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-primary-200 after:transform after:scale-x-0 data-[state=active]:after:scale-x-100 after:transition-transform"
             >
-              Timeline
+              <div className="flex items-center gap-1">
+                <Clock className="w-4 h-4" />
+                Timeline
+              </div>
             </TabsTrigger>
           </TabsList>
 
@@ -71,8 +150,8 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
               <div className="h-[35px] bg-background-level-2 flex items-center justify-between px-400 border-t border-b border-outline-primary">
                 <h3 className="fb-body1-medium text-text-icon-01">Critical Telemetry</h3>
                 <div className="flex items-center gap-200">
-                  <span className="text-[10px] text-text-icon-02">GPS 31</span>
-                  <span className="text-[10px] text-success-200">RTK 27 Fixed</span>
+                  <span className="text-[10px] text-text-icon-02">GPS {telemetryData.gpsStatus.count}</span>
+                  <span className="text-[10px] text-success-200">RTK {telemetryData.rtkStatus.count} {telemetryData.rtkStatus.signal}</span>
                 </div>
               </div>
               
@@ -82,11 +161,11 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
                 <div className="bg-background-level-2 p-300 rounded-[4px]">
                   <div className="flex flex-col">
                     <span className="text-xs text-text-icon-02 mb-100">Battery</span>
-                    <span className="text-lg text-text-icon-01 font-medium mb-200">91%</span>
+                    <span className="text-lg text-text-icon-01 font-medium mb-200">{telemetryData.battery.percentage}%</span>
                     <div className="mb-200">
-                      <Progress value={91} className="h-[10px] w-[80px] bg-background-level-1 rounded-full" />
+                      <Progress value={telemetryData.battery.percentage} className="h-[10px] w-[80px] bg-background-level-1 rounded-full" />
                     </div>
-                    <span className="text-[10px] text-text-icon-02">Est. Remaining: 27 minutes</span>
+                    <span className="text-[10px] text-text-icon-02">Est. Remaining: {telemetryData.battery.estimatedRemaining}</span>
                   </div>
                 </div>
                 
@@ -94,9 +173,9 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
                 <div className="bg-background-level-2 p-300 rounded-[4px]">
                   <div className="flex flex-col">
                     <span className="text-xs text-text-icon-02 mb-100">Altitude</span>
-                    <span className="text-lg text-text-icon-01 font-medium">4.1 m</span>
+                    <span className="text-lg text-text-icon-01 font-medium">{telemetryData.altitude.value} {telemetryData.altitude.unit}</span>
                     <div className="mt-200">
-                      <ToggleGroup type="single" defaultValue="rlt" className="bg-background-level-3 p-[2px] rounded-full w-fit">
+                      <ToggleGroup type="single" defaultValue={telemetryData.altitude.reference} className="bg-background-level-3 p-[2px] rounded-full w-fit">
                         <ToggleGroupItem value="rlt" size="sm" className="rounded-full text-[10px] px-200 py-[2px]">
                           RLT
                         </ToggleGroupItem>
@@ -115,7 +194,7 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
                 <div className="bg-background-level-2 p-300 rounded-[4px]">
                   <div className="flex flex-col">
                     <span className="text-xs text-text-icon-02 mb-100">Horizontal Speed</span>
-                    <span className="text-lg text-text-icon-01 font-medium">0 m/s</span>
+                    <span className="text-lg text-text-icon-01 font-medium">{telemetryData.horizontalSpeed.value} {telemetryData.horizontalSpeed.unit}</span>
                   </div>
                 </div>
                 
@@ -123,7 +202,7 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
                 <div className="bg-background-level-2 p-300 rounded-[4px]">
                   <div className="flex flex-col">
                     <span className="text-xs text-text-icon-02 mb-100">Vertical Speed</span>
-                    <span className="text-lg text-text-icon-01 font-medium">3.9 m/s</span>
+                    <span className="text-lg text-text-icon-01 font-medium">{telemetryData.verticalSpeed.value} {telemetryData.verticalSpeed.unit}</span>
                   </div>
                 </div>
               </div>
@@ -216,12 +295,28 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
             </div>
           </TabsContent>
           
-          <TabsContent value="telemetry">
-            {/* We'll build this tab later */}
+          <TabsContent value="telemetry" className="p-400">
+            {/* Placeholder for Telemetry Tab Content */}
+            <div className="flex flex-col items-center justify-center space-y-400 h-[400px] text-center p-400 text-text-icon-02 border border-dashed border-outline-primary rounded-md">
+              <Activity size={48} className="text-primary-200 opacity-50" />
+              <div className="space-y-200">
+                <h3 className="text-lg text-text-icon-01">Telemetry Content</h3>
+                <p className="text-sm">Detailed telemetry information will be displayed here in the future implementation.</p>
+                <p className="text-xs">This tab will show charts, graphs, and more detailed metrics about the flight.</p>
+              </div>
+            </div>
           </TabsContent>
           
-          <TabsContent value="timeline">
-            {/* We'll build this tab later */}
+          <TabsContent value="timeline" className="p-400">
+            {/* Placeholder for Timeline Tab Content */}
+            <div className="flex flex-col items-center justify-center space-y-400 h-[400px] text-center p-400 text-text-icon-02 border border-dashed border-outline-primary rounded-md">
+              <Clock size={48} className="text-primary-200 opacity-50" />
+              <div className="space-y-200">
+                <h3 className="text-lg text-text-icon-01">Timeline Content</h3>
+                <p className="text-sm">Flight timeline events will be displayed here in the future implementation.</p>
+                <p className="text-xs">This tab will show a chronological list of events that occurred during the flight.</p>
+              </div>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
