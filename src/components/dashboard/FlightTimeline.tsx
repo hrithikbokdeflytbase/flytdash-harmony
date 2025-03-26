@@ -3,8 +3,9 @@ import { BarChart, XAxis, YAxis, Bar, Tooltip, CartesianGrid, Legend } from 'rec
 import { Loader, ChevronLeft, ChevronRight } from 'lucide-react';
 import { DateRangeType } from './DateRangeFilter';
 import { Button } from '@/components/ui/button';
-import { format, addDays, addWeeks, addMonths, subDays, subWeeks, subMonths, startOfDay, startOfWeek, startOfMonth, isSameDay, isSameWeek, isSameMonth } from 'date-fns';
+import { format, addDays, addWeeks, addMonths, subDays, subWeeks, subMonths, startOfDay, startOfWeek, startOfMonth, endOfDay, endOfWeek, endOfMonth, isSameDay, isSameWeek, isSameMonth } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { useNavigate } from 'react-router-dom';
 import { 
   ChartContainer, 
   ChartTooltip, 
@@ -270,6 +271,7 @@ const CustomCursor = ({ x, y, width, height, payload }: any) => {
 };
 
 const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, isLoading }) => {
+  const navigate = useNavigate();
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const data = React.useMemo(() => generateMockData(dateRange, viewType, currentDate), [dateRange, viewType, currentDate]);
   
@@ -306,6 +308,34 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
 
   const resetToToday = () => {
     setCurrentDate(new Date());
+  };
+
+  // Handle bar click to navigate to All Logs page with date filter
+  const handleBarClick = (data: any) => {
+    if (!data || !data.date) return;
+    
+    let fromDate: Date, toDate: Date;
+    
+    switch (dateRange) {
+      case 'monthly':
+        fromDate = startOfMonth(data.date);
+        toDate = endOfMonth(data.date);
+        break;
+      case 'weekly':
+        fromDate = startOfWeek(data.date);
+        toDate = endOfWeek(data.date);
+        break;
+      case 'daily':
+        fromDate = startOfDay(data.date);
+        toDate = endOfDay(data.date);
+        break;
+      default:
+        fromDate = startOfDay(data.date);
+        toDate = endOfDay(data.date);
+    }
+    
+    // Navigate to All Logs with date range in URL params
+    navigate(`/all-logs?from=${fromDate.toISOString()}&to=${toDate.toISOString()}&range=${dateRange}`);
   };
 
   // Format the date range for display
@@ -390,6 +420,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
               margin={{ top: 10, right: 30, left: 20, bottom: 45 }}
               width={800}
               height={350}
+              onClick={(data) => handleBarClick(data?.activePayload?.[0]?.payload)}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
               <XAxis 
@@ -425,6 +456,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
                   isAnimationActive={true}
                   barSize={dateRange === 'daily' ? 40 : 50}
                   maxBarSize={60}
+                  cursor="pointer"
                 />
               ) : (
                 <>
@@ -441,6 +473,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
                     isAnimationActive={true}
                     barSize={dateRange === 'daily' ? 40 : 50}
                     maxBarSize={60}
+                    cursor="pointer"
                   />
                   <Bar 
                     dataKey="failed" 
@@ -451,6 +484,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
                     activeBar={{ fill: '#FF5F52', stroke: '#77DDFF', strokeWidth: 1 }}
                     shape={<CustomBar />}
                     isAnimationActive={true}
+                    cursor="pointer"
                   />
                   <Bar 
                     dataKey="aborted" 
@@ -461,6 +495,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
                     activeBar={{ fill: '#FFCC44', stroke: '#77DDFF', strokeWidth: 1 }}
                     shape={<CustomBar />}
                     isAnimationActive={true}
+                    cursor="pointer"
                   />
                 </>
               )}
