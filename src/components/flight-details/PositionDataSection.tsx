@@ -23,10 +23,12 @@ const PositionDataSection: React.FC<PositionDataSectionProps> = ({
           <TelemetryMetricCard 
             label="Latitude" 
             value={coordinates.latitude.toFixed(5)}
+            className="rounded-md"
           />
           <TelemetryMetricCard 
             label="Longitude" 
             value={coordinates.longitude.toFixed(5)}
+            className="rounded-md"
           />
         </div>
       </div>
