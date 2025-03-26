@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -20,18 +19,35 @@ interface FlightPathPoint {
 interface FlightMapProps {
   flightId: string;
   flightPath?: FlightPathPoint[];
-  takeoffPoint?: { lat: number; lng: number };
-  landingPoint?: { lat: number; lng: number };
-  dockLocation?: { lat: number; lng: number };
-  waypoints?: Array<{ lat: number; lng: number; index: number }>;
-  currentPosition?: { lat: number; lng: number; altitude?: number; heading?: number };
+  takeoffPoint?: {
+    lat: number;
+    lng: number;
+  };
+  landingPoint?: {
+    lat: number;
+    lng: number;
+  };
+  dockLocation?: {
+    lat: number;
+    lng: number;
+  };
+  waypoints?: Array<{
+    lat: number;
+    lng: number;
+    index: number;
+  }>;
+  currentPosition?: {
+    lat: number;
+    lng: number;
+    altitude?: number;
+    heading?: number;
+  };
   isLoading?: boolean;
 }
 
 // Temporary Mapbox token - in production, this should be managed through environment variables
 // This is just for demonstration purposes
 const MAPBOX_TOKEN = 'pk.eyJ1IjoiZmx5dGJhc2UiLCJhIjoiY2tlZ2QwbmUzMGR0cjJ6cGRtY3RpbGpraiJ9.I0gYgVZQc2pVv9XXGnVu5w';
-
 const FlightMap: React.FC<FlightMapProps> = ({
   flightId,
   flightPath = [],
@@ -46,70 +62,67 @@ const FlightMap: React.FC<FlightMapProps> = ({
   const map = useRef<mapboxgl.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapStyle, setMapStyle] = useState<'dark' | 'satellite'>('dark');
-  const [showCoordinates, setShowCoordinates] = useState<{lng: number, lat: number} | null>(null);
+  const [showCoordinates, setShowCoordinates] = useState<{
+    lng: number;
+    lat: number;
+  } | null>(null);
   const [zoomLevel, setZoomLevel] = useState<number>(13);
 
   // Initialize map
   useEffect(() => {
     if (!mapContainer.current) return;
-    
+
     // Set Mapbox token
     mapboxgl.accessToken = MAPBOX_TOKEN;
-    
+
     // Create the map instance
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/dark-v11',
-      center: takeoffPoint || [-74.5, 40], // Default to a location if takeoff point not provided
+      center: takeoffPoint || [-74.5, 40],
+      // Default to a location if takeoff point not provided
       zoom: 13,
       pitch: 45,
       bearing: 0,
       antialias: true
     });
-    
+
     // Add navigation controls
-    map.current.addControl(
-      new mapboxgl.NavigationControl({
-        visualizePitch: true,
-        showCompass: true,
-      }),
-      'top-right'
-    );
+    map.current.addControl(new mapboxgl.NavigationControl({
+      visualizePitch: true,
+      showCompass: true
+    }), 'top-right');
 
     // Add scale control
-    map.current.addControl(
-      new mapboxgl.ScaleControl({
-        maxWidth: 100,
-        unit: 'metric'
-      }),
-      'bottom-left'
-    );
-    
+    map.current.addControl(new mapboxgl.ScaleControl({
+      maxWidth: 100,
+      unit: 'metric'
+    }), 'bottom-left');
+
     // Handle map load event
     map.current.on('load', () => {
       setMapLoaded(true);
       console.log(`Map for flight ${flightId} loaded successfully`);
     });
-    
+
     // Track zoom level
     map.current.on('zoom', () => {
       if (map.current) {
         setZoomLevel(Math.floor(map.current.getZoom()));
       }
     });
-    
+
     // Track mouse position for coordinates display
-    map.current.on('mousemove', (e) => {
+    map.current.on('mousemove', e => {
       setShowCoordinates({
         lng: parseFloat(e.lngLat.lng.toFixed(4)),
         lat: parseFloat(e.lngLat.lat.toFixed(4))
       });
     });
-    
     map.current.on('mouseout', () => {
       setShowCoordinates(null);
     });
-    
+
     // Cleanup on unmount
     return () => {
       if (map.current) {
@@ -118,22 +131,18 @@ const FlightMap: React.FC<FlightMapProps> = ({
       }
     };
   }, [flightId]);
-  
+
   // Handle map style change
   useEffect(() => {
     if (!mapLoaded || !map.current) return;
-    
-    const styleUrl = mapStyle === 'dark' 
-      ? 'mapbox://styles/mapbox/dark-v11' 
-      : 'mapbox://styles/mapbox/satellite-streets-v12';
-    
+    const styleUrl = mapStyle === 'dark' ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/satellite-streets-v12';
     map.current.setStyle(styleUrl);
   }, [mapStyle, mapLoaded]);
-  
+
   // Add flight path when map is loaded and path data is available
   useEffect(() => {
     if (!mapLoaded || !map.current || flightPath.length === 0) return;
-    
+
     // Check if source already exists and remove it
     if (map.current.getSource('flight-path')) {
       map.current.removeLayer('flight-path-mission');
@@ -141,23 +150,20 @@ const FlightMap: React.FC<FlightMapProps> = ({
       map.current.removeLayer('flight-path-manual');
       map.current.removeSource('flight-path');
     }
-    
+
     // Create coordinate arrays for each flight mode
     const missionCoordinates: Array<[number, number]> = [];
     const gtlCoordinates: Array<[number, number]> = [];
     const manualCoordinates: Array<[number, number]> = [];
-    
+
     // Group coordinates by flight mode
     let prevMode: string | null = null;
     let currentArray: Array<[number, number]> = [];
-    
     flightPath.forEach((point, index) => {
       const coord: [number, number] = [point.lng, point.lat];
-      
       if (prevMode !== point.flightMode) {
         prevMode = point.flightMode;
         currentArray = [];
-        
         if (point.flightMode === 'mission') {
           missionCoordinates.push(coord);
           currentArray = missionCoordinates;
@@ -172,41 +178,37 @@ const FlightMap: React.FC<FlightMapProps> = ({
         currentArray.push(coord);
       }
     });
-    
+
     // Add the flight path source
     map.current.addSource('flight-path', {
       type: 'geojson',
       data: {
         type: 'FeatureCollection',
-        features: [
-          {
-            type: 'Feature',
-            properties: {},
-            geometry: {
-              type: 'LineString',
-              coordinates: missionCoordinates
-            }
-          },
-          {
-            type: 'Feature',
-            properties: {},
-            geometry: {
-              type: 'LineString',
-              coordinates: gtlCoordinates
-            }
-          },
-          {
-            type: 'Feature',
-            properties: {},
-            geometry: {
-              type: 'LineString',
-              coordinates: manualCoordinates
-            }
+        features: [{
+          type: 'Feature',
+          properties: {},
+          geometry: {
+            type: 'LineString',
+            coordinates: missionCoordinates
           }
-        ]
+        }, {
+          type: 'Feature',
+          properties: {},
+          geometry: {
+            type: 'LineString',
+            coordinates: gtlCoordinates
+          }
+        }, {
+          type: 'Feature',
+          properties: {},
+          geometry: {
+            type: 'LineString',
+            coordinates: manualCoordinates
+          }
+        }]
       }
     });
-    
+
     // Add mission mode layer
     map.current.addLayer({
       id: 'flight-path-mission',
@@ -218,13 +220,14 @@ const FlightMap: React.FC<FlightMapProps> = ({
         'line-cap': 'round'
       },
       paint: {
-        'line-color': '#496DC8', // Primary 200
+        'line-color': '#496DC8',
+        // Primary 200
         'line-width': 3,
         'line-opacity': 0.8,
         'line-blur': 1
       }
     });
-    
+
     // Add GTL mode layer
     map.current.addLayer({
       id: 'flight-path-gtl',
@@ -236,13 +239,14 @@ const FlightMap: React.FC<FlightMapProps> = ({
         'line-cap': 'round'
       },
       paint: {
-        'line-color': '#8B5CF6', // Purple
+        'line-color': '#8B5CF6',
+        // Purple
         'line-width': 3,
         'line-opacity': 0.8,
         'line-blur': 1
       }
     });
-    
+
     // Add manual mode layer
     map.current.addLayer({
       id: 'flight-path-manual',
@@ -254,23 +258,24 @@ const FlightMap: React.FC<FlightMapProps> = ({
         'line-cap': 'round'
       },
       paint: {
-        'line-color': '#F97316', // Orange
+        'line-color': '#F97316',
+        // Orange
         'line-width': 3,
         'line-opacity': 0.8,
         'line-blur': 1
       }
     });
-    
+
     // Fit the map to the flight path bounds
     if (flightPath.length > 0) {
       // Create a proper LngLatBounds object first
       const bounds = new mapboxgl.LngLatBounds();
-      
+
       // Extend the bounds with each coordinate point
       flightPath.forEach(point => {
         bounds.extend([point.lng, point.lat]);
       });
-      
+
       // Now use the properly constructed bounds object
       map.current.fitBounds(bounds, {
         padding: 50,
@@ -278,17 +283,16 @@ const FlightMap: React.FC<FlightMapProps> = ({
         duration: 2000
       });
     }
-    
   }, [mapLoaded, flightPath]);
-  
+
   // Add markers when map is loaded and marker data is available
   useEffect(() => {
     if (!mapLoaded || !map.current) return;
-    
+
     // Clear existing markers
     const markers = document.querySelectorAll('.mapboxgl-marker');
     markers.forEach(marker => marker.remove());
-    
+
     // Add takeoff marker
     if (takeoffPoint) {
       const takeoffMarkerEl = document.createElement('div');
@@ -297,13 +301,11 @@ const FlightMap: React.FC<FlightMapProps> = ({
         <div class="absolute w-4 h-4 bg-success-200 rounded-full shadow-lg shadow-success-200/30 z-10"></div>
         <div class="absolute w-6 h-6 bg-success-200/30 rounded-full animate-ping"></div>
       `;
-      
-      new mapboxgl.Marker(takeoffMarkerEl)
-        .setLngLat([takeoffPoint.lng, takeoffPoint.lat])
-        .setPopup(new mapboxgl.Popup({ offset: 25 }).setText('Takeoff Location'))
-        .addTo(map.current);
+      new mapboxgl.Marker(takeoffMarkerEl).setLngLat([takeoffPoint.lng, takeoffPoint.lat]).setPopup(new mapboxgl.Popup({
+        offset: 25
+      }).setText('Takeoff Location')).addTo(map.current);
     }
-    
+
     // Add landing marker
     if (landingPoint) {
       const landingMarkerEl = document.createElement('div');
@@ -312,13 +314,11 @@ const FlightMap: React.FC<FlightMapProps> = ({
         <div class="absolute w-4 h-4 bg-error-200 rounded-full shadow-lg shadow-error-200/30 z-10"></div>
         <div class="absolute w-6 h-6 bg-error-200/30 rounded-full"></div>
       `;
-      
-      new mapboxgl.Marker(landingMarkerEl)
-        .setLngLat([landingPoint.lng, landingPoint.lat])
-        .setPopup(new mapboxgl.Popup({ offset: 25 }).setText('Landing Location'))
-        .addTo(map.current);
+      new mapboxgl.Marker(landingMarkerEl).setLngLat([landingPoint.lng, landingPoint.lat]).setPopup(new mapboxgl.Popup({
+        offset: 25
+      }).setText('Landing Location')).addTo(map.current);
     }
-    
+
     // Add dock marker
     if (dockLocation) {
       const dockMarkerEl = document.createElement('div');
@@ -327,13 +327,11 @@ const FlightMap: React.FC<FlightMapProps> = ({
         <div class="absolute w-4 h-4 bg-info-200 rounded-full shadow-lg shadow-info-200/30 z-10"></div>
         <div class="absolute w-6 h-6 bg-info-200/30 rounded-full"></div>
       `;
-      
-      new mapboxgl.Marker(dockMarkerEl)
-        .setLngLat([dockLocation.lng, dockLocation.lat])
-        .setPopup(new mapboxgl.Popup({ offset: 25 }).setText('Dock Location'))
-        .addTo(map.current);
+      new mapboxgl.Marker(dockMarkerEl).setLngLat([dockLocation.lng, dockLocation.lat]).setPopup(new mapboxgl.Popup({
+        offset: 25
+      }).setText('Dock Location')).addTo(map.current);
     }
-    
+
     // Add waypoint markers
     waypoints.forEach(waypoint => {
       const waypointMarkerEl = document.createElement('div');
@@ -343,18 +341,15 @@ const FlightMap: React.FC<FlightMapProps> = ({
           ${waypoint.index}
         </div>
       `;
-      
-      new mapboxgl.Marker(waypointMarkerEl)
-        .setLngLat([waypoint.lng, waypoint.lat])
-        .setPopup(new mapboxgl.Popup({ offset: 25 }).setText(`Waypoint ${waypoint.index}`))
-        .addTo(map.current);
+      new mapboxgl.Marker(waypointMarkerEl).setLngLat([waypoint.lng, waypoint.lat]).setPopup(new mapboxgl.Popup({
+        offset: 25
+      }).setText(`Waypoint ${waypoint.index}`)).addTo(map.current);
     });
-    
+
     // Add current position marker if available
     if (currentPosition) {
       const heading = currentPosition.heading || 0;
       const altitude = currentPosition.altitude || 0;
-      
       const currentPosMarkerEl = document.createElement('div');
       currentPosMarkerEl.className = 'flex items-center justify-center w-10 h-10 relative';
       currentPosMarkerEl.innerHTML = `
@@ -365,82 +360,75 @@ const FlightMap: React.FC<FlightMapProps> = ({
         </div>
         <div class="absolute w-6 h-1 bg-white" style="transform: rotate(${heading}deg); transform-origin: center left;"></div>
       `;
-      
       new mapboxgl.Marker({
         element: currentPosMarkerEl,
         rotation: heading,
         rotationAlignment: 'map'
-      })
-        .setLngLat([currentPosition.lng, currentPosition.lat])
-        .addTo(map.current);
-        
+      }).setLngLat([currentPosition.lng, currentPosition.lat]).addTo(map.current);
+
       // Smoothly move map to current position
       map.current.easeTo({
         center: [currentPosition.lng, currentPosition.lat],
         duration: 1000
       });
     }
-    
   }, [mapLoaded, takeoffPoint, landingPoint, dockLocation, waypoints, currentPosition]);
-  
+
   // Focus map on drone
   const focusOnDrone = () => {
     if (!map.current || !currentPosition) return;
-    
     map.current.flyTo({
       center: [currentPosition.lng, currentPosition.lat],
       zoom: 16,
       duration: 1000
     });
   };
-  
+
   // Focus map on dock
   const focusOnDock = () => {
     if (!map.current || !dockLocation) return;
-    
     map.current.flyTo({
       center: [dockLocation.lng, dockLocation.lat],
       zoom: 16,
       duration: 1000
     });
   };
-  
+
   // Show entire flight path
   const showEntirePath = () => {
     if (!map.current || flightPath.length === 0) return;
-    
     const bounds = new mapboxgl.LngLatBounds();
-    
     flightPath.forEach(point => {
       bounds.extend([point.lng, point.lat]);
     });
-    
     map.current.fitBounds(bounds, {
       padding: 50,
       maxZoom: 15,
       duration: 1000
     });
   };
-  
+
   // Change map style
   const toggleMapStyle = () => {
     setMapStyle(prev => prev === 'dark' ? 'satellite' : 'dark');
   };
-  
+
   // Handle zoom in
   const zoomIn = () => {
     if (!map.current) return;
-    map.current.zoomIn({ duration: 500 });
+    map.current.zoomIn({
+      duration: 500
+    });
   };
-  
+
   // Handle zoom out
   const zoomOut = () => {
     if (!map.current) return;
-    map.current.zoomOut({ duration: 500 });
+    map.current.zoomOut({
+      duration: 500
+    });
   };
-  
-  return (
-    <div className="relative w-full h-full rounded-200 overflow-hidden border border-[rgba(255,255,255,0.08)]">
+  return <div className="relative w-full h-full rounded-200 overflow-hidden border border-[rgba(255,255,255,0.08)]">
       {/* Map container */}
       <div ref={mapContainer} className="absolute inset-0 bg-background-level-2"></div>
       
@@ -449,13 +437,7 @@ const FlightMap: React.FC<FlightMapProps> = ({
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button 
-                onClick={focusOnDrone}
-                variant="outline" 
-                size="icon" 
-                className="h-10 w-10 rounded-md bg-background-level-3/70 backdrop-blur-sm hover:bg-background-level-3/90"
-                disabled={!currentPosition}
-              >
+              <Button onClick={focusOnDrone} variant="outline" size="icon" className="h-10 w-10 rounded-md bg-background-level-3/70 backdrop-blur-sm hover:bg-background-level-3/90" disabled={!currentPosition}>
                 <PlaneTakeoff className="h-5 w-5" />
               </Button>
             </TooltipTrigger>
@@ -468,13 +450,7 @@ const FlightMap: React.FC<FlightMapProps> = ({
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button 
-                onClick={focusOnDock}
-                variant="outline" 
-                size="icon" 
-                className="h-10 w-10 rounded-md bg-background-level-3/70 backdrop-blur-sm hover:bg-background-level-3/90"
-                disabled={!dockLocation}
-              >
+              <Button onClick={focusOnDock} variant="outline" size="icon" className="h-10 w-10 rounded-md bg-background-level-3/70 backdrop-blur-sm hover:bg-background-level-3/90" disabled={!dockLocation}>
                 <Anchor className="h-5 w-5" />
               </Button>
             </TooltipTrigger>
@@ -487,13 +463,7 @@ const FlightMap: React.FC<FlightMapProps> = ({
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button 
-                onClick={showEntirePath}
-                variant="outline" 
-                size="icon" 
-                className="h-10 w-10 rounded-md bg-background-level-3/70 backdrop-blur-sm hover:bg-background-level-3/90"
-                disabled={flightPath.length === 0}
-              >
+              <Button onClick={showEntirePath} variant="outline" size="icon" className="h-10 w-10 rounded-md bg-background-level-3/70 backdrop-blur-sm hover:bg-background-level-3/90" disabled={flightPath.length === 0}>
                 <Maximize className="h-5 w-5" />
               </Button>
             </TooltipTrigger>
@@ -521,12 +491,7 @@ const FlightMap: React.FC<FlightMapProps> = ({
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button 
-                onClick={toggleMapStyle}
-                variant="outline" 
-                size="icon" 
-                className="h-10 w-10 rounded-md bg-background-level-3"
-              >
+              <Button onClick={toggleMapStyle} variant="outline" size="icon" className="h-10 w-10 rounded-md bg-background-level-3">
                 <MapIcon className="h-5 w-5" />
               </Button>
             </TooltipTrigger>
@@ -541,11 +506,7 @@ const FlightMap: React.FC<FlightMapProps> = ({
             <Tooltip>
               <TooltipTrigger asChild>
                 <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    size="icon" 
-                    className="h-10 w-10 rounded-md bg-background-level-3"
-                  >
+                  <Button variant="outline" size="icon" className="h-10 w-10 rounded-md bg-background-level-3">
                     <Layers className="h-5 w-5" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -574,9 +535,7 @@ const FlightMap: React.FC<FlightMapProps> = ({
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="flex items-center justify-center h-10 w-10 bg-background-level-3/70 backdrop-blur-sm rounded-md">
-                <Compass className="h-6 w-6 text-text-icon-01" />
-              </div>
+              
             </TooltipTrigger>
             <TooltipContent>
               <p>North</p>
@@ -586,23 +545,17 @@ const FlightMap: React.FC<FlightMapProps> = ({
       </div>
       
       {/* Coordinates display (bottom) */}
-      {showCoordinates && (
-        <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-background-level-3/80 backdrop-blur-sm px-3 py-1 rounded-md text-xs text-text-icon-02 z-10">
+      {showCoordinates && <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-background-level-3/80 backdrop-blur-sm px-3 py-1 rounded-md text-xs text-text-icon-02 z-10">
           Lng: {showCoordinates.lng} | Lat: {showCoordinates.lat}
-        </div>
-      )}
+        </div>}
       
       {/* Loading indicator */}
-      {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background-level-2 bg-opacity-80 z-20">
+      {isLoading && <div className="absolute inset-0 flex items-center justify-center bg-background-level-2 bg-opacity-80 z-20">
           <div className="flex flex-col items-center space-y-300">
             <Loader2 className="h-8 w-8 text-primary-200 animate-spin" />
             <span className="text-text-icon-01 fb-body1-medium">Loading flight path...</span>
           </div>
-        </div>
-      )}
-    </div>
-  );
+        </div>}
+    </div>;
 };
-
 export default FlightMap;
