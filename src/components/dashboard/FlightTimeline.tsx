@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { BarChart, XAxis, YAxis, Bar, Tooltip, CartesianGrid, Legend } from 'recharts';
 import { Loader, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -347,25 +348,26 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
   };
 
   // Function to handle bar click and navigate to all logs with date filter
-  const handleBarClick = (data: any) => {
-    if (!data || !data.date) return;
+  const handleBarClick = (data: any, index: any) => {
+    if (!data || !data.payload || !data.payload.date) return;
     
+    const clickedItem = data.payload;
     let fromDate, toDate;
     
     switch (dateRange) {
       case 'monthly':
         // For monthly view, set from-to as the entire month
-        fromDate = startOfMonth(data.date);
-        toDate = endOfMonth(data.date);
+        fromDate = startOfMonth(clickedItem.date);
+        toDate = endOfMonth(clickedItem.date);
         break;
       case 'weekly':
         // For weekly view, set from-to as the entire week
-        fromDate = startOfWeek(data.date);
-        toDate = endOfWeek(data.date);
+        fromDate = startOfWeek(clickedItem.date);
+        toDate = endOfWeek(clickedItem.date);
         break;
       case 'daily':
         // For daily view, just set the specific day
-        fromDate = startOfDay(data.date);
+        fromDate = startOfDay(clickedItem.date);
         toDate = fromDate;
         break;
       default:
@@ -375,6 +377,8 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
     // Format dates for URL parameters
     const fromParam = format(fromDate, 'yyyy-MM-dd');
     const toParam = format(toDate, 'yyyy-MM-dd');
+    
+    console.log(`Navigating to: /all-logs?from=${fromParam}&to=${toParam}`);
     
     // Navigate to all logs page with date filter
     navigate(`/all-logs?from=${fromParam}&to=${toParam}`);
