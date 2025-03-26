@@ -84,7 +84,7 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
       />
 
       {/* Tab Navigation */}
-      <div className="h-[45px] border-b border-outline-primary">
+      <div className="border-b border-outline-primary">
         <Tabs 
           defaultValue="telemetry" 
           className="w-full" 
@@ -113,13 +113,15 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
           </TabsList>
 
           {/* Tab Contents */}
-          <TabsContent value="telemetry" className="p-0 h-[calc(100vh-95px)] flex flex-col overflow-hidden">
-            <TelemetryPanel telemetryData={telemetryData} />
-          </TabsContent>
-          
-          <TabsContent value="timeline" className="p-0 h-[calc(100vh-95px)] flex flex-col overflow-hidden">
-            <TimelinePanel />
-          </TabsContent>
+          <div className="h-[calc(100%-45px)]">
+            <TabsContent value="telemetry" className="p-0 h-full m-0 overflow-hidden">
+              <TelemetryPanel telemetryData={telemetryData} />
+            </TabsContent>
+            
+            <TabsContent value="timeline" className="p-0 h-full m-0 overflow-hidden">
+              <TimelinePanel />
+            </TabsContent>
+          </div>
         </Tabs>
       </div>
     </Card>

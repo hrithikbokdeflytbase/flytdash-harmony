@@ -66,41 +66,43 @@ const TelemetryPanel: React.FC<TelemetryPanelProps> = ({
   telemetryData
 }) => {
   return (
-    <ScrollArea className="flex-1 h-full overflow-y-auto">
-      <div className="space-y-0 pb-6">
-        {/* Battery Section */}
-        <div className="px-4 py-3">
-          <BatteryStatusCard 
-            percentage={telemetryData.battery.percentage}
-            estimatedRemaining={telemetryData.battery.estimatedRemaining}
-          />
-        </div>
-        
-        {/* General Telemetry Section */}
-        <SectionHeader title="Flight Metrics" icon={Activity}>
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full bg-success-200"></div>
-            <span className="text-xs text-text-icon-01">GPS {telemetryData.gpsStatus.count}</span>
+    <div className="flex-1 h-full overflow-hidden">
+      <ScrollArea className="h-full w-full">
+        <div className="space-y-0 pb-6">
+          {/* Battery Section */}
+          <div className="px-4 py-3">
+            <BatteryStatusCard 
+              percentage={telemetryData.battery.percentage}
+              estimatedRemaining={telemetryData.battery.estimatedRemaining}
+            />
           </div>
-        </SectionHeader>
-        
-        {/* Telemetry Metrics Grid */}
-        <TelemetryMetricsGrid 
-          altitude={telemetryData.altitude}
-          distance={telemetryData.distance}
-          verticalSpeed={telemetryData.verticalSpeed}
-          horizontalSpeed={telemetryData.horizontalSpeed}
-        />
-        
-        {/* Position Data Section */}
-        <PositionDataSection 
-          coordinates={telemetryData.coordinates}
-        />
-        
-        {/* Network Section */}
-        <NetworkStatusSection connections={telemetryData.connections} />
-      </div>
-    </ScrollArea>
+          
+          {/* General Telemetry Section */}
+          <SectionHeader title="Flight Metrics" icon={Activity}>
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 rounded-full bg-success-200"></div>
+              <span className="text-xs text-text-icon-01">GPS {telemetryData.gpsStatus.count}</span>
+            </div>
+          </SectionHeader>
+          
+          {/* Telemetry Metrics Grid */}
+          <TelemetryMetricsGrid 
+            altitude={telemetryData.altitude}
+            distance={telemetryData.distance}
+            verticalSpeed={telemetryData.verticalSpeed}
+            horizontalSpeed={telemetryData.horizontalSpeed}
+          />
+          
+          {/* Position Data Section */}
+          <PositionDataSection 
+            coordinates={telemetryData.coordinates}
+          />
+          
+          {/* Network Section */}
+          <NetworkStatusSection connections={telemetryData.connections} />
+        </div>
+      </ScrollArea>
+    </div>
   );
 };
 
