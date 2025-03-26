@@ -210,7 +210,7 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
           </TabsList>
 
           {/* Tab Contents */}
-          <TabsContent value="telemetry" className="p-0">
+          <TabsContent value="telemetry" className="p-0 overflow-y-auto">
             {/* Drone Telemetry Section */}
             <div className="space-y-0">
               {/* Telemetry Header */}
@@ -301,7 +301,7 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
                 </div>
               </div>
               
-              {/* Network Section */}
+              {/* Network Section - Fixed to ensure it's visible */}
               <div className="mt-400">
                 {/* Network Header */}
                 <div className="h-[35px] bg-background-level-2 flex items-center px-400 border-t border-b border-outline-primary">
@@ -311,7 +311,7 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
                   </div>
                 </div>
                 
-                {/* Connection Cards */}
+                {/* Connection Cards - Ensured visibility with clear padding and styling */}
                 <div className="p-400 space-y-300">
                   {/* RF Link */}
                   <div className="bg-background-level-2 rounded-[4px] p-300 flex items-center justify-between">
@@ -361,3 +361,4 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
 };
 
 export default FlightDetailsPanel;
+
