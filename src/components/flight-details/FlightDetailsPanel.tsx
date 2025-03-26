@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Activity, Clock, Network, Battery } from 'lucide-react';
+import { Activity, Clock, Network, Battery, Wifi } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -241,40 +241,28 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
                 </div>
               </div>
               
-              {/* Network Section */}
-              <div className="mt-2 pb-4">
-                <SectionHeader title="Network" icon={Network} />
+              {/* Network Section - Ensure this is visible */}
+              <div className="mt-2">
+                <SectionHeader title="Network" icon={Wifi} />
                 
-                <div className="px-4 pt-2 space-y-3">
-                  <Card className="bg-background-level-3 border-outline-primary">
-                    <CardContent className="p-3">
-                      <ConnectionStatusCard 
-                        label="Dock Drone RF Link"
-                        status={telemetryData.connections.rfLink.status}
-                        details={telemetryData.connections.rfLink.details}
-                      />
-                    </CardContent>
-                  </Card>
+                <div className="px-4 pt-2 pb-4 space-y-3">
+                  <ConnectionStatusCard 
+                    label="Dock Drone RF Link"
+                    status={telemetryData.connections.rfLink.status}
+                    details={telemetryData.connections.rfLink.details}
+                  />
                   
-                  <Card className="bg-background-level-3 border-outline-primary">
-                    <CardContent className="p-3">
-                      <ConnectionStatusCard 
-                        label="Dock Ethernet"
-                        status={telemetryData.connections.ethernet.status}
-                        details={telemetryData.connections.ethernet.details}
-                      />
-                    </CardContent>
-                  </Card>
+                  <ConnectionStatusCard 
+                    label="Dock Ethernet"
+                    status={telemetryData.connections.ethernet.status}
+                    details={telemetryData.connections.ethernet.details}
+                  />
                   
-                  <Card className="bg-background-level-3 border-outline-primary">
-                    <CardContent className="p-3">
-                      <ConnectionStatusCard 
-                        label="Dock 4G"
-                        status={telemetryData.connections.cellular.status}
-                        details={telemetryData.connections.cellular.details}
-                      />
-                    </CardContent>
-                  </Card>
+                  <ConnectionStatusCard 
+                    label="Dock 4G"
+                    status={telemetryData.connections.cellular.status}
+                    details={telemetryData.connections.cellular.details}
+                  />
                 </div>
               </div>
             </div>

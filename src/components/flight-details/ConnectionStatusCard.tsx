@@ -54,11 +54,11 @@ const ConnectionStatusCard: React.FC<ConnectionStatusCardProps> = ({
   );
 
   return (
-    <div className={cn("bg-background-level-2 rounded-[4px] p-300 flex items-center justify-between", className)}>
+    <div className={cn("bg-background-level-3 rounded-[4px] p-3 flex items-center justify-between border border-outline-primary", className)}>
       <span className="text-xs text-text-icon-01">{label}</span>
       <div className="flex items-center gap-200">
         {renderStatusIndicator()}
-        {details && <span className="text-[10px] text-text-icon-02">{details}</span>}
+        {details && <span className="text-[10px] text-text-icon-02 ml-2">{details}</span>}
       </div>
     </div>
   );
