@@ -23,7 +23,7 @@ import {
   PopoverContent,
   PopoverTrigger
 } from '@/components/ui/popover';
-import { Check, ChevronsUpDown, Zap, BellRing, CheckSquare, Search, Target, Route, Drone } from 'lucide-react';
+import { Check, ChevronsUpDown, Zap, BellRing, CheckSquare, Search, Target, Route } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 
@@ -156,7 +156,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                           className="data-[state=checked]:bg-primary-200 border-outline-primary h-4 w-4"
                         />
                         <div className="flex items-center gap-2 text-text-icon-01">
-                          <Drone className="h-4 w-4 text-primary-100" />
+                          <Target className="h-4 w-4 text-primary-100" />
                           <span>{drone.label}</span>
                         </div>
                         {selectedDrones.includes(drone.value) && (
