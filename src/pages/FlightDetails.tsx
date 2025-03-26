@@ -406,9 +406,9 @@ const FlightDetails = () => {
         </ToggleGroup>
       </header>
       
-      {/* Main Content Area - Adjusted to ensure proper layout with panel */}
-      <main className="flex-1 p-400 pb-0 overflow-hidden flex" style={{ maxHeight: 'calc(100vh - 230px)' }}>
-        <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-400 h-full">
+      {/* Main Content Area - Adjusted to ensure proper layout with panel and spacing */}
+      <main className="flex-1 p-400 pb-0 overflow-hidden flex flex-col">
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-400 h-full mb-400">
           {/* Video Panel */}
           <div className={`bg-background-level-2 rounded-200 p-400 flex flex-col ${viewMode === 'video' ? 'lg:col-span-12' : viewMode === 'split' ? 'lg:col-span-6' : 'hidden lg:block lg:col-span-6'}`}>
             <VideoFeed cameraType={cameraType} videoState={videoState} timelinePosition={timelinePosition} videoSegments={videoSegments} onPositionUpdate={handleVideoPositionUpdate} />
@@ -440,12 +440,12 @@ const FlightDetails = () => {
             />
           </div>
         </div>
+        
+        {/* Bottom Section - Timeline */}
+        <footer className="bg-background-level-1" style={{ height: '200px' }}>
+          <FlightTimeline currentPosition={timelinePosition} videoSegments={videoSegments} flightDuration="00:25:30" onPositionChange={handleTimelinePositionChange} missionPhases={missionPhases} systemEvents={systemEvents} warningEvents={warningEvents} mediaActions={mediaActions} />
+        </footer>
       </main>
-      
-      {/* Bottom Section - Timeline */}
-      <footer className="bg-background-level-1" style={{ height: '200px' }}>
-        <FlightTimeline currentPosition={timelinePosition} videoSegments={videoSegments} flightDuration="00:25:30" onPositionChange={handleTimelinePositionChange} missionPhases={missionPhases} systemEvents={systemEvents} warningEvents={warningEvents} mediaActions={mediaActions} />
-      </footer>
     </div>;
 };
 export default FlightDetails;
