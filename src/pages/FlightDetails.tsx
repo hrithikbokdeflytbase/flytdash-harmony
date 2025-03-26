@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Video, Map, Columns } from 'lucide-react';
@@ -24,6 +25,36 @@ type VideoSegment = {
   startTime: string; // Format: "HH:MM:SS"
   endTime: string;   // Format: "HH:MM:SS"
   url: string;
+};
+
+// Mission phase type
+type MissionPhase = {
+  type: 'takeoff' | 'mission' | 'rtl' | 'landing' | 'hover' | 'manual';
+  startTime: string; // Format: "HH:MM:SS"
+  endTime: string;   // Format: "HH:MM:SS"
+  label: string;
+};
+
+// System event type
+type SystemEvent = {
+  type: 'connection' | 'calibration' | 'modeChange' | 'command';
+  timestamp: string; // Format: "HH:MM:SS"
+  details: string;
+};
+
+// Warning event type
+type WarningEvent = {
+  type: 'warning' | 'error';
+  timestamp: string; // Format: "HH:MM:SS"
+  details: string;
+  severity: 'low' | 'medium' | 'high';
+};
+
+// Media action type
+type MediaAction = {
+  type: 'photo' | 'videoStart' | 'videoEnd';
+  timestamp: string; // Format: "HH:MM:SS"
+  fileId?: string;
 };
 
 // Mock flight path data
@@ -67,6 +98,47 @@ const FlightDetails = () => {
     { startTime: '00:10:00', endTime: '00:12:30', url: '/videos/segment1.mp4' },
     { startTime: '00:15:00', endTime: '00:18:45', url: '/videos/segment2.mp4' },
     { startTime: '00:22:15', endTime: '00:25:00', url: '/videos/segment3.mp4' }
+  ]);
+
+  // Mock mission phases
+  const [missionPhases, setMissionPhases] = useState<MissionPhase[]>([
+    { type: 'takeoff', startTime: '00:00:00', endTime: '00:01:30', label: 'Takeoff' },
+    { type: 'mission', startTime: '00:01:30', endTime: '00:15:00', label: 'Mission' },
+    { type: 'hover', startTime: '00:15:00', endTime: '00:18:30', label: 'Hover' },
+    { type: 'manual', startTime: '00:18:30', endTime: '00:22:00', label: 'Manual Control' },
+    { type: 'rtl', startTime: '00:22:00', endTime: '00:24:30', label: 'Return to Launch' },
+    { type: 'landing', startTime: '00:24:30', endTime: '00:25:30', label: 'Landing' },
+  ]);
+
+  // Mock system events
+  const [systemEvents, setSystemEvents] = useState<SystemEvent[]>([
+    { type: 'connection', timestamp: '00:00:30', details: 'GPS Fixed' },
+    { type: 'calibration', timestamp: '00:01:15', details: 'IMU Calibrated' },
+    { type: 'modeChange', timestamp: '00:05:45', details: 'Mode: Autonomous' },
+    { type: 'command', timestamp: '00:12:20', details: 'Waypoint Reached' },
+    { type: 'modeChange', timestamp: '00:18:30', details: 'Mode: Manual' },
+    { type: 'command', timestamp: '00:22:00', details: 'RTL Activated' },
+  ]);
+
+  // Mock warning events
+  const [warningEvents, setWarningEvents] = useState<WarningEvent[]>([
+    { type: 'warning', timestamp: '00:04:15', details: 'Low Battery', severity: 'medium' },
+    { type: 'warning', timestamp: '00:08:30', details: 'Strong Wind', severity: 'low' },
+    { type: 'error', timestamp: '00:17:45', details: 'Sensor Error', severity: 'high' },
+    { type: 'warning', timestamp: '00:21:10', details: 'Signal Interference', severity: 'medium' },
+  ]);
+
+  // Mock media actions
+  const [mediaActions, setMediaActions] = useState<MediaAction[]>([
+    { type: 'photo', timestamp: '00:03:20', fileId: 'IMG001' },
+    { type: 'videoStart', timestamp: '00:10:00', fileId: 'VID001' },
+    { type: 'videoEnd', timestamp: '00:12:30', fileId: 'VID001' },
+    { type: 'photo', timestamp: '00:14:15', fileId: 'IMG002' },
+    { type: 'videoStart', timestamp: '00:15:00', fileId: 'VID002' },
+    { type: 'videoEnd', timestamp: '00:18:45', fileId: 'VID002' },
+    { type: 'photo', timestamp: '00:20:50', fileId: 'IMG003' },
+    { type: 'videoStart', timestamp: '00:22:15', fileId: 'VID003' },
+    { type: 'videoEnd', timestamp: '00:25:00', fileId: 'VID003' },
   ]);
   
   // Map state
@@ -298,6 +370,10 @@ const FlightDetails = () => {
           videoSegments={videoSegments}
           flightDuration="05:30:00"
           onPositionChange={handleTimelinePositionChange}
+          missionPhases={missionPhases}
+          systemEvents={systemEvents}
+          warningEvents={warningEvents}
+          mediaActions={mediaActions}
         />
       </footer>
     </div>
