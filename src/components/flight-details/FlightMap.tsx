@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -267,7 +268,7 @@ const FlightMap: React.FC<FlightMapProps> = ({
       
       // Extend the bounds with each coordinate point
       flightPath.forEach(point => {
-        bounds.extend([point.lng, point.lat] as mapboxgl.LngLatLike);
+        bounds.extend([point.lng, point.lat]);
       });
       
       // Now use the properly constructed bounds object
@@ -411,7 +412,7 @@ const FlightMap: React.FC<FlightMapProps> = ({
     const bounds = new mapboxgl.LngLatBounds();
     
     flightPath.forEach(point => {
-      bounds.extend([point.lng, point.lat] as mapboxgl.LngLatLike);
+      bounds.extend([point.lng, point.lat]);
     });
     
     map.current.fitBounds(bounds, {
