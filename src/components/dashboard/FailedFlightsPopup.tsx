@@ -36,16 +36,16 @@ interface FailedFlightsPopupProps {
   totalCount: number;
 }
 
-// Updated failure data with the specified categories and examples
+// Updated failure data with generic error messages
 const failureData = [
   {
     cause: 'Airspace Issues',
     count: 3,
     icon: AlertCircle,
     flights: [
-      { id: 'Flight #1204', date: 'Mar 19', type: 'Site Survey', details: 'Aircraft Detected: 1.8km NE, 380ft above' },
-      { id: 'Flight #1198', date: 'Mar 18', type: 'Perimeter Scan', details: 'Restricted Airspace: 800m ahead' },
-      { id: 'Flight #1187', date: 'Mar 16', type: 'Equipment Check', details: 'Aircraft Approaching: 2.5km SW, 600ft above' },
+      { id: 'Flight #1204', date: 'Mar 19', type: 'Site Survey', details: 'Aircraft Detected' },
+      { id: 'Flight #1198', date: 'Mar 18', type: 'Perimeter Scan', details: 'Restricted Airspace' },
+      { id: 'Flight #1187', date: 'Mar 16', type: 'Equipment Check', details: 'Aircraft Approaching' },
     ]
   },
   {
@@ -53,9 +53,9 @@ const failureData = [
     count: 3,
     icon: Wind,
     flights: [
-      { id: 'Flight #1201', date: 'Mar 20', type: 'Inspection', details: 'High Wind Speed: 13.4 m/s, gusting to 16 m/s' },
-      { id: 'Flight #1195', date: 'Mar 17', type: 'Site Survey', details: 'Rain Detected in operation area' },
-      { id: 'Flight #1183', date: 'Mar 15', type: 'GTL', details: 'Lightning Risk: detected within 8km' },
+      { id: 'Flight #1201', date: 'Mar 20', type: 'Inspection', details: 'High Wind Speed' },
+      { id: 'Flight #1195', date: 'Mar 17', type: 'Site Survey', details: 'Rain Detected' },
+      { id: 'Flight #1183', date: 'Mar 15', type: 'GTL', details: 'Lightning Risk' },
     ]
   },
   {
@@ -63,9 +63,9 @@ const failureData = [
     count: 3,
     icon: Shield,
     flights: [
-      { id: 'Flight #1192', date: 'Mar 17', type: 'Manual Flight', details: 'NFZ Breach: 40m from No-Fly Zone boundary' },
-      { id: 'Flight #1185', date: 'Mar 16', type: 'Mission', details: 'Geofence Breach: 80m from boundary' },
-      { id: 'Flight #1176', date: 'Mar 14', type: 'Perimeter Scan', details: 'Max Altitude Limit: Exceeded by 15m' },
+      { id: 'Flight #1192', date: 'Mar 17', type: 'Manual Flight', details: 'NFZ Breach' },
+      { id: 'Flight #1185', date: 'Mar 16', type: 'Mission', details: 'Geofence Breach' },
+      { id: 'Flight #1176', date: 'Mar 14', type: 'Perimeter Scan', details: 'Max Altitude Limit' },
     ]
   },
   {
@@ -73,8 +73,8 @@ const failureData = [
     count: 2,
     icon: MapPin,
     flights: [
-      { id: 'Flight #1178', date: 'Mar 14', type: 'Infrastructure', details: 'GPS Signal Loss (8/14 satellites)' },
-      { id: 'Flight #1177', date: 'Mar 14', type: 'Inspection', details: 'Compass Interference Detected' },
+      { id: 'Flight #1178', date: 'Mar 14', type: 'Infrastructure', details: 'GPS Signal Loss' },
+      { id: 'Flight #1177', date: 'Mar 14', type: 'Inspection', details: 'Compass Interference' },
     ]
   },
   {
@@ -82,8 +82,8 @@ const failureData = [
     count: 2,
     icon: Battery,
     flights: [
-      { id: 'Flight #1190', date: 'Mar 16', type: 'GTL', details: 'Critical Battery Level (12%)' },
-      { id: 'Flight #1186', date: 'Mar 15', type: 'Site Survey', details: 'Battery Cell Imbalance (0.4V)' },
+      { id: 'Flight #1190', date: 'Mar 16', type: 'GTL', details: 'Critical Battery Level' },
+      { id: 'Flight #1186', date: 'Mar 15', type: 'Site Survey', details: 'Battery Cell Imbalance' },
     ]
   },
   {
