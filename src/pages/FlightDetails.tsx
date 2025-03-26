@@ -4,14 +4,57 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Video, Map, Columns } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import VideoFeed from '@/components/flight-details/VideoFeed';
 
 // View mode type
 type ViewMode = 'map' | 'video' | 'split';
+
+// Camera type
+type CameraType = 'wide' | 'zoom' | 'thermal';
+
+// Video segment interface
+interface VideoSegment {
+  id: string;
+  startTime: string;
+  endTime: string;
+  timestamp: number;
+  cameraType: CameraType;
+  url: string | null;
+}
 
 const FlightDetails = () => {
   const { flightId } = useParams();
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<ViewMode>('split');
+  const [currentTimestamp, setCurrentTimestamp] = useState<number>(1654320000); // Example timestamp
+  
+  // Mock video segments data
+  const mockVideoSegments: VideoSegment[] = [
+    {
+      id: '1',
+      startTime: '10:00:00',
+      endTime: '10:01:00',
+      timestamp: 1654320000,
+      cameraType: 'wide',
+      url: null
+    },
+    {
+      id: '2',
+      startTime: '10:02:00',
+      endTime: '10:03:00',
+      timestamp: 1654320120,
+      cameraType: 'zoom',
+      url: null
+    },
+    {
+      id: '3',
+      startTime: '10:05:00',
+      endTime: '10:06:00',
+      timestamp: 1654320300,
+      cameraType: 'thermal',
+      url: null
+    }
+  ];
   
   // Fetch flight details (placeholder)
   useEffect(() => {
@@ -56,11 +99,11 @@ const FlightDetails = () => {
       <main className="flex-1 p-400 overflow-hidden">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-200 h-full">
           {/* Video Panel */}
-          <div className={`bg-background-level-2 rounded-200 p-400 flex flex-col ${viewMode === 'video' ? 'lg:col-span-12' : viewMode === 'split' ? 'lg:col-span-5' : 'hidden lg:block lg:col-span-5'}`}>
-            <h2 className="fb-title1-medium text-text-icon-01 mb-300">Video Feed</h2>
-            <div className="flex-1 bg-background-level-3 rounded-200 flex items-center justify-center">
-              <p className="text-text-icon-02">Video feed will be displayed here</p>
-            </div>
+          <div className={`${viewMode === 'video' ? 'lg:col-span-12' : viewMode === 'split' ? 'lg:col-span-5' : 'hidden lg:block lg:col-span-5'}`}>
+            <VideoFeed 
+              currentTimestamp={currentTimestamp}
+              videoSegments={mockVideoSegments}
+            />
           </div>
           
           {/* Map Panel */}
