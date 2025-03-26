@@ -11,7 +11,6 @@ import {
   X, 
   ChevronRight, 
   AlertTriangle, 
-  FileText, 
   Activity, 
   Wind, 
   MapPin, 
@@ -195,7 +194,7 @@ const FailedFlightsPopup = ({ open, onOpenChange, failedCount, totalCount }: Fai
               </li>
               <li className="flex items-start">
                 <span className="text-warning-200 mr-2">•</span>
-                <span>Failure threshold: Wind > 12 m/s, GPS < 4 satellites</span>
+                <span>Failure threshold: Wind &gt; 12 m/s, GPS &lt; 4 satellites</span>
               </li>
               <li className="flex items-start">
                 <span className="text-warning-200 mr-2">•</span>
