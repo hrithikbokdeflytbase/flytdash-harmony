@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BarChart, XAxis, YAxis, Bar, ResponsiveContainer, Tooltip, CartesianGrid, Legend } from 'recharts';
 import { Loader } from 'lucide-react';
@@ -12,7 +11,7 @@ interface FlightTimelineProps {
   isLoading: boolean;
 }
 
-// Mock data for the timeline - simplified to use daily data for all ranges
+// Mock data for the timeline - updated to use daily data (Monday-Sunday) for daily range
 const generateMockData = (dateRange: DateRangeType, viewType: ViewType) => {
   if (viewType === 'total') {
     switch (dateRange) {
@@ -44,12 +43,15 @@ const generateMockData = (dateRange: DateRangeType, viewType: ViewType) => {
           { name: 'Sun', flights: Math.floor(Math.random() * 30) + 10 },
         ];
       case 'daily':
-        // Monthly data - showing weekly aggregates instead of daily
+        // Daily data - showing individual days instead of weekly aggregates
         return [
-          { name: 'Week 1', flights: Math.floor(Math.random() * 70) + 30 },
-          { name: 'Week 2', flights: Math.floor(Math.random() * 70) + 30 },
-          { name: 'Week 3', flights: Math.floor(Math.random() * 70) + 30 },
-          { name: 'Week 4', flights: Math.floor(Math.random() * 70) + 30 },
+          { name: 'Monday', flights: Math.floor(Math.random() * 25) + 5 },
+          { name: 'Tuesday', flights: Math.floor(Math.random() * 25) + 5 },
+          { name: 'Wednesday', flights: Math.floor(Math.random() * 25) + 5 },
+          { name: 'Thursday', flights: Math.floor(Math.random() * 25) + 5 },
+          { name: 'Friday', flights: Math.floor(Math.random() * 25) + 5 },
+          { name: 'Saturday', flights: Math.floor(Math.random() * 25) + 5 },
+          { name: 'Sunday', flights: Math.floor(Math.random() * 25) + 5 },
         ];
     }
   } else {
@@ -98,7 +100,7 @@ const generateMockData = (dateRange: DateRangeType, viewType: ViewType) => {
             name: 'Jul',
             successful: Math.floor(Math.random() * 60) + 20,
             failed: Math.floor(Math.random() * 15),
-            aborted: Math.floor(Math.random() * 8),
+            aborted: Math.floor(Mathrandom() * 8),
           },
           {
             name: 'Aug',
@@ -178,31 +180,49 @@ const generateMockData = (dateRange: DateRangeType, viewType: ViewType) => {
           },
         ];
       case 'daily':
-        // Monthly data - showing weekly aggregates
+        // Daily data - showing individual days instead of weekly aggregates
         return [
           {
-            name: 'Week 1',
-            successful: Math.floor(Math.random() * 60) + 20,
-            failed: Math.floor(Math.random() * 15),
-            aborted: Math.floor(Math.random() * 8),
+            name: 'Monday',
+            successful: Math.floor(Math.random() * 20) + 5,
+            failed: Math.floor(Math.random() * 4),
+            aborted: Math.floor(Math.random() * 2),
           },
           {
-            name: 'Week 2',
-            successful: Math.floor(Math.random() * 60) + 20,
-            failed: Math.floor(Math.random() * 15),
-            aborted: Math.floor(Math.random() * 8),
+            name: 'Tuesday',
+            successful: Math.floor(Math.random() * 20) + 5,
+            failed: Math.floor(Math.random() * 4),
+            aborted: Math.floor(Math.random() * 2),
           },
           {
-            name: 'Week 3',
-            successful: Math.floor(Math.random() * 60) + 20,
-            failed: Math.floor(Math.random() * 15),
-            aborted: Math.floor(Math.random() * 8),
+            name: 'Wednesday',
+            successful: Math.floor(Math.random() * 20) + 5,
+            failed: Math.floor(Math.random() * 4),
+            aborted: Math.floor(Math.random() * 2),
           },
           {
-            name: 'Week 4',
-            successful: Math.floor(Math.random() * 60) + 20,
-            failed: Math.floor(Math.random() * 15),
-            aborted: Math.floor(Math.random() * 8),
+            name: 'Thursday',
+            successful: Math.floor(Math.random() * 20) + 5,
+            failed: Math.floor(Math.random() * 4),
+            aborted: Math.floor(Math.random() * 2),
+          },
+          {
+            name: 'Friday',
+            successful: Math.floor(Math.random() * 20) + 5,
+            failed: Math.floor(Math.random() * 4),
+            aborted: Math.floor(Math.random() * 2),
+          },
+          {
+            name: 'Saturday',
+            successful: Math.floor(Math.random() * 20) + 5,
+            failed: Math.floor(Math.random() * 4),
+            aborted: Math.floor(Math.random() * 2),
+          },
+          {
+            name: 'Sunday',
+            successful: Math.floor(Math.random() * 20) + 5,
+            failed: Math.floor(Math.random() * 4),
+            aborted: Math.floor(Math.random() * 2),
           }
         ];
     }
