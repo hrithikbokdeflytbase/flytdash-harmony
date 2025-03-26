@@ -47,7 +47,9 @@ type ErrorSeverity = 'critical' | 'warning';
 interface FlightError {
   id: string;
   date: string;
-  type: string;
+  missionName: string;
+  missionType: string;
+  isManualControl: boolean;
   details: string;
   severity: ErrorSeverity;
 }
@@ -59,16 +61,40 @@ interface ErrorCategory {
   flights: FlightError[];
 }
 
-// Updated failure data with generic error messages and severity levels
+// Updated failure data with new format and generic error messages
 const failureData: ErrorCategory[] = [
   {
     cause: 'Airspace Issues',
     count: 3,
     icon: AlertCircle,
     flights: [
-      { id: 'Flight #1204', date: 'Mar 19', type: 'Site Survey', details: 'Aircraft Detected', severity: 'critical' },
-      { id: 'Flight #1198', date: 'Mar 18', type: 'Perimeter Scan', details: 'Restricted Airspace', severity: 'critical' },
-      { id: 'Flight #1187', date: 'Mar 16', type: 'Equipment Check', details: 'Aircraft Approaching', severity: 'warning' },
+      { 
+        id: 'Flight #1204', 
+        date: 'Mar 19, 9:30 AM', 
+        missionName: 'Site Survey', 
+        missionType: 'GTL', 
+        isManualControl: false, 
+        details: 'Aircraft Detected', 
+        severity: 'critical' 
+      },
+      { 
+        id: 'Flight #1198', 
+        date: 'Mar 18, 11:15 AM', 
+        missionName: 'Perimeter Inspection', 
+        missionType: 'Mission', 
+        isManualControl: false, 
+        details: 'Restricted Airspace', 
+        severity: 'critical' 
+      },
+      { 
+        id: 'Flight #1187', 
+        date: 'Mar 16, 2:20 PM', 
+        missionName: 'Equipment Check', 
+        missionType: 'Manual', 
+        isManualControl: true, 
+        details: 'Aircraft Approaching', 
+        severity: 'warning' 
+      },
     ]
   },
   {
@@ -76,9 +102,33 @@ const failureData: ErrorCategory[] = [
     count: 3,
     icon: Wind,
     flights: [
-      { id: 'Flight #1201', date: 'Mar 20', type: 'Inspection', details: 'High Wind Speed', severity: 'warning' },
-      { id: 'Flight #1195', date: 'Mar 17', type: 'Site Survey', details: 'Rain Detected', severity: 'critical' },
-      { id: 'Flight #1183', date: 'Mar 15', type: 'GTL', details: 'Lightning Risk', severity: 'critical' },
+      { 
+        id: 'Flight #1201', 
+        date: 'Mar 20, 10:45 AM', 
+        missionName: 'Facility Inspection', 
+        missionType: 'GTL', 
+        isManualControl: true, 
+        details: 'High Wind Speed', 
+        severity: 'warning' 
+      },
+      { 
+        id: 'Flight #1195', 
+        date: 'Mar 17, 8:30 AM', 
+        missionName: 'Site Survey', 
+        missionType: 'Mission', 
+        isManualControl: false, 
+        details: 'Rain Detected', 
+        severity: 'critical' 
+      },
+      { 
+        id: 'Flight #1183', 
+        date: 'Mar 15, 4:10 PM', 
+        missionName: 'Tower Inspection', 
+        missionType: 'GTL', 
+        isManualControl: false, 
+        details: 'Lightning Risk', 
+        severity: 'critical' 
+      },
     ]
   },
   {
@@ -86,9 +136,33 @@ const failureData: ErrorCategory[] = [
     count: 3,
     icon: Shield,
     flights: [
-      { id: 'Flight #1192', date: 'Mar 17', type: 'Manual Flight', details: 'NFZ Breach', severity: 'critical' },
-      { id: 'Flight #1185', date: 'Mar 16', type: 'Mission', details: 'Geofence Breach', severity: 'warning' },
-      { id: 'Flight #1176', date: 'Mar 14', type: 'Perimeter Scan', details: 'Max Altitude Limit', severity: 'warning' },
+      { 
+        id: 'Flight #1192', 
+        date: 'Mar 17, 1:25 PM', 
+        missionName: 'Boundary Survey', 
+        missionType: 'Manual', 
+        isManualControl: true, 
+        details: 'NFZ Breach', 
+        severity: 'critical' 
+      },
+      { 
+        id: 'Flight #1185', 
+        date: 'Mar 16, 11:50 AM', 
+        missionName: 'Perimeter Check', 
+        missionType: 'Mission', 
+        isManualControl: false, 
+        details: 'Geofence Breach', 
+        severity: 'warning' 
+      },
+      { 
+        id: 'Flight #1176', 
+        date: 'Mar 14, 9:20 AM', 
+        missionName: 'Site Mapping', 
+        missionType: 'GTL', 
+        isManualControl: false, 
+        details: 'Max Altitude Limit', 
+        severity: 'warning' 
+      },
     ]
   },
   {
@@ -96,8 +170,24 @@ const failureData: ErrorCategory[] = [
     count: 2,
     icon: MapPin,
     flights: [
-      { id: 'Flight #1178', date: 'Mar 14', type: 'Infrastructure', details: 'GPS Signal Loss', severity: 'warning' },
-      { id: 'Flight #1177', date: 'Mar 14', type: 'Inspection', details: 'Compass Interference', severity: 'warning' },
+      { 
+        id: 'Flight #1178', 
+        date: 'Mar 14, 3:35 PM', 
+        missionName: 'Infrastructure Check', 
+        missionType: 'Mission', 
+        isManualControl: false, 
+        details: 'GPS Signal Loss', 
+        severity: 'warning' 
+      },
+      { 
+        id: 'Flight #1177', 
+        date: 'Mar 14, 10:15 AM', 
+        missionName: 'Area Inspection', 
+        missionType: 'GTL', 
+        isManualControl: false, 
+        details: 'Compass Interference', 
+        severity: 'warning' 
+      },
     ]
   },
   {
@@ -105,8 +195,24 @@ const failureData: ErrorCategory[] = [
     count: 2,
     icon: Battery,
     flights: [
-      { id: 'Flight #1190', date: 'Mar 16', type: 'GTL', details: 'Critical Battery Level', severity: 'critical' },
-      { id: 'Flight #1186', date: 'Mar 15', type: 'Site Survey', details: 'Battery Cell Imbalance', severity: 'warning' },
+      { 
+        id: 'Flight #1190', 
+        date: 'Mar 16, 5:10 PM', 
+        missionName: 'Emergency Assessment', 
+        missionType: 'GTL', 
+        isManualControl: true, 
+        details: 'Critical Battery Level', 
+        severity: 'critical' 
+      },
+      { 
+        id: 'Flight #1186', 
+        date: 'Mar 15, 1:45 PM', 
+        missionName: 'Site Survey', 
+        missionType: 'Mission', 
+        isManualControl: false, 
+        details: 'Battery Cell Imbalance', 
+        severity: 'warning' 
+      },
     ]
   },
   {
@@ -114,8 +220,24 @@ const failureData: ErrorCategory[] = [
     count: 2,
     icon: Cpu,
     flights: [
-      { id: 'Flight #1188', date: 'Mar 16', type: 'Mission', details: 'IMU Calibration Error', severity: 'critical' },
-      { id: 'Flight #1182', date: 'Mar 15', type: 'Manual Flight', details: 'Flight Controller Malfunction', severity: 'critical' },
+      { 
+        id: 'Flight #1188', 
+        date: 'Mar 16, 8:30 AM', 
+        missionName: 'Structure Inspection', 
+        missionType: 'Mission', 
+        isManualControl: false, 
+        details: 'IMU Calibration Error', 
+        severity: 'critical' 
+      },
+      { 
+        id: 'Flight #1182', 
+        date: 'Mar 15, 11:05 AM', 
+        missionName: 'Equipment Test', 
+        missionType: 'Manual', 
+        isManualControl: true, 
+        details: 'Flight Controller Malfunction', 
+        severity: 'critical' 
+      },
     ]
   }
 ];
@@ -151,6 +273,11 @@ const FailedFlightsPopup = ({ open, onOpenChange, failedCount, totalCount }: Fai
     // Prevent body scrolling when modal is open
     if (open) {
       document.body.style.overflow = 'hidden';
+      // Reset scroll position when popup opens
+      const scrollArea = document.querySelector('[data-radix-scroll-area-viewport]');
+      if (scrollArea) {
+        scrollArea.scrollTop = 0;
+      }
     } else {
       document.body.style.overflow = 'unset';
     }
@@ -205,11 +332,11 @@ const FailedFlightsPopup = ({ open, onOpenChange, failedCount, totalCount }: Fai
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent 
         className={cn(
-          "max-w-3xl bg-background-level-2 border-outline-primary p-3",
+          "max-w-3xl bg-background-level-2 border-outline-primary p-3 flex flex-col max-h-[80vh]",
           isMobile && "h-[90vh]"
         )}
       >
-        <DialogHeader className="flex flex-row items-center justify-between pb-2 border-b border-outline-primary mb-2">
+        <DialogHeader className="flex flex-row items-center justify-between pb-2 border-b border-outline-primary mb-2 sticky top-0 z-10 bg-background-level-2">
           <DialogTitle className="text-text-icon-01 text-xl">
             Failed Flights ({failedCount} of {totalCount} total)
           </DialogTitle>
@@ -218,7 +345,7 @@ const FailedFlightsPopup = ({ open, onOpenChange, failedCount, totalCount }: Fai
           </DialogClose>
         </DialogHeader>
 
-        <div className="py-2 border-b border-outline-primary mb-2">
+        <div className="py-2 border-b border-outline-primary mb-2 sticky top-12 z-10 bg-background-level-2">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div className="flex items-center space-x-2">
               <AlertTriangle className="h-5 w-5 text-error-200" />
@@ -250,8 +377,8 @@ const FailedFlightsPopup = ({ open, onOpenChange, failedCount, totalCount }: Fai
         </div>
 
         <ScrollArea className={cn(
-          "py-2 border-b border-outline-primary mb-2", 
-          isMobile ? "max-h-[38vh]" : "max-h-[45vh]"
+          "flex-grow overflow-y-auto",
+          isMobile ? "max-h-[calc(90vh-180px)]" : "max-h-[calc(80vh-180px)]"
         )}>
           <div className="pr-3">
             <h3 className="text-sm font-semibold text-text-icon-02 mb-2">FAILED FLIGHTS BY CAUSE</h3>
@@ -281,31 +408,44 @@ const FailedFlightsPopup = ({ open, onOpenChange, failedCount, totalCount }: Fai
                           <div 
                             key={flightIndex}
                             className={cn(
-                              "p-2 border-t border-outline-primary cursor-pointer hover:bg-background-level-4 transition-colors active:bg-background-level-3 group",
-                              flightIndex > 0 && "border-t-outline-primary border-opacity-50"
+                              "p-2 cursor-pointer hover:bg-background-level-4 transition-colors active:bg-background-level-3 group",
+                              flightIndex > 0 && "border-t border-t-outline-primary border-opacity-50"
                             )}
                             onClick={() => handleFlightClick(flight.id)}
                           >
-                            <div className="flex justify-between items-center">
-                              <div className="flex items-center gap-2">
-                                <Circle className={cn(
-                                  "h-2.5 w-2.5 fill-current", 
-                                  flight.severity === 'critical' ? "text-error-200" : "text-caution-200"
-                                )} />
-                                <div className="flex items-center">
-                                  <span className="text-xs font-medium text-text-icon-01">{flight.id}</span>
-                                  <span className="text-xs text-text-icon-02 ml-2">{flight.date}</span>
-                                  <span className="text-xs text-text-icon-02 ml-2">•</span>
-                                  <span className="text-xs text-text-icon-02 ml-2">{flight.type}</span>
-                                </div>
-                                {isViewed && (
-                                  <div className="flex items-center gap-1 bg-background-level-4 px-1 py-0.5 rounded-sm">
-                                    <Eye className="h-3 w-3 text-text-icon-02 opacity-70" />
-                                    <span className="text-[10px] text-text-icon-02 opacity-70">Viewed</span>
+                            <div className="flex justify-between items-start">
+                              <div className="flex flex-col flex-grow">
+                                <div className="flex items-center gap-2">
+                                  <Circle className={cn(
+                                    "h-2.5 w-2.5 fill-current", 
+                                    flight.severity === 'critical' ? "text-error-200" : "text-caution-200"
+                                  )} />
+                                  <div className="flex flex-col">
+                                    <div className="flex items-center">
+                                      <span className="text-xs font-medium text-text-icon-01">{flight.id}</span>
+                                      {isViewed && (
+                                        <div className="flex items-center gap-1 bg-background-level-4 px-1 py-0.5 rounded-sm ml-2">
+                                          <Eye className="h-3 w-3 text-text-icon-02 opacity-70" />
+                                          <span className="text-[10px] text-text-icon-02 opacity-70">Viewed</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                    <span className="text-xs font-semibold text-text-icon-01">{flight.missionName}</span>
+                                    <div className="flex items-center">
+                                      <span className="text-xs text-text-icon-02">{flight.missionType}</span>
+                                      <span className="text-xs text-text-icon-02 ml-1">(Manual control: {flight.isManualControl ? 'Yes' : 'No'})</span>
+                                    </div>
+                                    <span className="text-xs text-text-icon-02">{flight.date}</span>
+                                    <div className={cn(
+                                      "text-xs mt-1", 
+                                      getSeverityColorClass(flight.severity)
+                                    )}>
+                                      {flight.details}
+                                    </div>
                                   </div>
-                                )}
+                                </div>
                               </div>
-                              <div className="flex items-center">
+                              <div className="flex items-center mt-1">
                                 <Button 
                                   variant="ghost" 
                                   size="sm" 
@@ -315,12 +455,6 @@ const FailedFlightsPopup = ({ open, onOpenChange, failedCount, totalCount }: Fai
                                 </Button>
                                 <ChevronRight className="h-3.5 w-3.5 text-text-icon-02 transform group-hover:translate-x-0.5 transition-transform" />
                               </div>
-                            </div>
-                            <div className={cn(
-                              "text-xs ml-5", 
-                              getSeverityColorClass(flight.severity)
-                            )}>
-                              {flight.details}
                             </div>
                           </div>
                         );
@@ -333,7 +467,7 @@ const FailedFlightsPopup = ({ open, onOpenChange, failedCount, totalCount }: Fai
           </div>
         </ScrollArea>
 
-        <Collapsible defaultOpen={!isPatternCollapsed} onOpenChange={(isOpen) => setIsPatternCollapsed(!isOpen)} className="rounded-md bg-background-level-3 overflow-hidden">
+        <Collapsible defaultOpen={!isPatternCollapsed} onOpenChange={(isOpen) => setIsPatternCollapsed(!isOpen)} className="rounded-md bg-background-level-3 overflow-hidden mt-2 sticky bottom-0">
           <CollapsibleTrigger className="w-full text-left p-2 hover:bg-background-level-4 transition-colors">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-text-icon-02">FAILURE PATTERN ANALYSIS</h3>
