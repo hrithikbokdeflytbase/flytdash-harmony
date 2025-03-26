@@ -1,9 +1,11 @@
+
 import React, { useState } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Activity, Clock, Network, Battery, Wifi } from 'lucide-react';
+import { Activity, Clock, Wifi, Battery } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 // Import our components
 import TelemetryMetricCard from './TelemetryMetricCard';
@@ -128,7 +130,7 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
 
   return (
     <Card 
-      className="h-full overflow-hidden flex flex-col"
+      className="h-full flex flex-col"
     >
       {/* Header Section */}
       <div className="flex items-center justify-between px-4 h-[50px] border-b border-outline-primary">
@@ -176,96 +178,97 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
           </TabsList>
 
           {/* Tab Contents */}
-          <TabsContent value="telemetry" className="p-0 overflow-y-auto max-h-[calc(100vh-95px)]">
-            {/* Drone Telemetry Section */}
-            <div className="space-y-0">
-              {/* Telemetry Header */}
-              <SectionHeader title="Drone Telemetry">
-                <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 rounded-full bg-success-200"></div>
-                  <span className="text-xs text-text-icon-01">GPS {telemetryData.gpsStatus.count}</span>
-                </div>
-              </SectionHeader>
-              
-              {/* Battery Section */}
-              <div className="px-4 py-2">
-                <Card className="bg-background-level-3 border-outline-primary">
-                  <CardContent className="p-4">
-                    <BatteryStatusCard 
-                      percentage={telemetryData.battery.percentage}
-                      estimatedRemaining={telemetryData.battery.estimatedRemaining}
-                    />
-                  </CardContent>
-                </Card>
-              </div>
-              
-              {/* Telemetry Metrics Grid */}
-              <div className="px-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <TelemetryMetricCard 
-                    label="Altitude" 
-                    value={telemetryData.altitude.value} 
-                    unit={telemetryData.altitude.unit}
-                  />
-                  <TelemetryMetricCard 
-                    label="Distance from Home" 
-                    value={telemetryData.distance.value} 
-                    unit={telemetryData.distance.unit}
-                  />
-                  <TelemetryMetricCard 
-                    label="Vertical Speed" 
-                    value={telemetryData.verticalSpeed.value} 
-                    unit={telemetryData.verticalSpeed.unit}
-                  />
-                  <TelemetryMetricCard 
-                    label="Horizontal Speed" 
-                    value={telemetryData.horizontalSpeed.value} 
-                    unit={telemetryData.horizontalSpeed.unit}
-                  />
-                  <TelemetryMetricCard 
-                    label="Time Elapsed" 
-                    value={telemetryData.timeElapsed}
-                  />
-                  <TelemetryMetricCard 
-                    label="Time Remaining" 
-                    value={telemetryData.timeRemaining}
-                  />
-                  <TelemetryMetricCard 
-                    label="Latitude" 
-                    value={telemetryData.coordinates.latitude.toFixed(5)}
-                  />
-                  <TelemetryMetricCard 
-                    label="Longitude" 
-                    value={telemetryData.coordinates.longitude.toFixed(5)}
-                  />
-                </div>
-              </div>
-              
-              {/* Network Section - Ensure this is visible */}
-              <div className="mt-2">
-                <SectionHeader title="Network" icon={Wifi} />
+          <TabsContent value="telemetry" className="p-0 h-[calc(100vh-95px)]">
+            <ScrollArea className="h-full pr-2">
+              <div className="space-y-0">
+                {/* Telemetry Header */}
+                <SectionHeader title="Drone Telemetry">
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 rounded-full bg-success-200"></div>
+                    <span className="text-xs text-text-icon-01">GPS {telemetryData.gpsStatus.count}</span>
+                  </div>
+                </SectionHeader>
                 
-                <div className="px-4 pt-2 pb-4 space-y-3">
-                  <ConnectionStatusCard 
-                    label="Dock Drone RF Link"
-                    status={telemetryData.connections.rfLink.status}
-                    details={telemetryData.connections.rfLink.details}
-                  />
+                {/* Battery Section */}
+                <div className="px-4 py-2">
+                  <Card className="bg-background-level-3 border-outline-primary">
+                    <CardContent className="p-4">
+                      <BatteryStatusCard 
+                        percentage={telemetryData.battery.percentage}
+                        estimatedRemaining={telemetryData.battery.estimatedRemaining}
+                      />
+                    </CardContent>
+                  </Card>
+                </div>
+                
+                {/* Telemetry Metrics Grid */}
+                <div className="px-4 py-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <TelemetryMetricCard 
+                      label="Altitude" 
+                      value={telemetryData.altitude.value} 
+                      unit={telemetryData.altitude.unit}
+                    />
+                    <TelemetryMetricCard 
+                      label="Distance from Home" 
+                      value={telemetryData.distance.value} 
+                      unit={telemetryData.distance.unit}
+                    />
+                    <TelemetryMetricCard 
+                      label="Vertical Speed" 
+                      value={telemetryData.verticalSpeed.value} 
+                      unit={telemetryData.verticalSpeed.unit}
+                    />
+                    <TelemetryMetricCard 
+                      label="Horizontal Speed" 
+                      value={telemetryData.horizontalSpeed.value} 
+                      unit={telemetryData.horizontalSpeed.unit}
+                    />
+                    <TelemetryMetricCard 
+                      label="Time Elapsed" 
+                      value={telemetryData.timeElapsed}
+                    />
+                    <TelemetryMetricCard 
+                      label="Time Remaining" 
+                      value={telemetryData.timeRemaining}
+                    />
+                    <TelemetryMetricCard 
+                      label="Latitude" 
+                      value={telemetryData.coordinates.latitude.toFixed(5)}
+                    />
+                    <TelemetryMetricCard 
+                      label="Longitude" 
+                      value={telemetryData.coordinates.longitude.toFixed(5)}
+                    />
+                  </div>
+                </div>
+                
+                {/* Network Section */}
+                <div className="mt-2 mb-4">
+                  <SectionHeader title="Network" icon={Wifi} />
                   
-                  <ConnectionStatusCard 
-                    label="Dock Ethernet"
-                    status={telemetryData.connections.ethernet.status}
-                    details={telemetryData.connections.ethernet.details}
-                  />
-                  
-                  <ConnectionStatusCard 
-                    label="Dock 4G"
-                    status={telemetryData.connections.cellular.status}
-                    details={telemetryData.connections.cellular.details}
-                  />
+                  <div className="px-4 pt-2 pb-4 space-y-3">
+                    <ConnectionStatusCard 
+                      label="Dock Drone RF Link"
+                      status={telemetryData.connections.rfLink.status}
+                      details={telemetryData.connections.rfLink.details}
+                    />
+                    
+                    <ConnectionStatusCard 
+                      label="Dock Ethernet"
+                      status={telemetryData.connections.ethernet.status}
+                      details={telemetryData.connections.ethernet.details}
+                    />
+                    
+                    <ConnectionStatusCard 
+                      label="Dock 4G"
+                      status={telemetryData.connections.cellular.status}
+                      details={telemetryData.connections.cellular.details}
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
+            </ScrollArea>
           </TabsContent>
           
           <TabsContent value="timeline" className="p-0">
