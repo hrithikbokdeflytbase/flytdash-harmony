@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Video, Map, Columns } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import VideoFeed from '@/components/flight-details/VideoFeed';
 
 // View mode type
 type ViewMode = 'map' | 'video' | 'split';
@@ -12,6 +13,20 @@ const FlightDetails = () => {
   const { flightId } = useParams();
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<ViewMode>('split');
+  
+  // Mock state for video feed props (would come from API in real app)
+  const [hasVideo, setHasVideo] = useState(false);
+  const [timestamp, setTimestamp] = useState('00:15:32');
+  const [cameraType, setCameraType] = useState<'wide' | 'zoom' | 'thermal'>('wide');
+  
+  // Toggle between video modes for demo purposes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setHasVideo(prev => !prev);
+    }, 5000);
+    
+    return () => clearTimeout(timer);
+  }, [hasVideo]);
   
   // Fetch flight details (placeholder)
   useEffect(() => {
@@ -57,10 +72,12 @@ const FlightDetails = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-200 h-full">
           {/* Video Panel */}
           <div className={`bg-background-level-2 rounded-200 p-400 flex flex-col ${viewMode === 'video' ? 'lg:col-span-12' : viewMode === 'split' ? 'lg:col-span-5' : 'hidden lg:block lg:col-span-5'}`}>
-            <h2 className="fb-title1-medium text-text-icon-01 mb-300">Video Feed</h2>
-            <div className="flex-1 bg-background-level-3 rounded-200 flex items-center justify-center">
-              <p className="text-text-icon-02">Video feed will be displayed here</p>
-            </div>
+            <VideoFeed 
+              hasVideoContent={hasVideo}
+              currentTimestamp={timestamp}
+              cameraType={cameraType}
+              isRecording={hasVideo} // Just for demo
+            />
           </div>
           
           {/* Map Panel */}
