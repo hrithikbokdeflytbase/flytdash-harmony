@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Settings, Info, PlayCircle, SkipBack, SkipForward, Pause, ChevronDown, ChevronUp, Circle, Square, 
   Triangle, Octagon, Camera, Video, AlertTriangle, AlertOctagon, Check, X, AlertCircle, ChevronsRight, ChevronsLeft, FastForward } from 'lucide-react';
@@ -1062,7 +1061,10 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
                         </TooltipTrigger>
                         <TooltipContent className="p-200 bg-background-level-3 border-outline-primary">
                           <div className="flex items-center gap-100 mb-100">
-                            <Badge variant={event.type === 'warning' ? "warning" : "destructive"} className="text-[10px] py-0 px-100">
+                            <Badge 
+                              variant={event.type === 'warning' ? "secondary" : "destructive"} 
+                              className="text-[10px] py-0 px-100"
+                            >
                               {event.severity.toUpperCase()}
                             </Badge>
                             <span className="text-xs font-medium text-text-icon-01">
