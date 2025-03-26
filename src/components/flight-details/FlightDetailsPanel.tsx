@@ -1,8 +1,7 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Activity, Clock, Wifi, Battery } from 'lucide-react';
+import { Activity, Clock, Wifi } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -58,7 +57,7 @@ interface TelemetryData {
       status: 'active' | 'inactive' | 'poor';
       details: string;
     };
-  };
+  }
 }
 
 interface FlightDetailsPanelProps {
@@ -129,9 +128,7 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
   };
 
   return (
-    <Card 
-      className="h-full flex flex-col"
-    >
+    <Card className="h-full flex flex-col">
       {/* Header Section */}
       <div className="flex items-center justify-between px-4 h-[50px] border-b border-outline-primary">
         <div className="flex items-center gap-2">
@@ -178,9 +175,9 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
           </TabsList>
 
           {/* Tab Contents */}
-          <TabsContent value="telemetry" className="p-0 h-[calc(100vh-95px)]">
-            <ScrollArea className="h-full pr-2">
-              <div className="space-y-0">
+          <TabsContent value="telemetry" className="p-0 h-[calc(100vh-95px)] flex flex-col overflow-hidden">
+            <ScrollArea className="flex-1">
+              <div className="space-y-0 pb-6">
                 {/* Telemetry Header */}
                 <SectionHeader title="Drone Telemetry">
                   <div className="flex items-center gap-1">
@@ -244,10 +241,10 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
                 </div>
                 
                 {/* Network Section */}
-                <div className="mt-2 mb-4">
+                <div className="px-4 pb-4 pt-2">
                   <SectionHeader title="Network" icon={Wifi} />
                   
-                  <div className="px-4 pt-2 pb-4 space-y-3">
+                  <div className="space-y-3 mt-2">
                     <ConnectionStatusCard 
                       label="Dock Drone RF Link"
                       status={telemetryData.connections.rfLink.status}
