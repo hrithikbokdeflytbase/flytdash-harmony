@@ -450,9 +450,7 @@ const FlightMap: React.FC<FlightMapProps> = ({
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button onClick={focusOnDock} variant="outline" size="icon" className="h-10 w-10 rounded-md bg-background-level-3/70 backdrop-blur-sm hover:bg-background-level-3/90" disabled={!dockLocation}>
-                <Anchor className="h-5 w-5" />
-              </Button>
+              
             </TooltipTrigger>
             <TooltipContent side="left">
               <p>Focus on dock</p>
