@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -129,8 +128,7 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
 
   return (
     <Card 
-      className="fixed-width-panel border-l border-outline-primary flex flex-col h-full overflow-hidden"
-      style={{ width: '380px' }}
+      className="h-full overflow-hidden flex flex-col"
     >
       {/* Header Section */}
       <div className="flex items-center justify-between px-4 h-[50px] border-b border-outline-primary">
@@ -203,8 +201,7 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
               
               {/* Telemetry Metrics Grid */}
               <div className="px-4 py-4">
-                <div className="grid grid-cols-2 gap-x-4 gap-y-6">
-                  {/* Left Column */}
+                <div className="grid grid-cols-2 gap-4">
                   <TelemetryMetricCard 
                     label="Altitude" 
                     value={telemetryData.altitude.value} 

@@ -408,14 +408,14 @@ const FlightDetails = () => {
       
       {/* Main Content Area - Adjusted to ensure proper layout with panel */}
       <main className="flex-1 p-400 pb-0 overflow-hidden flex" style={{ maxHeight: 'calc(100vh - 230px)' }}>
-        <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-200 h-full">
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-400 h-full">
           {/* Video Panel */}
-          <div className={`bg-background-level-2 rounded-200 p-400 flex flex-col ${viewMode === 'video' ? 'lg:col-span-12' : viewMode === 'split' ? 'lg:col-span-5' : 'hidden lg:block lg:col-span-5'}`}>
+          <div className={`bg-background-level-2 rounded-200 p-400 flex flex-col ${viewMode === 'video' ? 'lg:col-span-12' : viewMode === 'split' ? 'lg:col-span-6' : 'hidden lg:block lg:col-span-6'}`}>
             <VideoFeed cameraType={cameraType} videoState={videoState} timelinePosition={timelinePosition} videoSegments={videoSegments} onPositionUpdate={handleVideoPositionUpdate} />
           </div>
           
           {/* Map Panel */}
-          <div className={`bg-background-level-2 rounded-200 p-400 flex flex-col ${viewMode === 'map' ? 'lg:col-span-12' : viewMode === 'split' ? 'lg:col-span-3' : 'hidden lg:block lg:col-span-7'}`}>
+          <div className={`bg-background-level-2 rounded-200 p-400 flex flex-col ${viewMode === 'map' ? 'lg:col-span-12' : viewMode === 'split' ? 'lg:col-span-3' : 'hidden lg:block lg:col-span-6'}`}>
             
             <div className="flex-1 bg-background-level-3 rounded-200">
               <FlightMap flightId={flightId || 'unknown'} flightPath={mockFlightPath} takeoffPoint={{
@@ -432,7 +432,7 @@ const FlightDetails = () => {
           </div>
           
           {/* Flight Details Panel */}
-          <div className={`lg:col-span-4 h-full`}>
+          <div className={`lg:col-span-3 h-full`}>
             <FlightDetailsPanel 
               flightId={flightId || 'unknown'} 
               flightMode="MISSION"
