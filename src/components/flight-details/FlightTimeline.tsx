@@ -650,7 +650,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
                 return renderClusterOrMarker(
                   cluster, 
                   renderWarningEventMarker, 
-                  eventType === 'warning' ? "bg-yellow-500/30 border border-yellow-500/50" : "bg-red-500/30 border border-red-500/50"
+                  "bg-yellow-500/30 border border-yellow-500/50"
                 );
               })}
             </div>
@@ -712,4 +712,54 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
         {/* Display event info on hover */}
         {hoveredEvent && (
           <div 
-            className="absolute top-2 right-2 z-40 bg-background-level-4/90 backdrop-blur-sm p-
+            className="absolute top-2 right-2 z-40 bg-background-level-4/90 backdrop-blur-sm p-2 rounded-lg shadow-md border border-outline-primary text-xs max-w-[200px]"
+          >
+            <div className="font-medium text-text-icon-01">{hoveredEvent.type}</div>
+            <div className="text-text-icon-02 mt-1">{hoveredEvent.details}</div>
+            <div className="text-text-icon-03 mt-1">{hoveredEvent.timestamp}</div>
+          </div>
+        )}
+        
+        {/* Mission Phases Track */}
+        {renderMissionPhasesTrack()}
+        
+        {/* Media Track */}
+        {renderMediaTrack()}
+        
+        {/* System Events Track */}
+        {renderSystemEventsTrack()}
+        
+        {/* Warnings Track */}
+        {renderWarningEventsTrack()}
+        
+        {/* Current Time Indicator */}
+        <CurrentTimeIndicator />
+      </div>
+      
+      {/* Timeline Bottom Section - Slider and Controls */}
+      <div className="px-4 py-2 flex flex-col">
+        {/* Slider */}
+        <div className="relative pb-1">
+          <Slider
+            value={[currentPercentage]}
+            min={0}
+            max={100}
+            step={0.1}
+            onValueChange={handleSliderChange}
+            className="relative z-10"
+          />
+        </div>
+        
+        {/* Controls */}
+        <div className="flex justify-between items-center">
+          <PlaybackControls />
+          <div className="text-xs text-text-icon-02">
+            {flightDuration}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default FlightTimeline;
