@@ -187,20 +187,18 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
                 </SectionHeader>
                 
                 {/* Battery Section */}
-                <div className="px-4 py-2">
-                  <Card className="bg-background-level-3 border-outline-primary">
-                    <CardContent className="p-4">
-                      <BatteryStatusCard 
-                        percentage={telemetryData.battery.percentage}
-                        estimatedRemaining={telemetryData.battery.estimatedRemaining}
-                      />
-                    </CardContent>
-                  </Card>
+                <div className="px-4 py-3">
+                  <div className="bg-background-level-3 p-3 rounded-md">
+                    <BatteryStatusCard 
+                      percentage={telemetryData.battery.percentage}
+                      estimatedRemaining={telemetryData.battery.estimatedRemaining}
+                    />
+                  </div>
                 </div>
                 
                 {/* Telemetry Metrics Grid */}
-                <div className="px-4 py-4">
-                  <div className="grid grid-cols-2 gap-4">
+                <div className="px-4 py-2">
+                  <div className="grid grid-cols-2 gap-3">
                     <TelemetryMetricCard 
                       label="Altitude" 
                       value={telemetryData.altitude.value} 
