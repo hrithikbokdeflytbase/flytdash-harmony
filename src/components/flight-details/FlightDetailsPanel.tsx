@@ -208,50 +208,6 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
               </div>
             </div>
 
-            {/* Active Connections Section */}
-            <div className="space-y-0 mt-400">
-              {/* Active Connections Header */}
-              <div className="h-[35px] bg-background-level-2 flex items-center px-400 border-t border-b border-outline-primary">
-                <h3 className="fb-body1-medium text-text-icon-01">Active Connections</h3>
-              </div>
-              
-              {/* Connection Cards */}
-              <div className="flex flex-col gap-[10px] p-400">
-                {/* Card 1 - Dock Drone RF Link */}
-                <div className="bg-background-level-2 rounded-[4px] p-300 flex items-center justify-between h-[40px]">
-                  <span className="text-xs text-text-icon-02">Dock Drone RF Link</span>
-                  <div className="flex items-center gap-200">
-                    <span className="text-xs bg-success-100 bg-opacity-20 text-success-200 px-200 py-[2px] rounded-full">Active</span>
-                    <div className="flex items-center gap-200">
-                      <span className="text-xs text-text-icon-02">2.4 GHz</span>
-                      {/* Signal strength indicator */}
-                      <div className="flex items-end h-[16px] gap-[2px]">
-                        <div className="w-[3px] h-[4px] bg-white bg-opacity-60"></div>
-                        <div className="w-[3px] h-[7px] bg-white bg-opacity-60"></div>
-                        <div className="w-[3px] h-[10px] bg-white bg-opacity-60"></div>
-                        <div className="w-[3px] h-[13px] bg-white bg-opacity-60"></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Card 2 - Dock Ethernet */}
-                <div className="bg-background-level-2 rounded-[4px] p-300 flex items-center justify-between h-[40px]">
-                  <span className="text-xs text-text-icon-02">Dock (Ethernet)</span>
-                  <div className="flex items-center gap-200">
-                    <span className="text-xs text-text-icon-01">7.22 MB/s</span>
-                    {/* Signal strength indicator */}
-                    <div className="flex items-end h-[16px] gap-[2px]">
-                      <div className="w-[3px] h-[4px] bg-white bg-opacity-60"></div>
-                      <div className="w-[3px] h-[7px] bg-white bg-opacity-60"></div>
-                      <div className="w-[3px] h-[10px] bg-white bg-opacity-60"></div>
-                      <div className="w-[3px] h-[13px] bg-white bg-opacity-30"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
             {/* Current Issue Section */}
             <div className="space-y-0 mt-400">
               {/* Current Issue Header */}
