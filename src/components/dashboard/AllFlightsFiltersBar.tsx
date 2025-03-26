@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, Filter, RefreshCw } from 'lucide-react';
@@ -116,6 +117,27 @@ const AllFlightsFiltersBar: React.FC<AllFlightsFiltersBarProps> = ({
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
+            
+            {/* Advanced Filters Button - Moved up next to Reset button */}
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className={cn(
+                "border-outline-primary bg-background-level-2 hover:bg-background-level-4 transition-colors", 
+                showAdvancedFilters && "bg-background-level-4"
+              )} 
+              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)} 
+              disabled={isLoading}
+            >
+              <Filter className="h-4 w-4 mr-1" />
+              More Filters
+              {advancedFilterCount > 0 && 
+                <Badge className="ml-1 bg-primary-100 text-background-level-1">
+                  {advancedFilterCount}
+                </Badge>
+              }
+              <ChevronDown className={cn("ml-1 h-3 w-3 transition-transform duration-200", showAdvancedFilters && "transform rotate-180")} />
+            </Button>
           </div>
         </div>
 
@@ -168,29 +190,6 @@ const AllFlightsFiltersBar: React.FC<AllFlightsFiltersBarProps> = ({
               </SelectContent>
             </Select>
           </div>
-        </div>
-
-        <div className="mt-400 flex flex-col sm:flex-row sm:items-center gap-400 justify-end">
-          {/* Advanced Filters Button */}
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className={cn(
-              "border-outline-primary bg-background-level-2 hover:bg-background-level-4 transition-colors", 
-              showAdvancedFilters && "bg-background-level-4"
-            )} 
-            onClick={() => setShowAdvancedFilters(!showAdvancedFilters)} 
-            disabled={isLoading}
-          >
-            <Filter className="h-4 w-4 mr-1" />
-            More Filters
-            {advancedFilterCount > 0 && 
-              <Badge className="ml-1 bg-primary-100 text-background-level-1">
-                {advancedFilterCount}
-              </Badge>
-            }
-            <ChevronDown className={cn("ml-1 h-3 w-3 transition-transform duration-200", showAdvancedFilters && "transform rotate-180")} />
-          </Button>
         </div>
 
         {/* Active Filters */}
