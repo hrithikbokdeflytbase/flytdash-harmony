@@ -150,7 +150,7 @@
   
   .rdp-day_today {
     font-weight: 600 !important;
-    color: rgba(255, 255, 255, 0.84) !important; /* Text-1 color */
+    color: #ffffff !important; /* White text for today's date */
     border: 1px solid #6D8AD3 !important; /* Primary 100 */
     position: relative;
     z-index: 1;
@@ -169,7 +169,9 @@
     color: rgba(255, 255, 255, 0.24) !important; /* Text disabled color */
   }
   
-  .rdp-day_selected {
+  .rdp-day_selected, 
+  .rdp-day_range_start,
+  .rdp-day_range_end {
     background-color: #496DC8 !important; /* Primary 200 */
     color: white !important;
   }

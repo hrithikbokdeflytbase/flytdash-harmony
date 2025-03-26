@@ -44,7 +44,7 @@ function Calendar({
         day_selected:
           "bg-primary-200 text-white hover:bg-primary-states-hover hover:text-white focus:bg-primary-states-focused focus:text-white",
         day_today: 
-          "bg-transparent text-text-icon-01 border border-primary-100 font-bold ring-1 ring-primary-100/30",
+          "bg-transparent text-white border border-primary-100 font-bold",
         day_outside:
           "day-outside text-text-icon-02/50 opacity-50 aria-selected:bg-primary-200/15 aria-selected:text-text-icon-02 aria-selected:opacity-30",
         day_disabled: "text-text-icon-disabled opacity-50", // Disabled dates: Text/Icon Disabled
