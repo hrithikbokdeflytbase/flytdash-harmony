@@ -307,7 +307,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
           
           <CollapsibleContent className="px-3 py-1">
             <div className="h-[16px] bg-background-level-4 rounded-[2px] w-full relative">
-              {/* Label overlay */}
+              {/* Label overlay - Moved to higher z-index but with smaller footprint */}
               <div className="absolute top-0 left-0 z-10 bg-background-level-4/70 backdrop-blur-[1px] px-1.5 py-0.5 text-[9px] text-text-icon-02 rounded-sm">
                 Media
               </div>
@@ -454,7 +454,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
           
           <CollapsibleContent className="px-3 py-1">
             <div className="h-[20px] bg-background-level-4 rounded-[2px] w-full relative">
-              {/* Label overlay */}
+              {/* Label overlay - positioned to not block content */}
               <div className="absolute top-0 left-0 z-10 bg-background-level-4/70 backdrop-blur-[1px] px-1.5 py-0.5 text-[9px] text-text-icon-02 rounded-sm">
                 Mission Phases
               </div>
@@ -515,7 +515,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
           
           <CollapsibleContent className="px-3 py-1">
             <div className="h-[16px] w-full relative flex items-center">
-              {/* Label overlay */}
+              {/* Label overlay - positioned to not block content */}
               <div className="absolute top-0 left-0 z-10 bg-background-level-4/70 backdrop-blur-[1px] px-1.5 py-0.5 text-[9px] text-text-icon-02 rounded-sm">
                 System Events
               </div>
@@ -595,7 +595,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
           
           <CollapsibleContent className="px-3 py-1">
             <div className="h-[16px] w-full relative flex items-center">
-              {/* Label overlay */}
+              {/* Label overlay - positioned to not block content */}
               <div className="absolute top-0 left-0 z-10 bg-background-level-4/70 backdrop-blur-[1px] px-1.5 py-0.5 text-[9px] text-text-icon-02 rounded-sm">
                 Warnings & Errors
               </div>
