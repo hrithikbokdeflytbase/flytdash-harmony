@@ -34,8 +34,6 @@ export interface TelemetryData {
     value: number;
     unit: string;
   };
-  timeElapsed: string;
-  timeRemaining: string;
   coordinates: {
     latitude: number;
     longitude: number;
@@ -94,10 +92,8 @@ const TelemetryPanel: React.FC<TelemetryPanelProps> = ({
           horizontalSpeed={telemetryData.horizontalSpeed}
         />
         
-        {/* Time and Position Section */}
+        {/* Position Data Section */}
         <PositionDataSection 
-          timeElapsed={telemetryData.timeElapsed}
-          timeRemaining={telemetryData.timeRemaining}
           coordinates={telemetryData.coordinates}
         />
         

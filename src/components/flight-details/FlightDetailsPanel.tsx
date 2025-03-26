@@ -45,8 +45,6 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
       value: 1.5,
       unit: "m/s"
     },
-    timeElapsed: "00:08:45",
-    timeRemaining: "00:18:15",
     coordinates: {
       latitude: 37.7749,
       longitude: -122.4194
