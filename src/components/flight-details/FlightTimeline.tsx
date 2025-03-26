@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Settings, Info, PlayCircle, SkipBack, SkipForward, Pause, ChevronDown, ChevronUp, Circle, Square, Triangle, Octagon, Camera, Video, AlertTriangle, AlertOctagon, Check, X, AlertCircle } from 'lucide-react';
+import { Settings, Info, PlayCircle, SkipBack, SkipForward, Pause, ChevronDown, ChevronUp, Circle, Square, 
+  Triangle, Octagon, Camera, Video, AlertTriangle, AlertOctagon, Check, X, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Separator } from '@/components/ui/separator';
@@ -72,10 +73,9 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
   const [sliderValue, setSliderValue] = useState(0);
   const [expandedTracks, setExpandedTracks] = useState({
     missionPhases: true,
-    videoSegments: true,
+    media: true,
     systemEvents: true,
     warnings: true,
-    media: true,
   });
   const [hoveredEvent, setHoveredEvent] = useState<null | {type: string, details: string, timestamp: string}>(null);
   const tracksContainerRef = useRef<HTMLDivElement>(null);
@@ -187,24 +187,14 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
     }
   };
   
-  // Get color for media action
-  const getMediaColor = (type: MediaAction['type']) => {
-    switch (type) {
-      case 'photo': return 'text-success-200';
-      case 'videoStart': return 'text-info-200';
-      case 'videoEnd': return 'text-info-100';
-      default: return 'text-info-300';
-    }
-  };
-
   // Get icon for system event
   const getSystemEventIcon = (type: SystemEvent['type']) => {
     switch (type) {
-      case 'connection': return <Check className="h-4 w-4" />;
-      case 'calibration': return <Settings className="h-4 w-4" />;
-      case 'modeChange': return <AlertCircle className="h-4 w-4" />;
-      case 'command': return <Square className="h-4 w-4" />;
-      default: return <Info className="h-4 w-4" />;
+      case 'connection': return <Check className="h-3 w-3" />;
+      case 'calibration': return <Settings className="h-3 w-3" />;
+      case 'modeChange': return <AlertCircle className="h-3 w-3" />;
+      case 'command': return <Square className="h-3 w-3" />;
+      default: return <Info className="h-3 w-3" />;
     }
   };
 
@@ -271,16 +261,127 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
   // Group warning events by clusters
   const warningEventClusters = getMarkerClusters(warningEvents.map(e => ({
     timestamp: e.timestamp,
-    details: e.details,
-    type: e.type
+    details: e.details || '',
+    type: e.type || 'warning'
   })));
 
   // Group media events by clusters
-  const mediaEventClusters = getMarkerClusters(mediaActions.map(e => ({
+  const mediaEventClusters = getMarkerClusters(mediaActions.filter(e => e.type === 'photo').map(e => ({
     timestamp: e.timestamp,
     details: e.fileId || '',
     type: e.type
   })));
+
+  // Current time indicator (vertical line)
+  const CurrentTimeIndicator = () => {
+    return (
+      <div 
+        className="absolute top-0 h-full border-l-2 border-error-200 z-20"
+        style={{ 
+          left: `${currentPercentage}%`,
+          height: '100%'
+        }}
+      >
+        <div className="absolute -top-2 -translate-x-1/2 w-4 h-4 rounded-full bg-error-200 animate-pulse shadow-lg"></div>
+      </div>
+    );
+  };
+  
+  // Combined Media Track (Video Segments + Photo captures)
+  const renderMediaTrack = () => {
+    return (
+      <Collapsible
+        open={expandedTracks.media}
+        onOpenChange={() => toggleTrackExpansion('media')}
+        className="track-container"
+      >
+        <div className="h-[32px] bg-background-level-3 rounded-[4px] overflow-hidden">
+          <CollapsibleTrigger asChild>
+            <div className="px-3 py-1 flex items-center justify-between cursor-pointer hover:bg-background-level-4/50">
+              <span className="text-[11px] text-text-icon-01">Media</span>
+              {expandedTracks.media ? 
+                <ChevronUp className="h-3 w-3 text-text-icon-02" /> : 
+                <ChevronDown className="h-3 w-3 text-text-icon-02" />
+              }
+            </div>
+          </CollapsibleTrigger>
+          
+          <CollapsibleContent className="px-3 py-1">
+            <div className="h-[16px] bg-background-level-4 rounded-[2px] w-full relative">
+              {/* Video Segments */}
+              {videoSegments.map((segment, index) => {
+                const leftPos = getPositionPercentage(segment.startTime);
+                const width = getWidthPercentage(segment.startTime, segment.endTime);
+                
+                return (
+                  <TooltipProvider key={`video-${index}`}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div
+                          className="absolute h-full bg-gradient-to-r from-primary-200/90 to-primary-300/90 rounded-full cursor-pointer shadow-inner border border-primary-300/50 hover:brightness-125 transition-all"
+                          style={{
+                            left: `${leftPos}%`,
+                            width: `${width}%`,
+                            minWidth: '8px'
+                          }}
+                          onClick={() => onPositionChange(segment.startTime)}
+                        >
+                          {width > 5 && (
+                            <div className="absolute -left-1 top-1/2 -translate-y-1/2 h-3 w-3 rounded-full bg-info-200 flex items-center justify-center shadow">
+                              <Video className="h-2 w-2 text-white" />
+                            </div>
+                          )}
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent className="p-2 bg-background-level-3 border-outline-primary text-xs">
+                        <p className="text-text-icon-01">Video Segment</p>
+                        <p className="text-text-icon-02">{segment.startTime} - {segment.endTime}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                );
+              })}
+              
+              {/* Photo Markers */}
+              {mediaEventClusters.map((cluster, index) => {
+                const renderPhotoMarker = (event: MediaAction) => {
+                  const leftPos = getPositionPercentage(event.timestamp);
+                  
+                  return (
+                    <TooltipProvider key={`photo-${index}`}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div
+                            className="absolute top-1/2 -translate-y-1/2 transform -translate-x-1/2 cursor-pointer transition-transform hover:scale-110"
+                            style={{ left: `${leftPos}%` }}
+                          >
+                            <div className="flex items-center justify-center h-4 w-4 rounded-full bg-success-200/20 border border-success-200/50">
+                              <Camera className="h-2 w-2 text-success-200" />
+                            </div>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent className="p-2 bg-background-level-3 border-outline-primary text-xs">
+                          <p className="text-text-icon-01">Photo Captured</p>
+                          {event.fileId && <p className="text-text-icon-02">ID: {event.fileId}</p>}
+                          <p className="text-text-icon-02">{event.timestamp}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  );
+                };
+                
+                return renderClusterOrMarker(
+                  cluster, 
+                  renderPhotoMarker, 
+                  "bg-success-200/30"
+                );
+              })}
+            </div>
+          </CollapsibleContent>
+        </div>
+      </Collapsible>
+    );
+  };
 
   // Render cluster or individual marker
   const renderClusterOrMarker = (
@@ -296,7 +397,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
           <Tooltip>
             <TooltipTrigger asChild>
               <div
-                className={`absolute top-0 transform -translate-x-1/2 cursor-pointer z-10 flex items-center justify-center ${clusterClass} rounded-full h-6 w-6 border border-white/20 shadow-lg transition-transform hover:scale-110`}
+                className={`absolute top-0 transform -translate-x-1/2 cursor-pointer z-10 flex items-center justify-center ${clusterClass} rounded-full h-4 w-4 border border-white/20 shadow-sm transition-transform hover:scale-110`}
                 style={{ left: `${leftPos}%` }}
                 onMouseEnter={() => setHoveredEvent({
                   type: 'cluster',
@@ -305,15 +406,15 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
                 })}
                 onMouseLeave={() => setHoveredEvent(null)}
               >
-                <span className="text-[10px] font-bold text-white">{cluster.events.length}</span>
+                <span className="text-[8px] font-bold text-white">{cluster.events.length}</span>
               </div>
             </TooltipTrigger>
-            <TooltipContent side="top" className="max-w-xs bg-background-level-3 border-outline-primary p-300">
-              <div className="space-y-200">
-                <p className="fb-body2-medium text-text-icon-01">Cluster: {cluster.events.length} events</p>
-                <div className="space-y-100 max-h-[200px] overflow-y-auto">
+            <TooltipContent side="top" className="max-w-xs bg-background-level-3 border-outline-primary p-2 text-xs">
+              <div className="space-y-1">
+                <p className="font-medium text-text-icon-01">Cluster: {cluster.events.length} events</p>
+                <div className="space-y-1 max-h-[120px] overflow-y-auto">
                   {cluster.events.map((event, idx) => (
-                    <div key={idx} className="text-xs text-text-icon-02 flex items-center gap-200">
+                    <div key={idx} className="text-text-icon-02 flex items-center gap-1">
                       <span className="text-white/70">{event.timestamp}</span>
                       <span>{event.details}</span>
                     </div>
@@ -329,90 +430,53 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
     return renderMarker(cluster.events[0]);
   };
   
-  // Current time indicator (vertical line)
-  const CurrentTimeIndicator = () => {
-    return (
-      <div 
-        className="absolute top-0 h-full border-l-2 border-dashed border-error-200/80 z-20"
-        style={{ 
-          left: `${currentPercentage}%`,
-          height: '100%'
-        }}
-      >
-        <div className="absolute -top-1 -translate-x-1/2 w-3 h-3 rounded-full bg-error-200 animate-pulse"></div>
-      </div>
-    );
-  };
-  
-  // Render media actions track
-  const renderMediaActionsTrack = () => {
+  // Mission Phases Track
+  const renderMissionPhasesTrack = () => {
     return (
       <Collapsible
-        open={expandedTracks.media}
-        onOpenChange={() => toggleTrackExpansion('media')}
+        open={expandedTracks.missionPhases}
+        onOpenChange={() => toggleTrackExpansion('missionPhases')}
         className="track-container"
       >
-        <div className="h-[40px] bg-background-level-3 rounded-[8px] overflow-hidden">
+        <div className="h-[32px] bg-background-level-3 rounded-[4px] overflow-hidden">
           <CollapsibleTrigger asChild>
-            <div className="px-[12px] py-[4px] flex items-center justify-between cursor-pointer hover:bg-background-level-4/50">
-              <span className="text-[12px] text-text-icon-01">Media Actions</span>
-              {expandedTracks.media ? 
-                <ChevronUp className="h-[14px] w-[14px] text-text-icon-02" /> : 
-                <ChevronDown className="h-[14px] w-[14px] text-text-icon-02" />
+            <div className="px-3 py-1 flex items-center justify-between cursor-pointer hover:bg-background-level-4/50">
+              <span className="text-[11px] text-text-icon-01">Mission Phases</span>
+              {expandedTracks.missionPhases ? 
+                <ChevronUp className="h-3 w-3 text-text-icon-02" /> : 
+                <ChevronDown className="h-3 w-3 text-text-icon-02" />
               }
             </div>
           </CollapsibleTrigger>
           
-          <CollapsibleContent className="px-[12px]">
-            <div className="h-[20px] w-full relative flex items-center">
-              {mediaEventClusters.map((cluster, index) => {
-                const renderMediaEventMarker = (event: MediaAction) => {
-                  const leftPos = getPositionPercentage(event.timestamp);
-                  const colorClass = getMediaColor(event.type);
-                  
-                  return (
-                    <TooltipProvider key={`media-${index}`}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div
-                            className="absolute top-1/2 -translate-y-1/2 transform -translate-x-1/2 cursor-pointer transition-transform hover:scale-110"
-                            style={{ left: `${leftPos}%` }}
-                            onMouseEnter={() => setHoveredEvent({
-                              type: event.type.toUpperCase(),
-                              details: event.fileId || '',
-                              timestamp: event.timestamp
-                            })}
-                            onMouseLeave={() => setHoveredEvent(null)}
-                          >
-                            {event.type === 'photo' ? (
-                              <div className="flex items-center justify-center h-5 w-5 rounded-full bg-success-200/20 border border-success-200/50">
-                                <Camera className="h-3 w-3 text-success-200" />
-                              </div>
-                            ) : event.type === 'videoStart' ? (
-                              <div className="flex items-center justify-center h-5 w-5 rounded-full bg-info-200/20 border border-info-200/50">
-                                <Video className="h-3 w-3 text-info-200" />
-                              </div>
-                            ) : (
-                              <div className="flex items-center justify-center h-5 w-5 rounded-full bg-info-100/20 border border-info-100/50">
-                                <Square className="h-3 w-3 text-info-100" fill="currentColor" />
-                              </div>
-                            )}
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent className="p-200 bg-background-level-3 border-outline-primary">
-                          <p className="text-xs text-text-icon-01">{event.type === 'photo' ? 'Photo Taken' : event.type === 'videoStart' ? 'Video Started' : 'Video Ended'}</p>
-                          {event.fileId && <p className="text-xs text-text-icon-02">ID: {event.fileId}</p>}
-                          <p className="text-xs text-text-icon-02">{event.timestamp}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  );
-                };
-                
-                return renderClusterOrMarker(
-                  cluster, 
-                  renderMediaEventMarker, 
-                  "bg-info-100/30"
+          <CollapsibleContent className="px-3 py-1">
+            <div className="h-[16px] bg-background-level-4 rounded-[2px] w-full relative">
+              {missionPhases.map((phase, index) => {
+                const leftPos = getPositionPercentage(phase.startTime);
+                const width = getWidthPercentage(phase.startTime, phase.endTime);
+                return (
+                  <div
+                    key={`phase-${index}`}
+                    className={`absolute h-full bg-gradient-to-r ${getMissionPhaseColor(phase.type)} rounded-[2px] flex items-center justify-center overflow-hidden border transition-all hover:brightness-125 cursor-pointer`}
+                    style={{
+                      left: `${leftPos}%`,
+                      width: `${width}%`,
+                      minWidth: '8px'
+                    }}
+                    title={`${phase.label}: ${phase.startTime} - ${phase.endTime}`}
+                    onMouseEnter={() => setHoveredEvent({
+                      type: phase.type.toUpperCase(),
+                      details: phase.label,
+                      timestamp: `${phase.startTime} - ${phase.endTime}`
+                    })}
+                    onMouseLeave={() => setHoveredEvent(null)}
+                  >
+                    {width > 5 && (
+                      <span className="text-[8px] text-white whitespace-nowrap overflow-hidden text-ellipsis px-1 font-medium drop-shadow-md">
+                        {phase.label}
+                      </span>
+                    )}
+                  </div>
                 );
               })}
             </div>
@@ -422,28 +486,187 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
     );
   };
   
-  // Playback controls component
+  // System Events Track
+  const renderSystemEventsTrack = () => {
+    return (
+      <Collapsible
+        open={expandedTracks.systemEvents}
+        onOpenChange={() => toggleTrackExpansion('systemEvents')}
+        className="track-container"
+      >
+        <div className="h-[32px] bg-background-level-3 rounded-[4px] overflow-hidden">
+          <CollapsibleTrigger asChild>
+            <div className="px-3 py-1 flex items-center justify-between cursor-pointer hover:bg-background-level-4/50">
+              <span className="text-[11px] text-text-icon-01">System Events</span>
+              {expandedTracks.systemEvents ? 
+                <ChevronUp className="h-3 w-3 text-text-icon-02" /> : 
+                <ChevronDown className="h-3 w-3 text-text-icon-02" />
+              }
+            </div>
+          </CollapsibleTrigger>
+          
+          <CollapsibleContent className="px-3 py-1">
+            <div className="h-[16px] w-full relative flex items-center">
+              {systemEventClusters.map((cluster, index) => {
+                const renderSystemEventMarker = (event: SystemEvent) => {
+                  const leftPos = getPositionPercentage(event.timestamp);
+                  return (
+                    <TooltipProvider key={`sysevent-${index}`}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div
+                            className="absolute top-1/2 -translate-y-1/2 transform -translate-x-1/2 cursor-pointer transition-transform hover:scale-110"
+                            style={{ left: `${leftPos}%` }}
+                            onMouseEnter={() => setHoveredEvent({
+                              type: event.type.toUpperCase(),
+                              details: event.details,
+                              timestamp: event.timestamp
+                            })}
+                            onMouseLeave={() => setHoveredEvent(null)}
+                          >
+                            <div className="flex items-center justify-center h-4 w-4 rounded bg-secondary-50/20 border border-secondary-50/50 shadow-sm">
+                              {getSystemEventIcon(event.type)}
+                            </div>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent className="p-2 bg-background-level-3 border-outline-primary text-xs">
+                          <p className="text-text-icon-01">{event.type}</p>
+                          <p className="text-text-icon-02">{event.details}</p>
+                          <p className="text-text-icon-02">{event.timestamp}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  );
+                };
+                
+                return renderClusterOrMarker(
+                  cluster, 
+                  renderSystemEventMarker, 
+                  "bg-secondary-50/30"
+                );
+              })}
+            </div>
+          </CollapsibleContent>
+        </div>
+      </Collapsible>
+    );
+  };
+  
+  // Warnings Track
+  const renderWarningEventsTrack = () => {
+    return (
+      <Collapsible
+        open={expandedTracks.warnings}
+        onOpenChange={() => toggleTrackExpansion('warnings')}
+        className="track-container"
+      >
+        <div className="h-[32px] bg-background-level-3 rounded-[4px] overflow-hidden">
+          <CollapsibleTrigger asChild>
+            <div className="px-3 py-1 flex items-center justify-between cursor-pointer hover:bg-background-level-4/50">
+              <span className="text-[11px] text-text-icon-01">Warnings & Errors</span>
+              {expandedTracks.warnings ? 
+                <ChevronUp className="h-3 w-3 text-text-icon-02" /> : 
+                <ChevronDown className="h-3 w-3 text-text-icon-02" />
+              }
+            </div>
+          </CollapsibleTrigger>
+          
+          <CollapsibleContent className="px-3 py-1">
+            <div className="h-[16px] w-full relative flex items-center">
+              {warningEventClusters.map((cluster, index) => {
+                const renderWarningEventMarker = (event: WarningEvent) => {
+                  const leftPos = getPositionPercentage(event.timestamp);
+                  const eventType = event.type || 'warning';
+                  const eventSeverity = event.severity || 'medium';
+                  const colorClass = getWarningColor(eventType, eventSeverity);
+                  const isHighSeverity = eventSeverity === 'high';
+                  
+                  return (
+                    <TooltipProvider key={`warning-${index}`}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div
+                            className={`absolute top-1/2 -translate-y-1/2 transform -translate-x-1/2 cursor-pointer transition-transform hover:scale-110 ${isHighSeverity ? 'animate-pulse' : ''}`}
+                            style={{ left: `${leftPos}%` }}
+                            onMouseEnter={() => setHoveredEvent({
+                              type: eventType.toUpperCase(),
+                              details: event.details || '',
+                              timestamp: event.timestamp
+                            })}
+                            onMouseLeave={() => setHoveredEvent(null)}
+                          >
+                            {eventType === 'warning' ? (
+                              <div className={`flex items-center justify-center h-4 w-4 ${isHighSeverity ? 'h-5 w-5' : ''}`}>
+                                <Triangle 
+                                  className={`h-full w-full ${colorClass}`}
+                                  fill="rgba(253, 176, 34, 0.15)" 
+                                  strokeWidth={2}
+                                />
+                                <AlertTriangle className="absolute h-2 w-2 text-white" />
+                              </div>
+                            ) : (
+                              <div className={`flex items-center justify-center h-4 w-4 ${isHighSeverity ? 'h-5 w-5' : ''}`}>
+                                <Octagon 
+                                  className={`h-full w-full ${colorClass}`}
+                                  fill="rgba(248, 71, 58, 0.15)" 
+                                  strokeWidth={2} 
+                                />
+                                <X className="absolute h-2 w-2 text-white" />
+                              </div>
+                            )}
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent className="p-2 bg-background-level-3 border-outline-primary text-xs">
+                          <div className="flex items-center gap-2">
+                            <Badge variant={eventType === 'warning' ? "secondary" : "destructive"} className={`uppercase text-[8px] ${eventType === 'warning' ? 'bg-amber-600 text-white' : ''}`}>
+                              {eventSeverity} {eventType}
+                            </Badge>
+                          </div>
+                          <p className="text-text-icon-02 mt-1">{event.details || ''}</p>
+                          <p className="text-text-icon-02">{event.timestamp}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  );
+                };
+                
+                return renderClusterOrMarker(
+                  cluster, 
+                  renderWarningEventMarker, 
+                  "bg-caution-100/30"
+                );
+              })}
+            </div>
+          </CollapsibleContent>
+        </div>
+      </Collapsible>
+    );
+  };
+  
+  // Enhanced Playback controls
   const PlaybackControls = () => {
     return (
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-2 h-8">
         <Button 
           variant="ghost" 
           size="icon" 
           onClick={skipBackward}
           aria-label="Skip backward 30 seconds"
+          className="h-8 w-8"
         >
-          <SkipBack className="h-4 w-4" />
+          <SkipBack className="h-3 w-3" />
         </Button>
         <Button 
           variant="ghost" 
           size="icon" 
           onClick={togglePlayback}
           aria-label={isPlaying ? "Pause playback" : "Start playback"}
+          className="h-8 w-8"
         >
           {isPlaying ? (
-            <Pause className="h-5 w-5" />
+            <Pause className="h-4 w-4" />
           ) : (
-            <PlayCircle className="h-5 w-5" />
+            <PlayCircle className="h-4 w-4" />
           )}
         </Button>
         <Button 
@@ -451,10 +674,11 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
           size="icon" 
           onClick={skipForward}
           aria-label="Skip forward 30 seconds"
+          className="h-8 w-8"
         >
-          <SkipForward className="h-4 w-4" />
+          <SkipForward className="h-3 w-3" />
         </Button>
-        <div className="text-xs text-text-icon-02 ml-2 w-16 text-right">
+        <div className="text-xs text-text-icon-02 ml-1 w-16 text-right">
           {currentPosition.timestamp}
         </div>
       </div>
@@ -462,93 +686,17 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
   };
   
   return (
-    <div className="h-[320px] w-full bg-background-level-2 border-t border-t-white/[0.08]" aria-label="Flight timeline">
-      {/* Header Bar - 40px height */}
-      <div className="h-[40px] px-[16px] flex items-center justify-between">
-        <h2 className="text-[14px] font-medium text-text-icon-01">Flight Timeline</h2>
-        <div className="flex gap-[8px]">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" aria-label="Show timeline legend">
-                  <Info className="h-[18px] w-[18px] text-text-icon-02" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" className="max-w-xs bg-background-level-3 border-outline-primary p-300">
-                <div className="space-y-200">
-                  <p className="fb-body2-medium text-text-icon-01">Timeline Legend</p>
-                  <div className="grid grid-cols-2 gap-200">
-                    <div className="flex items-center gap-100">
-                      <div className="h-3 w-3 rounded-sm bg-green-500"></div>
-                      <span className="text-xs text-text-icon-02">Takeoff</span>
-                    </div>
-                    <div className="flex items-center gap-100">
-                      <div className="h-3 w-3 rounded-sm bg-blue-500"></div>
-                      <span className="text-xs text-text-icon-02">Mission</span>
-                    </div>
-                    <div className="flex items-center gap-100">
-                      <div className="h-3 w-3 rounded-sm bg-purple-500"></div>
-                      <span className="text-xs text-text-icon-02">Hover</span>
-                    </div>
-                    <div className="flex items-center gap-100">
-                      <div className="h-3 w-3 rounded-sm bg-yellow-500"></div>
-                      <span className="text-xs text-text-icon-02">Manual</span>
-                    </div>
-                    <div className="flex items-center gap-100">
-                      <div className="h-3 w-3 rounded-sm bg-orange-500"></div>
-                      <span className="text-xs text-text-icon-02">RTL</span>
-                    </div>
-                    <div className="flex items-center gap-100">
-                      <div className="h-3 w-3 rounded-sm bg-red-500"></div>
-                      <span className="text-xs text-text-icon-02">Landing</span>
-                    </div>
-                  </div>
-                  <Separator className="bg-white/10" />
-                  <div className="grid grid-cols-2 gap-200">
-                    <div className="flex items-center gap-100">
-                      <Square className="h-3 w-3 text-secondary-50" />
-                      <span className="text-xs text-text-icon-02">System Event</span>
-                    </div>
-                    <div className="flex items-center gap-100">
-                      <Triangle className="h-3 w-3 text-caution-200" />
-                      <span className="text-xs text-text-icon-02">Warning</span>
-                    </div>
-                    <div className="flex items-center gap-100">
-                      <Octagon className="h-3 w-3 text-error-200" />
-                      <span className="text-xs text-text-icon-02">Error</span>
-                    </div>
-                    <div className="flex items-center gap-100">
-                      <Circle className="h-3 w-3 text-success-200" fill="currentColor" />
-                      <span className="text-xs text-text-icon-02">Photo</span>
-                    </div>
-                    <div className="flex items-center gap-100">
-                      <Circle className="h-3 w-3 text-info-200" />
-                      <span className="text-xs text-text-icon-02">Video</span>
-                    </div>
-                  </div>
-                </div>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          <Button variant="ghost" size="icon" aria-label="Timeline settings">
-            <Settings className="h-[18px] w-[18px] text-text-icon-02" />
-          </Button>
-        </div>
-      </div>
-      
-      {/* Tracks Container - Variable height based on tracks */}
+    <div className="h-[240px] w-full bg-background-level-2 border-t border-t-white/[0.08]" aria-label="Flight timeline">
+      {/* Tracks Container - Compact version */}
       <div 
         ref={tracksContainerRef}
-        className="px-[16px] py-[8px] max-h-[180px] overflow-y-auto flex flex-col gap-[8px] relative"
+        className="px-3 py-2 max-h-[160px] overflow-y-auto flex flex-col gap-2 relative"
       >
-        {/* Current time indicator (vertical line across all tracks) */}
-        <CurrentTimeIndicator />
-        
         {/* Display event info on hover */}
         {hoveredEvent && (
           <div 
-            className="absolute top-2 right-2 z-50 bg-background-level-4/90 backdrop-blur-sm p-200 rounded-md border border-outline-primary shadow-lg"
-            style={{ maxWidth: '250px' }}
+            className="absolute top-2 right-2 z-50 bg-background-level-4/90 backdrop-blur-sm p-2 rounded-md border border-outline-primary shadow-lg"
+            style={{ maxWidth: '200px' }}
           >
             <div className="flex flex-col gap-1">
               <div className="flex justify-between items-center">
@@ -560,278 +708,33 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
           </div>
         )}
         
-        {/* Mission Phases Track - Phase Track */}
-        <Collapsible
-          open={expandedTracks.missionPhases}
-          onOpenChange={() => toggleTrackExpansion('missionPhases')}
-          className="track-container"
-        >
-          <div className="h-[60px] bg-background-level-3 rounded-[8px] overflow-hidden">
-            <CollapsibleTrigger asChild>
-              <div className="px-[12px] py-[4px] flex items-center justify-between cursor-pointer hover:bg-background-level-4/50">
-                <span className="text-[12px] text-text-icon-01">Mission Phases</span>
-                {expandedTracks.missionPhases ? 
-                  <ChevronUp className="h-[14px] w-[14px] text-text-icon-02" /> : 
-                  <ChevronDown className="h-[14px] w-[14px] text-text-icon-02" />
-                }
-              </div>
-            </CollapsibleTrigger>
-            
-            <CollapsibleContent className="p-[12px]">
-              <div className="h-[24px] bg-background-level-4 rounded-[4px] w-full relative">
-                {missionPhases.map((phase, index) => {
-                  const leftPos = getPositionPercentage(phase.startTime);
-                  const width = getWidthPercentage(phase.startTime, phase.endTime);
-                  return (
-                    <div
-                      key={`phase-${index}`}
-                      className={`absolute h-full bg-gradient-to-r ${getMissionPhaseColor(phase.type)} rounded-[2px] flex items-center justify-center overflow-hidden border transition-all hover:brightness-125 cursor-pointer`}
-                      style={{
-                        left: `${leftPos}%`,
-                        width: `${width}%`,
-                        minWidth: '20px'
-                      }}
-                      title={`${phase.label}: ${phase.startTime} - ${phase.endTime}`}
-                      onMouseEnter={() => setHoveredEvent({
-                        type: phase.type.toUpperCase(),
-                        details: phase.label,
-                        timestamp: `${phase.startTime} - ${phase.endTime}`
-                      })}
-                      onMouseLeave={() => setHoveredEvent(null)}
-                    >
-                      <span className="text-[10px] text-white whitespace-nowrap overflow-hidden text-ellipsis px-[4px] font-medium drop-shadow-md">
-                        {phase.label}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </CollapsibleContent>
-          </div>
-        </Collapsible>
+        {/* Current time indicator (vertical line across all tracks) */}
+        <CurrentTimeIndicator />
         
-        {/* Video Segments Track */}
-        <Collapsible
-          open={expandedTracks.videoSegments}
-          onOpenChange={() => toggleTrackExpansion('videoSegments')}
-          className="track-container"
-        >
-          <div className="h-[60px] bg-background-level-3 rounded-[8px] overflow-hidden">
-            <CollapsibleTrigger asChild>
-              <div className="px-[12px] py-[4px] flex items-center justify-between cursor-pointer hover:bg-background-level-4/50">
-                <span className="text-[12px] text-text-icon-01">Video Segments</span>
-                {expandedTracks.videoSegments ? 
-                  <ChevronUp className="h-[14px] w-[14px] text-text-icon-02" /> : 
-                  <ChevronDown className="h-[14px] w-[14px] text-text-icon-02" />
-                }
-              </div>
-            </CollapsibleTrigger>
-            
-            <CollapsibleContent className="p-[12px]">
-              <div className="h-[24px] bg-background-level-4 rounded-full w-full relative">
-                {videoSegments.map((segment, index) => {
-                  // Calculate segment position and width as percentage
-                  const leftPos = getPositionPercentage(segment.startTime);
-                  const width = getWidthPercentage(segment.startTime, segment.endTime);
-                  
-                  return (
-                    <TooltipProvider key={`video-${index}`}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div
-                            className="absolute h-full bg-gradient-to-r from-primary-200/90 to-primary-300/90 rounded-full cursor-pointer shadow-inner border border-primary-300/50 hover:brightness-125 transition-all"
-                            style={{
-                              left: `${leftPos}%`,
-                              width: `${width}%`
-                            }}
-                            onMouseEnter={() => setHoveredEvent({
-                              type: 'VIDEO',
-                              details: segment.url,
-                              timestamp: `${segment.startTime} - ${segment.endTime}`
-                            })}
-                            onMouseLeave={() => setHoveredEvent(null)}
-                            onClick={() => onPositionChange(segment.startTime)}
-                            role="button"
-                            tabIndex={0}
-                          >
-                            {/* Video segment start/end markers */}
-                            <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1 h-5 w-5 rounded-full bg-info-200 flex items-center justify-center shadow">
-                              <Video className="h-3 w-3 text-white" />
-                            </div>
-                            <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1 h-5 w-5 rounded-full bg-info-100 flex items-center justify-center shadow">
-                              <Square className="h-3 w-3 text-white" fill="currentColor" />
-                            </div>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent className="p-200 bg-background-level-3 border-outline-primary">
-                          <p className="text-xs text-text-icon-01">Video Segment</p>
-                          <p className="text-xs text-text-icon-02">{segment.startTime} - {segment.endTime}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  );
-                })}
-              </div>
-            </CollapsibleContent>
-          </div>
-        </Collapsible>
+        {/* Mission Phases Track */}
+        {renderMissionPhasesTrack()}
         
-        {/* System Events Track - Event Track */}
-        <Collapsible
-          open={expandedTracks.systemEvents}
-          onOpenChange={() => toggleTrackExpansion('systemEvents')}
-          className="track-container"
-        >
-          <div className="h-[40px] bg-background-level-3 rounded-[8px] overflow-hidden">
-            <CollapsibleTrigger asChild>
-              <div className="px-[12px] py-[4px] flex items-center justify-between cursor-pointer hover:bg-background-level-4/50">
-                <span className="text-[12px] text-text-icon-01">System Events</span>
-                {expandedTracks.systemEvents ? 
-                  <ChevronUp className="h-[14px] w-[14px] text-text-icon-02" /> : 
-                  <ChevronDown className="h-[14px] w-[14px] text-text-icon-02" />
-                }
-              </div>
-            </CollapsibleTrigger>
-            
-            <CollapsibleContent className="px-[12px]">
-              <div className="h-[20px] w-full relative flex items-center">
-                {systemEventClusters.map((cluster, index) => {
-                  const renderSystemEventMarker = (event: SystemEvent) => {
-                    const leftPos = getPositionPercentage(event.timestamp);
-                    return (
-                      <TooltipProvider key={`sysevent-${index}`}>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <div
-                              className="absolute top-1/2 -translate-y-1/2 transform -translate-x-1/2 cursor-pointer transition-transform hover:scale-110"
-                              style={{ left: `${leftPos}%` }}
-                              onMouseEnter={() => setHoveredEvent({
-                                type: event.type.toUpperCase(),
-                                details: event.details,
-                                timestamp: event.timestamp
-                              })}
-                              onMouseLeave={() => setHoveredEvent(null)}
-                            >
-                              <div className="flex items-center justify-center h-5 w-5 rounded bg-secondary-50/20 border border-secondary-50/50 shadow-sm">
-                                {getSystemEventIcon(event.type)}
-                              </div>
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent className="p-200 bg-background-level-3 border-outline-primary">
-                            <p className="text-xs text-text-icon-01">{event.type}</p>
-                            <p className="text-xs text-text-icon-02">{event.details}</p>
-                            <p className="text-xs text-text-icon-02">{event.timestamp}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    );
-                  };
-                  
-                  return renderClusterOrMarker(
-                    cluster, 
-                    renderSystemEventMarker, 
-                    "bg-secondary-50/30"
-                  );
-                })}
-              </div>
-            </CollapsibleContent>
-          </div>
-        </Collapsible>
+        {/* Media Track (combined video segments and photos) */}
+        {renderMediaTrack()}
         
-        {/* Warnings/Errors Track - Event Track */}
-        <Collapsible
-          open={expandedTracks.warnings}
-          onOpenChange={() => toggleTrackExpansion('warnings')}
-          className="track-container"
-        >
-          <div className="h-[40px] bg-background-level-3 rounded-[8px] overflow-hidden">
-            <CollapsibleTrigger asChild>
-              <div className="px-[12px] py-[4px] flex items-center justify-between cursor-pointer hover:bg-background-level-4/50">
-                <span className="text-[12px] text-text-icon-01">Warnings & Errors</span>
-                {expandedTracks.warnings ? 
-                  <ChevronUp className="h-[14px] w-[14px] text-text-icon-02" /> : 
-                  <ChevronDown className="h-[14px] w-[14px] text-text-icon-02" />
-                }
-              </div>
-            </CollapsibleTrigger>
-            
-            <CollapsibleContent className="px-[12px]">
-              <div className="h-[20px] w-full relative flex items-center">
-                {warningEventClusters.map((cluster, index) => {
-                  const renderWarningEventMarker = (event: WarningEvent) => {
-                    const leftPos = getPositionPercentage(event.timestamp);
-                    const colorClass = getWarningColor(event.type, event.severity);
-                    const isHighSeverity = event.severity === 'high';
-                    
-                    return (
-                      <TooltipProvider key={`warning-${index}`}>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <div
-                              className={`absolute top-1/2 -translate-y-1/2 transform -translate-x-1/2 cursor-pointer transition-transform hover:scale-110 ${isHighSeverity ? 'animate-pulse' : ''}`}
-                              style={{ left: `${leftPos}%` }}
-                              onMouseEnter={() => setHoveredEvent({
-                                type: event.type.toUpperCase(),
-                                details: event.details,
-                                timestamp: event.timestamp
-                              })}
-                              onMouseLeave={() => setHoveredEvent(null)}
-                            >
-                              {event.type === 'warning' ? (
-                                <div className={`flex items-center justify-center h-5 w-5 ${isHighSeverity ? 'h-6 w-6' : ''}`}>
-                                  <Triangle 
-                                    className={`h-full w-full ${colorClass}`}
-                                    fill="rgba(253, 176, 34, 0.15)" 
-                                    strokeWidth={2}
-                                  />
-                                  <AlertTriangle className="absolute h-3 w-3 text-white" />
-                                </div>
-                              ) : (
-                                <div className={`flex items-center justify-center h-5 w-5 ${isHighSeverity ? 'h-6 w-6' : ''}`}>
-                                  <Octagon 
-                                    className={`h-full w-full ${colorClass}`}
-                                    fill="rgba(248, 71, 58, 0.15)" 
-                                    strokeWidth={2} 
-                                  />
-                                  <X className="absolute h-3 w-3 text-white" />
-                                </div>
-                              )}
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent className="p-200 bg-background-level-3 border-outline-primary">
-                            <div className="flex items-center gap-2">
-                              <Badge variant={event.type === 'warning' ? "secondary" : "destructive"} className={`uppercase text-[10px] ${event.type === 'warning' ? 'bg-amber-600 text-white' : ''}`}>
-                                {event.severity} {event.type}
-                              </Badge>
-                            </div>
-                            <p className="text-xs text-text-icon-02 mt-1">{event.details}</p>
-                            <p className="text-xs text-text-icon-02">{event.timestamp}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    );
-                  };
-                  
-                  return renderClusterOrMarker(
-                    cluster, 
-                    renderWarningEventMarker, 
-                    "bg-caution-100/30"
-                  );
-                })}
-              </div>
-            </CollapsibleContent>
-          </div>
-        </Collapsible>
+        {/* System Events Track */}
+        {renderSystemEventsTrack()}
         
-        {/* Media Actions Track */}
-        {renderMediaActionsTrack()}
+        {/* Warnings Track */}
+        {renderWarningEventsTrack()}
       </div>
       
-      {/* Timeline Bottom Section - 60px height */}
-      <div className="h-[60px] px-[16px] py-[8px] flex items-center justify-between">
-        <PlaybackControls />
+      {/* Timeline Bottom Section - Scrubber and Controls */}
+      <div className="h-[80px] px-3 py-2 flex flex-col gap-2">
+        <div className="flex items-center justify-between">
+          <PlaybackControls />
+          
+          <div className="text-xs text-text-icon-02">
+            {flightDuration}
+          </div>
+        </div>
         
-        <div className="flex-1 max-w-[500px] mx-[16px]">
+        <div className="relative">
           <Slider
             value={[currentPercentage]}
             min={0}
@@ -840,10 +743,11 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
             onValueChange={handleSliderChange}
             className="w-full"
           />
-        </div>
-        
-        <div className="text-xs text-text-icon-02">
-          {flightDuration}
+          {/* Visual connection between slider thumb and position indicator */}
+          <div 
+            className="absolute -top-[15px] w-[2px] h-[15px] bg-error-200 z-10"
+            style={{ left: `calc(${currentPercentage}% - 1px)` }}
+          />
         </div>
       </div>
     </div>
