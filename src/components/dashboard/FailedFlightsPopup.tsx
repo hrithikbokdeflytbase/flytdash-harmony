@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -24,8 +24,10 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface FailedFlightsPopupProps {
   open: boolean;
@@ -98,6 +100,20 @@ const failureData = [
 const FailedFlightsPopup = ({ open, onOpenChange, failedCount, totalCount }: FailedFlightsPopupProps) => {
   const failureRate = totalCount > 0 ? ((failedCount / totalCount) * 100).toFixed(1) : '0';
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
+
+  useEffect(() => {
+    // Prevent body scrolling when modal is open
+    if (open) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [open]);
 
   const handleFlightClick = (flightId: string) => {
     // Simulate navigation to flight detail page
@@ -111,7 +127,12 @@ const FailedFlightsPopup = ({ open, onOpenChange, failedCount, totalCount }: Fai
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl bg-background-level-2 border-outline-primary">
+      <DialogContent 
+        className={cn(
+          "max-w-3xl bg-background-level-2 border-outline-primary",
+          isMobile && "h-[90vh] p-4"
+        )}
+      >
         <DialogHeader className="flex flex-row items-center justify-between pb-4 border-b border-outline-primary">
           <DialogTitle className="text-text-icon-01 text-xl">
             Failed Flights ({failedCount} of {totalCount} total)
@@ -130,50 +151,55 @@ const FailedFlightsPopup = ({ open, onOpenChange, failedCount, totalCount }: Fai
           </div>
         </div>
 
-        <div className="py-4 border-b border-outline-primary max-h-[40vh] overflow-y-auto">
-          <h3 className="text-sm font-semibold text-text-icon-02 mb-3">FAILED FLIGHTS BY CAUSE</h3>
-          
-          <div className="space-y-3">
-            {failureData.map((category, index) => {
-              const IconComponent = category.icon;
-              return (
-                <Collapsible key={index} defaultOpen={true} className="w-full border border-outline-primary rounded-md overflow-hidden">
-                  <CollapsibleTrigger className="w-full p-3 bg-background-level-3 flex justify-between items-center hover:bg-background-level-4 transition-colors">
-                    <div className="flex items-center">
-                      <IconComponent className="h-5 w-5 text-error-200 mr-3" />
-                      <span className="text-text-icon-01">{category.cause} ({category.count} flights)</span>
-                    </div>
-                    <ChevronRight className="h-4 w-4 text-text-icon-02 transform transition-transform ui-expanded:rotate-90" />
-                  </CollapsibleTrigger>
-                  
-                  <CollapsibleContent className="bg-background-level-3">
-                    {category.flights.map((flight, flightIndex) => (
-                      <div 
-                        key={flightIndex}
-                        className="p-3 border-t border-outline-primary cursor-pointer hover:bg-background-level-4 transition-colors"
-                        onClick={() => handleFlightClick(flight.id)}
-                      >
-                        <div className="flex justify-between items-center mb-1">
-                          <div className="flex items-center">
-                            <span className="text-sm font-medium text-text-icon-01">{flight.id}</span>
-                            <span className="text-sm text-text-icon-02 ml-3">{flight.date}</span>
-                          </div>
-                          <ChevronRight className="h-4 w-4 text-text-icon-02" />
-                        </div>
-                        <div className="text-sm text-text-icon-02 mb-1">
-                          {flight.type}
-                        </div>
-                        <div className="text-sm text-error-200">
-                          {flight.details}
-                        </div>
+        <ScrollArea className={cn(
+          "py-4 border-b border-outline-primary", 
+          isMobile ? "max-h-[40vh]" : "max-h-[45vh]"
+        )}>
+          <div className="pr-4">
+            <h3 className="text-sm font-semibold text-text-icon-02 mb-3">FAILED FLIGHTS BY CAUSE</h3>
+            
+            <div className="space-y-3">
+              {failureData.map((category, index) => {
+                const IconComponent = category.icon;
+                return (
+                  <Collapsible key={index} defaultOpen={true} className="w-full border border-outline-primary rounded-md overflow-hidden">
+                    <CollapsibleTrigger className="w-full p-3 bg-background-level-3 flex justify-between items-center hover:bg-background-level-4 transition-colors">
+                      <div className="flex items-center">
+                        <IconComponent className="h-5 w-5 text-error-200 mr-3" />
+                        <span className="text-text-icon-01">{category.cause} ({category.count} flights)</span>
                       </div>
-                    ))}
-                  </CollapsibleContent>
-                </Collapsible>
-              );
-            })}
+                      <ChevronRight className="h-4 w-4 text-text-icon-02 transform transition-all duration-200 data-[state=open]:rotate-90" />
+                    </CollapsibleTrigger>
+                    
+                    <CollapsibleContent className="bg-background-level-3 data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up transition-all duration-300 ease-in-out">
+                      {category.flights.map((flight, flightIndex) => (
+                        <div 
+                          key={flightIndex}
+                          className="p-3 border-t border-outline-primary cursor-pointer hover:bg-background-level-4 transition-colors active:bg-background-level-3 group"
+                          onClick={() => handleFlightClick(flight.id)}
+                        >
+                          <div className="flex justify-between items-center mb-1">
+                            <div className="flex items-center">
+                              <span className="text-sm font-medium text-text-icon-01">{flight.id}</span>
+                              <span className="text-sm text-text-icon-02 ml-3">{flight.date}</span>
+                            </div>
+                            <ChevronRight className="h-4 w-4 text-text-icon-02 transform group-hover:translate-x-0.5 transition-transform" />
+                          </div>
+                          <div className="text-sm text-text-icon-02 mb-1">
+                            {flight.type}
+                          </div>
+                          <div className="text-sm text-error-200">
+                            {flight.details}
+                          </div>
+                        </div>
+                      ))}
+                    </CollapsibleContent>
+                  </Collapsible>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        </ScrollArea>
 
         <div className="py-4">
           <h3 className="text-sm font-semibold text-text-icon-02 mb-3">FAILURE PATTERN ANALYSIS</h3>

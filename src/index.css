@@ -239,6 +239,38 @@
 
 /* Animation utilities */
 @layer utilities {
+  /* Custom transition for dialog and collapsible elements */
+  @keyframes collapsible-down {
+    from {
+      height: 0;
+      opacity: 0;
+    }
+    to {
+      height: var(--radix-collapsible-content-height);
+      opacity: 1;
+    }
+  }
+
+  @keyframes collapsible-up {
+    from {
+      height: var(--radix-collapsible-content-height);
+      opacity: 1;
+    }
+    to {
+      height: 0;
+      opacity: 0;
+    }
+  }
+
+  .animate-collapsible-down {
+    animation: collapsible-down 300ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .animate-collapsible-up {
+    animation: collapsible-up 300ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Basic animations and utilities */
   .transition-gpu {
     transform: translateZ(0);
     backface-visibility: hidden;
