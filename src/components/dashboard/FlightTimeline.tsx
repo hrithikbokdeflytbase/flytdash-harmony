@@ -348,15 +348,15 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
 
   // Function to handle bar click and navigate to all logs with date filter
   const handleBarClick = (data: any) => {
-    console.log("Bar clicked:", data);
+    console.log("Bar clicked event:", data);
     
-    if (!data || !data.activePayload || !data.activePayload[0]) {
+    if (!data || !data.activePayload || !data.activePayload.length === 0) {
       console.log("No valid data in the click event");
       return;
     }
     
     const clickedItem = data.activePayload[0].payload;
-    console.log("Clicked item:", clickedItem);
+    console.log("Clicked item details:", clickedItem);
     
     if (!clickedItem || !clickedItem.date) {
       console.log("No date in clicked item");
@@ -379,7 +379,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
       case 'daily':
         // For daily view, just set the specific day
         fromDate = startOfDay(clickedItem.date);
-        toDate = fromDate;
+        toDate = addDays(fromDate, 1); // Include the full day
         break;
       default:
         return;

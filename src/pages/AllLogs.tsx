@@ -6,6 +6,7 @@ import RecentFlightsTable from '@/components/dashboard/RecentFlightsTable';
 import FiltersBar from '@/components/dashboard/FiltersBar';
 import { useLocation } from 'react-router-dom';
 import { parse } from 'date-fns';
+import { toast } from "sonner";
 
 // Helper function to parse date from URL parameter
 const parseDateParam = (param: string | null): Date | undefined => {
@@ -31,10 +32,14 @@ const AllLogs = () => {
     const fromParam = searchParams.get('from');
     const toParam = searchParams.get('to');
     
+    console.log("URL parameters:", { fromParam, toParam });
+    
     // If we have date parameters in the URL, use them
     if (fromParam) {
       const fromDate = parseDateParam(fromParam);
       const toDate = parseDateParam(toParam);
+      
+      console.log("Parsed dates:", { fromDate, toDate });
       
       if (fromDate) {
         // Simulate loading state for demonstration
@@ -43,10 +48,12 @@ const AllLogs = () => {
         // Update date range type based on provided dates
         if (fromParam === toParam) {
           setDateRange('daily');
+          toast.success(`Filtered to daily view for ${fromParam}`);
         } else {
           // Determine if it's weekly or monthly based on date difference
           // This is a simplification and might need refinement
           setDateRange('monthly');
+          toast.success(`Filtered from ${fromParam} to ${toParam || fromParam}`);
         }
         
         // Simulate API fetch delay
