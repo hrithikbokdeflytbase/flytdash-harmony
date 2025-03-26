@@ -121,51 +121,60 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                 <ChevronsUpDown className="h-4 w-4 opacity-50" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[300px] p-0 bg-background-level-2 border-[rgba(255,255,255,0.08)] shadow-lg" align="start">
-              <Command className="bg-background-level-2 rounded-md">
-                <div className="flex items-center border-b border-outline-primary px-3">
+            <PopoverContent 
+              className="w-[300px] p-0 bg-background-level-3 border-[rgba(255,255,255,0.08)] shadow-md rounded-lg" 
+              align="start"
+              sideOffset={8}
+              style={{ boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)' }}
+            >
+              <Command className="bg-transparent rounded-md">
+                <div className="flex items-center p-3 border-b border-[rgba(255,255,255,0.08)]">
                   <Search className="mr-2 h-4 w-4 shrink-0 text-text-icon-02" />
-                  <CommandInput placeholder="Search drones..." className="h-9 text-text-icon-01 bg-transparent flex-1" />
+                  <CommandInput 
+                    placeholder="Search drones..." 
+                    className="h-10 text-text-icon-01 bg-background-level-4 rounded flex-1 border-none text-sm placeholder:text-text-icon-02 placeholder:opacity-60 focus:outline-none focus:ring-0" 
+                  />
                 </div>
-                <CommandList className="max-h-[200px]">
-                  <CommandEmpty>No drones found</CommandEmpty>
-                  <CommandGroup>
-                    <CommandItem
-                      value="select-all"
-                      onSelect={handleSelectAllDrones}
-                      className="flex items-center gap-2 w-full py-2 hover:bg-surface-states-hover"
-                    >
-                      <div className="border border-primary-200 flex h-4 w-4 items-center justify-center rounded-[4px]">
-                        <Checkbox 
-                          checked={selectedDrones.length === DRONES.length} 
-                          className="data-[state=checked]:bg-primary-200 border-primary-200 h-4 w-4"
-                        />
-                      </div>
-                      <span className="font-medium text-text-icon-01">Select All</span>
-                    </CommandItem>
-                    <Separator className="my-1 bg-outline-primary opacity-30" />
-                    {DRONES.map((drone) => (
+                <div className="p-4">
+                  <CommandList className="max-h-[240px] overflow-y-auto custom-scrollbar">
+                    <CommandEmpty className="text-text-icon-02 py-3 text-center">No drones found</CommandEmpty>
+                    <CommandGroup>
                       <CommandItem
-                        key={drone.value}
-                        value={drone.value}
-                        onSelect={() => handleSelectDrone(drone.value)}
-                        className="flex items-center gap-2 w-full py-2 hover:bg-surface-states-hover"
+                        value="select-all"
+                        onSelect={handleSelectAllDrones}
+                        className="flex items-center gap-2 w-full py-2 px-1 mb-2 rounded hover:bg-surface-states-hover"
                       >
-                        <Checkbox 
-                          checked={selectedDrones.includes(drone.value)} 
-                          className="data-[state=checked]:bg-primary-200 border-outline-primary h-4 w-4"
-                        />
-                        <div className="flex items-center gap-2 text-text-icon-01">
-                          <Target className="h-4 w-4 text-primary-100" />
-                          <span>{drone.label}</span>
+                        <div className="flex h-4 w-4 items-center justify-center rounded-[4px]">
+                          <Checkbox 
+                            checked={selectedDrones.length === DRONES.length} 
+                            className="data-[state=checked]:bg-primary-200 border-[rgba(255,255,255,0.24)] h-4 w-4 rounded-[4px]"
+                          />
                         </div>
-                        {selectedDrones.includes(drone.value) && (
-                          <Check className="h-4 w-4 ml-auto text-primary-100" />
-                        )}
+                        <span className="font-medium text-text-icon-01 text-sm">Select All</span>
                       </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
+                      <Separator className="my-2 bg-[rgba(255,255,255,0.08)]" />
+                      {DRONES.map((drone) => (
+                        <CommandItem
+                          key={drone.value}
+                          value={drone.value}
+                          onSelect={() => handleSelectDrone(drone.value)}
+                          className="flex items-center gap-2 w-full py-2 px-1 my-1 rounded hover:bg-surface-states-hover"
+                        >
+                          <Checkbox 
+                            checked={selectedDrones.includes(drone.value)} 
+                            className="data-[state=checked]:bg-primary-200 border-[rgba(255,255,255,0.24)] h-4 w-4 rounded-[4px]"
+                          />
+                          <span className="text-text-icon-01 text-sm font-medium">
+                            {drone.label}
+                          </span>
+                          {selectedDrones.includes(drone.value) && (
+                            <Check className="h-4 w-4 ml-auto text-primary-100" />
+                          )}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </div>
               </Command>
             </PopoverContent>
           </Popover>
