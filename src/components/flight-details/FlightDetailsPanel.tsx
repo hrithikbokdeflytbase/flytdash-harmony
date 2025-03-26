@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Toggle, toggleVariants } from '@/components/ui/toggle';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface FlightDetailsPanelProps {
@@ -167,6 +168,48 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
                       <div className="w-[3px] h-[10px] bg-white bg-opacity-60"></div>
                       <div className="w-[3px] h-[13px] bg-white bg-opacity-30"></div>
                     </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Current Issue Section */}
+            <div className="space-y-0 mt-400">
+              {/* Current Issue Header */}
+              <div className="h-[35px] bg-background-level-2 flex items-center justify-between px-400 border-t border-b border-outline-primary">
+                <h3 className="fb-body1-medium text-text-icon-01">Current Issue</h3>
+                <div className="flex items-center gap-200">
+                  <button className="flex items-center justify-center bg-secondary-300 h-[24px] w-[24px] rounded-[4px]">
+                    <ChevronLeft className="h-4 w-4 text-text-icon-02" />
+                  </button>
+                  <div className="bg-secondary-300 px-200 py-[2px] rounded-[4px]">
+                    <span className="text-[11px] text-text-icon-02">1/2</span>
+                  </div>
+                  <button className="flex items-center justify-center bg-primary-200 h-[24px] w-[24px] rounded-[4px]">
+                    <ChevronRight className="h-4 w-4 text-text-icon-01" />
+                  </button>
+                </div>
+              </div>
+              
+              {/* Issue Card */}
+              <div className="p-400">
+                <div className="bg-[#EF444422] border border-[#EF4444] rounded-[6px] overflow-hidden">
+                  {/* Card Header */}
+                  <div className="bg-[#00000044] h-[30px] flex items-center justify-between px-300">
+                    <div className="flex items-center gap-200">
+                      <div className="bg-[#EF4444] rounded-full flex items-center justify-center h-[18px] w-[18px]">
+                        <AlertCircle className="h-3 w-3 text-white" />
+                      </div>
+                      <span className="text-sm font-bold text-text-icon-01">Critical Battery Warning</span>
+                    </div>
+                    <span className="text-[11px] text-text-icon-02">{timestamp}</span>
+                  </div>
+                  
+                  {/* Card Content */}
+                  <div className="p-300 space-y-200">
+                    <p className="text-xs text-text-icon-01">Battery at 23%, below critical threshold (25%).</p>
+                    <p className="text-xs text-text-icon-01">Distance to home: 275m | Est. flight time: 4 min</p>
+                    <p className="text-xs text-[#EF4444]">System Response: Return to Home (RTH) initiated</p>
                   </div>
                 </div>
               </div>
