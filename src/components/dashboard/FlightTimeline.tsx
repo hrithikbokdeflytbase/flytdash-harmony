@@ -3,8 +3,9 @@ import { BarChart, XAxis, YAxis, Bar, Tooltip, CartesianGrid, Legend } from 'rec
 import { Loader, ChevronLeft, ChevronRight } from 'lucide-react';
 import { DateRangeType } from './DateRangeFilter';
 import { Button } from '@/components/ui/button';
-import { format, addDays, addWeeks, addMonths, subDays, subWeeks, subMonths, startOfDay, startOfWeek, startOfMonth, isSameDay, isSameWeek, isSameMonth } from 'date-fns';
+import { format, addDays, addWeeks, addMonths, subDays, subWeeks, subMonths, startOfDay, startOfWeek, startOfMonth, endOfMonth, endOfWeek, isSameDay, isSameWeek, isSameMonth } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { useNavigate } from 'react-router-dom';
 import { 
   ChartContainer, 
   ChartTooltip, 
@@ -272,6 +273,7 @@ const CustomCursor = ({ x, y, width, height, payload }: any) => {
 const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, isLoading }) => {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const data = React.useMemo(() => generateMockData(dateRange, viewType, currentDate), [dateRange, viewType, currentDate]);
+  const navigate = useNavigate();
   
   // Navigation functions
   const navigateToPrevious = () => {
@@ -344,6 +346,40 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
     }
   };
 
+  // Function to handle bar click and navigate to all logs with date filter
+  const handleBarClick = (data: any) => {
+    if (!data || !data.date) return;
+    
+    let fromDate, toDate;
+    
+    switch (dateRange) {
+      case 'monthly':
+        // For monthly view, set from-to as the entire month
+        fromDate = startOfMonth(data.date);
+        toDate = endOfMonth(data.date);
+        break;
+      case 'weekly':
+        // For weekly view, set from-to as the entire week
+        fromDate = startOfWeek(data.date);
+        toDate = endOfWeek(data.date);
+        break;
+      case 'daily':
+        // For daily view, just set the specific day
+        fromDate = startOfDay(data.date);
+        toDate = fromDate;
+        break;
+      default:
+        return;
+    }
+    
+    // Format dates for URL parameters
+    const fromParam = format(fromDate, 'yyyy-MM-dd');
+    const toParam = format(toDate, 'yyyy-MM-dd');
+    
+    // Navigate to all logs page with date filter
+    navigate(`/all-logs?from=${fromParam}&to=${toParam}`);
+  };
+
   return (
     <div className="w-full h-full">
       {isLoading ? (
@@ -353,6 +389,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
       ) : (
         <>
           <div className="flex items-center justify-between mb-300">
+            
             <div className="flex items-center space-x-200">
               <Button 
                 variant="outline" 
@@ -390,6 +427,8 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
               margin={{ top: 10, right: 30, left: 20, bottom: 45 }}
               width={800}
               height={350}
+              onClick={handleBarClick}
+              className="cursor-pointer"
             >
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
               <XAxis 
