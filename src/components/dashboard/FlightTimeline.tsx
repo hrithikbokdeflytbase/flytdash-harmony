@@ -1,9 +1,10 @@
+
 import React, { useState } from 'react';
 import { BarChart, XAxis, YAxis, Bar, Tooltip, CartesianGrid, Legend } from 'recharts';
 import { Loader, ChevronLeft, ChevronRight } from 'lucide-react';
 import { DateRangeType } from './DateRangeFilter';
 import { Button } from '@/components/ui/button';
-import { format, addDays, addWeeks, addMonths, subDays, subWeeks, subMonths, startOfDay, startOfWeek, startOfMonth, endOfMonth, endOfWeek, isSameDay, isSameWeek, isSameMonth } from 'date-fns';
+import { format, addDays, addWeeks, addMonths, subDays, subWeeks, subMonths, startOfDay, startOfWeek, startOfMonth, endOfMonth, endOfWeek, isSameDay, isSameWeek, isSameMonth, isAfter } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -27,15 +28,18 @@ const generateMockData = (dateRange: DateRangeType, viewType: ViewType, currentD
   if (viewType === 'total') {
     switch (dateRange) {
       case 'monthly':
-        // Monthly data showing each month
+        // Monthly data showing each month with empty state for future months
         return Array.from({ length: 12 }, (_, i) => {
           const date = new Date(currentDate.getFullYear(), i, 1);
           const isCurrentMonth = isSameMonth(date, now);
+          const isFutureMonth = isAfter(date, now);
+          
           return {
             name: format(date, 'MMM'),
-            flights: Math.floor(Math.random() * 70) + 30,
+            flights: isFutureMonth ? 0 : Math.floor(Math.random() * 70) + 30,
             date,
-            isCurrent: isCurrentMonth
+            isCurrent: isCurrentMonth,
+            isFuture: isFutureMonth
           };
         });
       case 'weekly':
@@ -44,11 +48,14 @@ const generateMockData = (dateRange: DateRangeType, viewType: ViewType, currentD
           // Calculate date for this week
           const weekStart = startOfWeek(addWeeks(currentDate, i - 3));
           const isCurrentWeek = isSameWeek(weekStart, now);
+          const isFutureWeek = isAfter(weekStart, now);
+          
           return {
             name: `W${format(weekStart, 'w')}`,
-            flights: Math.floor(Math.random() * 30) + 10,
+            flights: isFutureWeek ? 0 : Math.floor(Math.random() * 30) + 10,
             date: weekStart,
-            isCurrent: isCurrentWeek
+            isCurrent: isCurrentWeek,
+            isFuture: isFutureWeek
           };
         });
       case 'daily':
@@ -56,11 +63,14 @@ const generateMockData = (dateRange: DateRangeType, viewType: ViewType, currentD
         return Array.from({ length: 7 }, (_, i) => {
           const date = addDays(currentDate, i - 3);
           const isCurrentDay = isSameDay(date, now);
+          const isFutureDay = isAfter(date, now);
+          
           return {
             name: format(date, 'EEE'),
-            flights: Math.floor(Math.random() * 25) + 5,
+            flights: isFutureDay ? 0 : Math.floor(Math.random() * 25) + 5,
             date,
-            isCurrent: isCurrentDay
+            isCurrent: isCurrentDay,
+            isFuture: isFutureDay
           };
         });
     }
@@ -71,39 +81,48 @@ const generateMockData = (dateRange: DateRangeType, viewType: ViewType, currentD
         return Array.from({ length: 12 }, (_, i) => {
           const date = new Date(currentDate.getFullYear(), i, 1);
           const isCurrentMonth = isSameMonth(date, now);
+          const isFutureMonth = isAfter(date, now);
+          
           return {
             name: format(date, 'MMM'),
-            successful: Math.floor(Math.random() * 60) + 20,
-            failed: Math.floor(Math.random() * 15),
-            aborted: Math.floor(Math.random() * 8),
+            successful: isFutureMonth ? 0 : Math.floor(Math.random() * 60) + 20,
+            failed: isFutureMonth ? 0 : Math.floor(Math.random() * 15),
+            aborted: isFutureMonth ? 0 : Math.floor(Math.random() * 8),
             date,
-            isCurrent: isCurrentMonth
+            isCurrent: isCurrentMonth,
+            isFuture: isFutureMonth
           };
         });
       case 'weekly':
         return Array.from({ length: 7 }, (_, i) => {
           const weekStart = startOfWeek(addWeeks(currentDate, i - 3));
           const isCurrentWeek = isSameWeek(weekStart, now);
+          const isFutureWeek = isAfter(weekStart, now);
+          
           return {
             name: `W${format(weekStart, 'w')}`,
-            successful: Math.floor(Math.random() * 25) + 10,
-            failed: Math.floor(Math.random() * 5),
-            aborted: Math.floor(Math.random() * 3),
+            successful: isFutureWeek ? 0 : Math.floor(Math.random() * 25) + 10,
+            failed: isFutureWeek ? 0 : Math.floor(Math.random() * 5),
+            aborted: isFutureWeek ? 0 : Math.floor(Math.random() * 3),
             date: weekStart,
-            isCurrent: isCurrentWeek
+            isCurrent: isCurrentWeek,
+            isFuture: isFutureWeek
           };
         });
       case 'daily':
         return Array.from({ length: 7 }, (_, i) => {
           const date = addDays(currentDate, i - 3);
           const isCurrentDay = isSameDay(date, now);
+          const isFutureDay = isAfter(date, now);
+          
           return {
             name: format(date, 'EEE'),
-            successful: Math.floor(Math.random() * 20) + 5,
-            failed: Math.floor(Math.random() * 4),
-            aborted: Math.floor(Math.random() * 2),
+            successful: isFutureDay ? 0 : Math.floor(Math.random() * 20) + 5,
+            failed: isFutureDay ? 0 : Math.floor(Math.random() * 4),
+            aborted: isFutureDay ? 0 : Math.floor(Math.random() * 2),
             date,
-            isCurrent: isCurrentDay
+            isCurrent: isCurrentDay,
+            isFuture: isFutureDay
           };
         });
     }
@@ -113,7 +132,37 @@ const generateMockData = (dateRange: DateRangeType, viewType: ViewType, currentD
 
 // Enhanced CustomBar component with significantly improved current period highlighting
 const CustomBar = (props: any) => {
-  const { x, y, width, height, isCurrent, fill, dataKey, ...rest } = props;
+  const { x, y, width, height, isCurrent, isFuture, fill, dataKey, ...rest } = props;
+  
+  // Different styling for future months (empty state)
+  if (isFuture) {
+    return (
+      <g>
+        <rect 
+          x={x} 
+          y={y} 
+          width={width} 
+          height={height} 
+          fill="rgba(255, 255, 255, 0.08)"
+          stroke="rgba(255, 255, 255, 0.2)"
+          strokeWidth={1}
+          strokeDasharray="3 3"
+          rx={4}
+          ry={4}
+          {...rest}
+        />
+        <text
+          x={x + width / 2}
+          y={y + height / 2 + 5}
+          textAnchor="middle"
+          fill="rgba(255, 255, 255, 0.4)"
+          fontSize="10"
+        >
+          Future
+        </text>
+      </g>
+    );
+  }
   
   // Different styling based on whether it's the current period
   if (isCurrent) {
@@ -218,6 +267,20 @@ const CustomBar = (props: any) => {
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     const isCurrentPeriod = payload[0]?.payload?.isCurrent;
+    const isFuturePeriod = payload[0]?.payload?.isFuture;
+    
+    if (isFuturePeriod) {
+      return (
+        <div className="flybase-card p-300 border shadow-lg rounded-lg border-outline-primary bg-background-level-2/80">
+          <p className="fb-body1-medium mb-100 text-text-icon-01">
+            {label} - Future
+          </p>
+          <p className="fb-body2-regular text-text-icon-02">
+            No flight data available for future dates
+          </p>
+        </div>
+      );
+    }
     
     return (
       <div className={cn(
@@ -253,6 +316,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 // Custom cursor for highlighting bars on hover
 const CustomCursor = ({ x, y, width, height, payload }: any) => {
   const isCurrentPeriod = payload && payload[0]?.payload?.isCurrent;
+  const isFuturePeriod = payload && payload[0]?.payload?.isFuture;
   
   return (
     <rect
@@ -260,11 +324,23 @@ const CustomCursor = ({ x, y, width, height, payload }: any) => {
       y={y}
       width={width}
       height={height}
-      fill={isCurrentPeriod ? "rgba(155, 135, 245, 0.2)" : "rgba(73, 109, 200, 0.15)"}
+      fill={
+        isFuturePeriod 
+          ? "rgba(255, 255, 255, 0.05)" 
+          : isCurrentPeriod 
+            ? "rgba(155, 135, 245, 0.2)" 
+            : "rgba(73, 109, 200, 0.15)"
+      }
       fillOpacity={0.4}
-      stroke={isCurrentPeriod ? "#9b87f5" : "none"}
+      stroke={
+        isFuturePeriod 
+          ? "rgba(255, 255, 255, 0.2)" 
+          : isCurrentPeriod 
+            ? "#9b87f5" 
+            : "none"
+      }
       strokeWidth={1}
-      strokeDasharray="3 3"
+      strokeDasharray={isFuturePeriod ? "3 3" : "none"}
       style={{ pointerEvents: 'none' }}
     />
   );
@@ -280,7 +356,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
     setCurrentDate(prevDate => {
       switch (dateRange) {
         case 'monthly':
-          return subMonths(prevDate, 1);
+          return subMonths(prevDate, 12); // Navigate to previous year
         case 'weekly':
           return subWeeks(prevDate, 1);
         case 'daily':
@@ -292,14 +368,22 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
   };
 
   const navigateToNext = () => {
+    const now = new Date();
     setCurrentDate(prevDate => {
       switch (dateRange) {
-        case 'monthly':
-          return addMonths(prevDate, 1);
-        case 'weekly':
-          return addWeeks(prevDate, 1);
-        case 'daily':
-          return addDays(prevDate, 1);
+        case 'monthly': {
+          // Only navigate to next year if it's not in the future
+          const nextYear = addMonths(prevDate, 12);
+          return nextYear.getFullYear() > now.getFullYear() ? prevDate : nextYear;
+        }
+        case 'weekly': {
+          const nextWeek = addWeeks(prevDate, 1);
+          return isAfter(nextWeek, now) ? prevDate : nextWeek;
+        }
+        case 'daily': {
+          const nextDay = addDays(prevDate, 1);
+          return isAfter(nextDay, now) ? prevDate : nextDay;
+        }
         default:
           return prevDate;
       }
@@ -317,7 +401,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
         return format(currentDate, 'yyyy');
       case 'weekly':
         const weekStart = startOfWeek(currentDate);
-        const weekEnd = addDays(weekStart, 6);
+        const weekEnd = endOfWeek(currentDate);
         return `${format(weekStart, 'MMM d')} - ${format(weekEnd, 'MMM d, yyyy')}`;
       case 'daily':
         return format(currentDate, 'MMMM yyyy');
@@ -363,6 +447,12 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
       return;
     }
     
+    // Don't navigate for future dates
+    if (clickedItem.isFuture === true) {
+      console.log("Future date clicked, not navigating");
+      return;
+    }
+    
     let fromDate, toDate;
     
     switch (dateRange) {
@@ -379,7 +469,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
       case 'daily':
         // For daily view, just set the specific day
         fromDate = startOfDay(clickedItem.date);
-        toDate = addDays(fromDate, 1); // Include the full day
+        toDate = endOfDay(clickedItem.date);
         break;
       default:
         return;
@@ -393,6 +483,13 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
     
     // Navigate to all logs page with date filter
     navigate(`/all-logs?from=${fromParam}&to=${toParam}`);
+  };
+
+  // Helper to get end of day (missing in our imports above)
+  const endOfDay = (date: Date): Date => {
+    const result = new Date(date);
+    result.setHours(23, 59, 59, 999);
+    return result;
   };
 
   return (
