@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { BarChart, XAxis, YAxis, Bar, Tooltip, CartesianGrid, Legend } from 'recharts';
 import { Loader, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -348,10 +347,22 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
   };
 
   // Function to handle bar click and navigate to all logs with date filter
-  const handleBarClick = (data: any, index: any) => {
-    if (!data || !data.payload || !data.payload.date) return;
+  const handleBarClick = (data: any) => {
+    console.log("Bar clicked:", data);
     
-    const clickedItem = data.payload;
+    if (!data || !data.activePayload || !data.activePayload[0]) {
+      console.log("No valid data in the click event");
+      return;
+    }
+    
+    const clickedItem = data.activePayload[0].payload;
+    console.log("Clicked item:", clickedItem);
+    
+    if (!clickedItem || !clickedItem.date) {
+      console.log("No date in clicked item");
+      return;
+    }
+    
     let fromDate, toDate;
     
     switch (dateRange) {
