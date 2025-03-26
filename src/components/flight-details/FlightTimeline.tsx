@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Settings, Info, PlayCircle, SkipBack, SkipForward, Pause, Circle, Square, 
   Triangle, Octagon, Camera, Video, AlertTriangle, AlertOctagon, Check, X, AlertCircle } from 'lucide-react';
@@ -301,14 +300,13 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
           <CollapsibleTrigger asChild>
             <div className="px-3 py-1 flex items-center justify-between cursor-pointer hover:bg-background-level-4/50">
               <span className="text-[11px] text-text-icon-01">Media</span>
-              {/* Chevron icons removed */}
             </div>
           </CollapsibleTrigger>
           
           <CollapsibleContent className="px-3 py-1">
             <div className="h-[16px] bg-background-level-4 rounded-[2px] w-full relative">
-              {/* Label overlay - Moved to higher z-index but with smaller footprint */}
-              <div className="absolute top-0 left-0 z-10 bg-background-level-4/70 backdrop-blur-[1px] px-1.5 py-0.5 text-[9px] text-text-icon-02 rounded-sm">
+              {/* Label overlay - More compact and positioned to not block content */}
+              <div className="absolute top-0 left-0 z-10 bg-background-level-4/80 backdrop-blur-[1px] px-1 py-0.5 text-[8px] text-text-icon-02 rounded-sm max-w-[40px]">
                 Media
               </div>
               
@@ -322,7 +320,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <div
-                          className="absolute h-[14px] top-[1px] bg-gradient-to-r from-primary-200/90 to-primary-300/90 rounded-full cursor-pointer border border-primary-400/40 hover:brightness-125 hover:h-[16px] hover:top-0 transition-all"
+                          className="absolute h-[14px] top-[1px] bg-gradient-to-r from-primary-200/90 to-primary-300/90 rounded-full cursor-pointer border border-primary-400/40 hover:brightness-125 hover:h-[16px] hover:top-0 transition-all z-20"
                           style={{
                             left: `${leftPos}%`,
                             width: `${width}%`,
@@ -357,11 +355,11 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <div
-                            className="absolute top-1/2 -translate-y-1/2 transform -translate-x-1/2 cursor-pointer hover:scale-125 transition-transform"
+                            className="absolute top-1/2 -translate-y-1/2 transform -translate-x-1/2 cursor-pointer hover:scale-125 transition-transform z-30"
                             style={{ left: `${leftPos}%` }}
                           >
-                            <div className="flex items-center justify-center h-3 w-3 rounded-full bg-success-200/20 border border-success-200/70 shadow-[0_0_3px_rgba(30,174,109,0.3)]">
-                              <Camera className="h-1.5 w-1.5 text-success-200" />
+                            <div className="flex items-center justify-center h-4 w-4 rounded-full bg-success-200/60 border border-success-200 shadow-[0_0_5px_rgba(30,174,109,0.5)]">
+                              <Camera className="h-2 w-2 text-white" />
                             </div>
                           </div>
                         </TooltipTrigger>
@@ -379,7 +377,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
                 return renderClusterOrMarker(
                   cluster, 
                   renderPhotoMarker, 
-                  "bg-success-200/40 border border-success-300/60"
+                  "bg-success-200/70 border border-success-300 z-30"
                 );
               })}
             </div>
@@ -403,7 +401,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
           <Tooltip>
             <TooltipTrigger asChild>
               <div
-                className={`absolute top-1/2 -translate-y-1/2 transform -translate-x-1/2 cursor-pointer z-10 flex items-center justify-center ${clusterClass} rounded-full h-3.5 w-3.5 shadow-sm hover:scale-125 transition-transform`}
+                className={`absolute top-1/2 -translate-y-1/2 transform -translate-x-1/2 cursor-pointer z-30 flex items-center justify-center ${clusterClass} rounded-full h-5 w-5 shadow-md hover:scale-125 transition-transform`}
                 style={{ left: `${leftPos}%` }}
                 onMouseEnter={() => setHoveredEvent({
                   type: 'cluster',
@@ -412,7 +410,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
                 })}
                 onMouseLeave={() => setHoveredEvent(null)}
               >
-                <span className="text-[7px] font-bold text-white">{cluster.events.length}</span>
+                <span className="text-[9px] font-bold text-white">{cluster.events.length}</span>
               </div>
             </TooltipTrigger>
             <TooltipContent side="top" className="max-w-xs bg-background-level-3 border-outline-primary p-2 text-xs">
@@ -448,15 +446,14 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
           <CollapsibleTrigger asChild>
             <div className="px-3 py-1 flex items-center justify-between cursor-pointer hover:bg-background-level-4/50">
               <span className="text-[11px] text-text-icon-01">Mission Phases</span>
-              {/* Chevron icons removed */}
             </div>
           </CollapsibleTrigger>
           
           <CollapsibleContent className="px-3 py-1">
             <div className="h-[20px] bg-background-level-4 rounded-[2px] w-full relative">
-              {/* Label overlay - positioned to not block content */}
-              <div className="absolute top-0 left-0 z-10 bg-background-level-4/70 backdrop-blur-[1px] px-1.5 py-0.5 text-[9px] text-text-icon-02 rounded-sm">
-                Mission Phases
+              {/* Label overlay - More compact and positioned to not block content */}
+              <div className="absolute top-0 left-0 z-10 bg-background-level-4/80 backdrop-blur-[1px] px-1 py-0.5 text-[8px] text-text-icon-02 rounded-sm max-w-[50px]">
+                Phases
               </div>
               
               {missionPhases.map((phase, index) => {
@@ -467,7 +464,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <div
-                          className={`absolute h-full bg-gradient-to-r ${getMissionPhaseColor(phase.type)} rounded-[2px] border transition-all hover:brightness-125 cursor-pointer`}
+                          className={`absolute h-full bg-gradient-to-r ${getMissionPhaseColor(phase.type)} rounded-[2px] border transition-all hover:brightness-125 cursor-pointer z-20`}
                           style={{
                             left: `${leftPos}%`,
                             width: `${width}%`,
@@ -509,15 +506,14 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
           <CollapsibleTrigger asChild>
             <div className="px-3 py-1 flex items-center justify-between cursor-pointer hover:bg-background-level-4/50">
               <span className="text-[11px] text-text-icon-01">System Events</span>
-              {/* Chevron icons removed */}
             </div>
           </CollapsibleTrigger>
           
           <CollapsibleContent className="px-3 py-1">
             <div className="h-[16px] w-full relative flex items-center">
-              {/* Label overlay - positioned to not block content */}
-              <div className="absolute top-0 left-0 z-10 bg-background-level-4/70 backdrop-blur-[1px] px-1.5 py-0.5 text-[9px] text-text-icon-02 rounded-sm">
-                System Events
+              {/* Label overlay - More compact and positioned to not block content */}
+              <div className="absolute top-0 left-0 z-10 bg-background-level-4/80 backdrop-blur-[1px] px-1 py-0.5 text-[8px] text-text-icon-02 rounded-sm max-w-[40px]">
+                System
               </div>
               
               {systemEventClusters.map((cluster, index) => {
@@ -527,11 +523,11 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
                   // Define colors based on event type for better visibility
                   const getEventColor = (type: SystemEvent['type']) => {
                     switch (type) {
-                      case 'connection': return 'bg-teal-500/20 border-teal-400/70 text-teal-400 shadow-[0_0_3px_rgba(20,184,166,0.4)]';
-                      case 'calibration': return 'bg-indigo-500/20 border-indigo-400/70 text-indigo-400 shadow-[0_0_3px_rgba(99,102,241,0.4)]';
-                      case 'modeChange': return 'bg-purple-500/20 border-purple-400/70 text-purple-400 shadow-[0_0_3px_rgba(168,85,247,0.4)]';
-                      case 'command': return 'bg-blue-500/20 border-blue-400/70 text-blue-400 shadow-[0_0_3px_rgba(59,130,246,0.4)]';
-                      default: return 'bg-gray-500/20 border-gray-400/70 text-gray-400 shadow-[0_0_3px_rgba(156,163,175,0.4)]';
+                      case 'connection': return 'bg-teal-500/60 border-teal-400 text-white shadow-[0_0_5px_rgba(20,184,166,0.6)]';
+                      case 'calibration': return 'bg-indigo-500/60 border-indigo-400 text-white shadow-[0_0_5px_rgba(99,102,241,0.6)]';
+                      case 'modeChange': return 'bg-purple-500/60 border-purple-400 text-white shadow-[0_0_5px_rgba(168,85,247,0.6)]';
+                      case 'command': return 'bg-blue-500/60 border-blue-400 text-white shadow-[0_0_5px_rgba(59,130,246,0.6)]';
+                      default: return 'bg-gray-500/60 border-gray-400 text-white shadow-[0_0_5px_rgba(156,163,175,0.6)]';
                     }
                   };
                   
@@ -540,7 +536,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <div
-                            className="absolute top-1/2 -translate-y-1/2 transform -translate-x-1/2 cursor-pointer hover:scale-125 transition-transform"
+                            className="absolute top-1/2 -translate-y-1/2 transform -translate-x-1/2 cursor-pointer hover:scale-125 transition-transform z-30"
                             style={{ left: `${leftPos}%` }}
                             onMouseEnter={() => setHoveredEvent({
                               type: event.type.toUpperCase(),
@@ -549,7 +545,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
                             })}
                             onMouseLeave={() => setHoveredEvent(null)}
                           >
-                            <div className={`flex items-center justify-center h-2.5 w-2.5 rounded border ${getEventColor(event.type)}`}>
+                            <div className={`flex items-center justify-center h-4 w-4 rounded-full border ${getEventColor(event.type)}`}>
                               {getSystemEventIcon(event.type)}
                             </div>
                           </div>
@@ -567,7 +563,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
                 return renderClusterOrMarker(
                   cluster, 
                   renderSystemEventMarker, 
-                  "bg-secondary-50/40 border border-secondary-50/70 shadow-[0_0_3px_rgba(148,163,184,0.3)]"
+                  "bg-secondary-50/70 border border-secondary-50 shadow-[0_0_5px_rgba(148,163,184,0.5)] z-30"
                 );
               })}
             </div>
@@ -589,15 +585,14 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
           <CollapsibleTrigger asChild>
             <div className="px-3 py-1 flex items-center justify-between cursor-pointer hover:bg-background-level-4/50">
               <span className="text-[11px] text-text-icon-01">Warnings & Errors</span>
-              {/* Chevron icons removed */}
             </div>
           </CollapsibleTrigger>
           
           <CollapsibleContent className="px-3 py-1">
             <div className="h-[16px] w-full relative flex items-center">
-              {/* Label overlay - positioned to not block content */}
-              <div className="absolute top-0 left-0 z-10 bg-background-level-4/70 backdrop-blur-[1px] px-1.5 py-0.5 text-[9px] text-text-icon-02 rounded-sm">
-                Warnings & Errors
+              {/* Label overlay - More compact and positioned to not block content */}
+              <div className="absolute top-0 left-0 z-10 bg-background-level-4/80 backdrop-blur-[1px] px-1 py-0.5 text-[8px] text-text-icon-02 rounded-sm max-w-[50px]">
+                Warnings
               </div>
               
               {warningEventClusters.map((cluster, index) => {
@@ -612,7 +607,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <div
-                            className={`absolute top-1/2 -translate-y-1/2 transform -translate-x-1/2 cursor-pointer hover:scale-125 transition-transform ${isHighSeverity ? 'animate-pulse' : ''}`}
+                            className={`absolute top-1/2 -translate-y-1/2 transform -translate-x-1/2 cursor-pointer hover:scale-125 transition-transform z-30 ${isHighSeverity ? 'animate-pulse' : ''}`}
                             style={{ left: `${leftPos}%` }}
                             onMouseEnter={() => setHoveredEvent({
                               type: eventType.toUpperCase(),
@@ -622,22 +617,22 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
                             onMouseLeave={() => setHoveredEvent(null)}
                           >
                             {eventType === 'warning' ? (
-                              <div className="flex items-center justify-center h-2.5 w-2.5">
+                              <div className="flex items-center justify-center h-5 w-5 shadow-[0_0_5px_rgba(234,179,8,0.6)]">
                                 <Triangle 
                                   className="h-full w-full text-yellow-500"
-                                  fill="rgba(234, 179, 8, 0.2)" 
+                                  fill="rgba(234, 179, 8, 0.7)" 
                                   strokeWidth={2}
                                 />
-                                <span className="absolute text-[6px] font-bold text-black">!</span>
+                                <span className="absolute text-[7px] font-bold text-black">!</span>
                               </div>
                             ) : (
-                              <div className="flex items-center justify-center h-2.5 w-2.5">
+                              <div className="flex items-center justify-center h-5 w-5 shadow-[0_0_5px_rgba(220,38,38,0.6)]">
                                 <Octagon 
                                   className="h-full w-full text-red-500"
-                                  fill="rgba(220, 38, 38, 0.2)" 
+                                  fill="rgba(220, 38, 38, 0.7)" 
                                   strokeWidth={2} 
                                 />
-                                <X className="absolute h-1.5 w-1.5 text-white" />
+                                <X className="absolute h-2 w-2 text-white" />
                               </div>
                             )}
                           </div>
@@ -659,7 +654,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
                 return renderClusterOrMarker(
                   cluster, 
                   renderWarningEventMarker, 
-                  "bg-yellow-500/30 border border-yellow-500/50"
+                  "bg-yellow-500/60 border border-yellow-500 shadow-[0_0_5px_rgba(234,179,8,0.6)] z-30"
                 );
               })}
             </div>
@@ -713,62 +708,3 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
   
   return (
     <div className="h-[240px] w-full bg-background-level-2 border-t border-t-white/[0.08]" aria-label="Flight timeline">
-      {/* Tracks Container - Compact version with improved contrast */}
-      <div 
-        ref={tracksContainerRef}
-        className="px-3 py-2 max-h-[160px] overflow-y-auto flex flex-col gap-1.5 relative"
-      >
-        {/* Display event info on hover */}
-        {hoveredEvent && (
-          <div 
-            className="absolute top-2 right-2 z-40 bg-background-level-4/90 backdrop-blur-sm p-2 rounded-lg shadow-md border border-outline-primary text-xs max-w-[200px]"
-          >
-            <div className="font-medium text-text-icon-01">{hoveredEvent.type}</div>
-            <div className="text-text-icon-02 mt-1">{hoveredEvent.details}</div>
-            <div className="text-text-icon-03 mt-1">{hoveredEvent.timestamp}</div>
-          </div>
-        )}
-        
-        {/* Mission Phases Track */}
-        {renderMissionPhasesTrack()}
-        
-        {/* Media Track */}
-        {renderMediaTrack()}
-        
-        {/* System Events Track */}
-        {renderSystemEventsTrack()}
-        
-        {/* Warnings Track */}
-        {renderWarningEventsTrack()}
-        
-        {/* Current Time Indicator */}
-        <CurrentTimeIndicator />
-      </div>
-      
-      {/* Timeline Bottom Section - Slider and Controls */}
-      <div className="px-4 py-2 flex flex-col">
-        {/* Slider */}
-        <div className="relative pb-1">
-          <Slider
-            value={[currentPercentage]}
-            min={0}
-            max={100}
-            step={0.1}
-            onValueChange={handleSliderChange}
-            className="relative z-10"
-          />
-        </div>
-        
-        {/* Controls */}
-        <div className="flex justify-between items-center">
-          <PlaybackControls />
-          <div className="text-xs text-text-icon-02">
-            {flightDuration}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default FlightTimeline;
