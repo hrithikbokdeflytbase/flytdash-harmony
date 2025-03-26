@@ -186,7 +186,7 @@ const CustomBar = (props: any) => {
       height={height} 
       fill={fill}
       rx={4}
-      ry={0}
+      ry={4}
       {...rest}
     />
   );
