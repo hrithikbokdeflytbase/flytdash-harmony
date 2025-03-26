@@ -157,5 +157,4 @@ export const DateRangeIndicator: React.FC<{
   );
 };
 
-// Delete the extra DateRangeFilter.ts file since we now have everything in the .tsx file
-<lov-delete file_path="src/components/dashboard/DateRangeFilter.ts" />
+// We don't need the delete statement anymore since it's being handled as part of the build process
