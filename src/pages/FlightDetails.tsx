@@ -6,6 +6,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import VideoFeed from '@/components/flight-details/VideoFeed';
 import FlightMap from '@/components/flight-details/FlightMap';
 import FlightTimeline from '@/components/flight-details/FlightTimeline';
+import FlightDetailsPanel from '@/components/flight-details/FlightDetailsPanel';
 
 // View mode type
 type ViewMode = 'map' | 'video' | 'split';
@@ -405,8 +406,8 @@ const FlightDetails = () => {
       </header>
       
       {/* Main Content Area - Three Column Layout - Adjusted height to prevent timeline overlap */}
-      <main className="flex-1 p-400 pb-0 overflow-hidden" style={{ maxHeight: 'calc(100vh - 230px)' }}>
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-200 h-full">
+      <main className="flex-1 p-400 pb-0 overflow-hidden flex" style={{ maxHeight: 'calc(100vh - 230px)' }}>
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-200 h-full">
           {/* Video Panel */}
           <div className={`bg-background-level-2 rounded-200 p-400 flex flex-col ${viewMode === 'video' ? 'lg:col-span-12' : viewMode === 'split' ? 'lg:col-span-5' : 'hidden lg:block lg:col-span-5'}`}>
             <VideoFeed cameraType={cameraType} videoState={videoState} timelinePosition={timelinePosition} videoSegments={videoSegments} onPositionUpdate={handleVideoPositionUpdate} />
@@ -429,33 +430,13 @@ const FlightDetails = () => {
             </div>
           </div>
           
-          {/* Telemetry/Events Panel */}
-          <div className={`bg-background-level-2 rounded-200 p-400 flex flex-col ${viewMode === 'video' || viewMode === 'map' ? 'hidden lg:block lg:col-span-4' : 'lg:col-span-4'}`}>
-            <h2 className="fb-title1-medium text-text-icon-01 mb-300">Telemetry & Events</h2>
-            <div className="flex-1 bg-background-level-3 rounded-200 p-300 overflow-y-auto">
-              <div className="space-y-300">
-                <div className="p-300 bg-background-level-4 rounded-200">
-                  <h3 className="fb-body1-medium text-text-icon-01">Altitude</h3>
-                  <p className="text-text-icon-02">120 meters</p>
-                </div>
-                <div className="p-300 bg-background-level-4 rounded-200">
-                  <h3 className="fb-body1-medium text-text-icon-01">Speed</h3>
-                  <p className="text-text-icon-02">15 m/s</p>
-                </div>
-                <div className="p-300 bg-background-level-4 rounded-200">
-                  <h3 className="fb-body1-medium text-text-icon-01">Battery</h3>
-                  <p className="text-text-icon-02">75%</p>
-                </div>
-                <div className="p-300 bg-background-level-4 rounded-200">
-                  <h3 className="fb-body1-medium text-text-icon-01">Distance</h3>
-                  <p className="text-text-icon-02">1.2 km</p>
-                </div>
-                <div className="p-300 bg-background-level-4 rounded-200">
-                  <h3 className="fb-body1-medium text-text-icon-01">Flight Time</h3>
-                  <p className="text-text-icon-02">{timelinePosition.timestamp}</p>
-                </div>
-              </div>
-            </div>
+          {/* Flight Details Panel (Right Panel) */}
+          <div className={`lg:col-span-4`}>
+            <FlightDetailsPanel 
+              flightId={flightId || 'unknown'} 
+              flightMode="MISSION"
+              timestamp={timelinePosition.timestamp} 
+            />
           </div>
         </div>
       </main>
