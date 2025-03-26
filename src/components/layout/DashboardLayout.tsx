@@ -23,17 +23,17 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
       <div className="bg-background-level-2 border-b border-outline-primary sticky top-16 z-10">
         <div className="max-w-screen-2xl mx-auto px-400 py-300">
           <Tabs value={currentPath === "/" ? "/" : "/all-logs"} className="w-full">
-            <TabsList className="grid w-full max-w-md grid-cols-2 bg-background-level-3">
-              <TabsTrigger value="/" asChild>
-                <Link to="/" className="flex items-center gap-2">
+            <TabsList className="grid w-full max-w-md grid-cols-2 h-10 p-0.5 rounded-md bg-background-level-3/80 border border-outline-primary">
+              <TabsTrigger value="/" asChild className="data-[state=active]:bg-background-level-2 data-[state=active]:shadow-none transition-colors">
+                <Link to="/" className="flex items-center justify-center gap-2 h-full">
                   <Home className="h-4 w-4" />
-                  <span>Dashboard</span>
+                  <span className="font-medium">Dashboard</span>
                 </Link>
               </TabsTrigger>
-              <TabsTrigger value="/all-logs" asChild>
-                <Link to="/all-logs" className="flex items-center gap-2">
+              <TabsTrigger value="/all-logs" asChild className="data-[state=active]:bg-background-level-2 data-[state=active]:shadow-none transition-colors">
+                <Link to="/all-logs" className="flex items-center justify-center gap-2 h-full">
                   <FileText className="h-4 w-4" />
-                  <span>All Logs</span>
+                  <span className="font-medium">All Logs</span>
                 </Link>
               </TabsTrigger>
             </TabsList>
