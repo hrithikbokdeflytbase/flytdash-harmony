@@ -353,10 +353,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
                 );
               })}
               
-              {/* Track name overlay - on top of markers */}
-              <div className="absolute top-0 left-0 z-30 bg-background-level-4/70 backdrop-blur-[1px] px-1.5 py-0.5 text-[9px] text-text-icon-02 rounded-sm">
-                Media
-              </div>
+              {/* Remove the track name overlay that was here */}
             </div>
           </div>
         </div>
@@ -463,10 +460,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
                 );
               })}
               
-              {/* Track name overlay - on top of markers */}
-              <div className="absolute top-0 left-0 z-30 bg-background-level-4/70 backdrop-blur-[1px] px-1.5 py-0.5 text-[9px] text-text-icon-02 rounded-sm">
-                Phases
-              </div>
+              {/* Remove the track name overlay that was here */}
             </div>
           </div>
         </div>
@@ -536,10 +530,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
                 );
               })}
               
-              {/* Track name overlay - on top of markers */}
-              <div className="absolute top-0 left-0 z-30 bg-background-level-4/70 backdrop-blur-[1px] px-1.5 py-0.5 text-[9px] text-text-icon-02 rounded-sm">
-                System
-              </div>
+              {/* Remove the track name overlay that was here */}
             </div>
           </div>
         </div>
@@ -621,10 +612,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
                 );
               })}
               
-              {/* Track name overlay - on top of markers */}
-              <div className="absolute top-0 left-0 z-30 bg-background-level-4/70 backdrop-blur-[1px] px-1.5 py-0.5 text-[9px] text-text-icon-02 rounded-sm">
-                Warnings
-              </div>
+              {/* Remove the track name overlay that was here */}
             </div>
           </div>
         </div>
