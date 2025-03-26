@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Settings, Info, PlayCircle, SkipBack, SkipForward, Pause, Circle, Square, 
   Triangle, Octagon, Camera, Video, AlertTriangle, AlertOctagon, Check, X, AlertCircle } from 'lucide-react';
@@ -708,3 +709,49 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
   
   return (
     <div className="h-[240px] w-full bg-background-level-2 border-t border-t-white/[0.08]" aria-label="Flight timeline">
+      {/* Main timeline container */}
+      <div className="flex flex-col h-full">
+        {/* Top section - tracks */}
+        <div className="flex-1 p-4 overflow-y-auto space-y-2" ref={tracksContainerRef}>
+          {renderMissionPhasesTrack()}
+          {renderMediaTrack()}
+          {renderSystemEventsTrack()}
+          {renderWarningEventsTrack()}
+          
+          {/* Event hover info display (optional) */}
+          {hoveredEvent && (
+            <div className="absolute bottom-20 right-4 bg-background-level-3/90 backdrop-blur-sm p-2 rounded-md border border-outline-primary text-xs z-50 max-w-xs">
+              <p className="text-text-icon-01 font-medium">{hoveredEvent.type}</p>
+              <p className="text-text-icon-02">{hoveredEvent.details}</p>
+              <p className="text-text-icon-02 text-primary-100">{hoveredEvent.timestamp}</p>
+            </div>
+          )}
+        </div>
+        
+        {/* Bottom section - slider and controls */}
+        <div className="p-4 pt-0 relative">
+          {/* Current time indicator line - for precise visual alignment */}
+          <CurrentTimeIndicator />
+          
+          <div className="flex items-center mb-1">
+            <PlaybackControls />
+            <div className="flex-1 mx-2">
+              <Slider
+                value={[sliderValue]}
+                max={100}
+                step={0.1}
+                onValueChange={handleSliderChange}
+                aria-label="Timeline position"
+              />
+            </div>
+            <div className="text-xs text-text-icon-02 w-20">
+              {flightDuration}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default FlightTimeline;
