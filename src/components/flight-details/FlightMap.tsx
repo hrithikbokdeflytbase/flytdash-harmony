@@ -218,11 +218,15 @@ const FlightMap: React.FC<FlightMapProps> = ({
     
     // Fit the map to the flight path bounds
     if (flightPath.length > 0) {
-      const coordinates = flightPath.map(point => [point.lng, point.lat]);
-      const bounds = coordinates.reduce((bounds, coord) => {
-        return bounds.extend(coord as mapboxgl.LngLatLike);
-      }, new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]));
+      // Create a proper LngLatBounds object first
+      const bounds = new mapboxgl.LngLatBounds();
       
+      // Extend the bounds with each coordinate point
+      flightPath.forEach(point => {
+        bounds.extend([point.lng, point.lat] as mapboxgl.LngLatLike);
+      });
+      
+      // Now use the properly constructed bounds object
       map.current.fitBounds(bounds, {
         padding: 50,
         maxZoom: 15,
