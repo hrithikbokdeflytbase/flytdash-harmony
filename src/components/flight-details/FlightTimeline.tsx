@@ -1,6 +1,6 @@
-
-import React, { useState, useEffect, useRef } from 'react';
-import { Settings, Info, PlayCircle, SkipBack, SkipForward, Pause, ChevronDown, ChevronUp, Circle, Square, Triangle, Octagon, Camera, Video, AlertTriangle, AlertOctagon, Check, X, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Settings, Info, PlayCircle, SkipBack, SkipForward, Pause, ChevronDown, ChevronUp, Circle, Square, 
+  Triangle, Octagon, Camera, Video, AlertTriangle, AlertOctagon, Check, X, AlertCircle, ChevronsRight, ChevronsLeft, FastForward } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Separator } from '@/components/ui/separator';
@@ -8,6 +8,8 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { debounce } from '@/lib/utils';
 
 // Type definitions
 type VideoSegment = {
@@ -58,6 +60,9 @@ interface FlightTimelineProps {
   mediaActions?: MediaAction[];
 }
 
+// Define our playback speeds
+type PlaybackSpeed = 1 | 1.5 | 2;
+
 const FlightTimeline: React.FC<FlightTimelineProps> = ({
   currentPosition,
   videoSegments = [],
@@ -68,8 +73,11 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
   warningEvents = [],
   mediaActions = [],
 }) => {
+  // State
   const [isPlaying, setIsPlaying] = useState(false);
   const [sliderValue, setSliderValue] = useState(0);
+  const [playbackSpeed, setPlaybackSpeed] = useState<PlaybackSpeed>(1);
+  const [isDragging, setIsDragging] = useState(false);
   const [expandedTracks, setExpandedTracks] = useState({
     missionPhases: true,
     videoSegments: true,
@@ -78,8 +86,17 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
     media: true,
   });
   const [hoveredEvent, setHoveredEvent] = useState<null | {type: string, details: string, timestamp: string}>(null);
-  const tracksContainerRef = useRef<HTMLDivElement>(null);
+  const [selectedEvent, setSelectedEvent] = useState<null | {type: string, details: string, timestamp: string}>(null);
+  const [jumpTarget, setJumpTarget] = useState("");
+  const [isJumping, setIsJumping] = useState(false);
   
+  // Refs
+  const tracksContainerRef = useRef<HTMLDivElement>(null);
+  const sliderRef = useRef<HTMLDivElement>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const jumpTargetInputRef = useRef<HTMLInputElement>(null);
+  
+  // Helper functions
   // Convert HH:MM:SS to seconds
   const timeToSeconds = (timeString: string): number => {
     const [hours, minutes, seconds] = timeString.split(':').map(Number);
@@ -94,17 +111,194 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
   
+  // Calculate current timeline values
   const flightDurationSeconds = timeToSeconds(flightDuration);
   const currentSeconds = timeToSeconds(currentPosition.timestamp);
   const currentPercentage = (currentSeconds / flightDurationSeconds) * 100;
   
-  // Playback simulation effect
+  // Debounced position change handler
+  const debouncedPositionChange = useCallback(
+    debounce((position: string) => {
+      onPositionChange(position);
+    }, 50),
+    [onPositionChange]
+  );
+  
+  // Handle slider change with enhanced interaction feedback
+  const handleSliderChange = useCallback((value: number[]) => {
+    const newPosition = Math.floor((value[0] / 100) * flightDurationSeconds);
+    setSliderValue(value[0]);
+    
+    // Use debounced function for better performance during dragging
+    debouncedPositionChange(secondsToTime(newPosition));
+  }, [flightDurationSeconds, debouncedPositionChange]);
+  
+  // Handle slider interaction
+  const handleSliderDragStart = () => {
+    setIsDragging(true);
+    // Pause playback during dragging
+    if (isPlaying) {
+      setIsPlaying(false);
+    }
+  };
+  
+  const handleSliderDragEnd = () => {
+    setIsDragging(false);
+  };
+  
+  // Click anywhere on timeline to jump
+  const handleTimelineClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!sliderRef.current) return;
+    
+    const rect = sliderRef.current.getBoundingClientRect();
+    const clickPosition = (e.clientX - rect.left) / rect.width;
+    const newSeconds = Math.floor(clickPosition * flightDurationSeconds);
+    
+    // Animate moving to the new position
+    setIsJumping(true);
+    onPositionChange(secondsToTime(newSeconds));
+    
+    // Reset jumping state after animation
+    setTimeout(() => {
+      setIsJumping(false);
+    }, 500);
+  };
+  
+  // Advanced playback functions
+  const togglePlayback = useCallback(() => {
+    setIsPlaying(prev => !prev);
+  }, []);
+  
+  const skipForward = useCallback(() => {
+    const newPosition = Math.min(currentSeconds + 30, flightDurationSeconds);
+    setIsJumping(true);
+    onPositionChange(secondsToTime(newPosition));
+    setTimeout(() => setIsJumping(false), 300);
+  }, [currentSeconds, flightDurationSeconds, onPositionChange]);
+  
+  const skipBackward = useCallback(() => {
+    const newPosition = Math.max(currentSeconds - 30, 0);
+    setIsJumping(true);
+    onPositionChange(secondsToTime(newPosition));
+    setTimeout(() => setIsJumping(false), 300);
+  }, [currentSeconds, onPositionChange]);
+  
+  const jumpToNextEvent = useCallback(() => {
+    // Find all events and sort by timestamp
+    const allEvents = [
+      ...missionPhases.map(p => ({ timestamp: p.startTime, type: 'missionPhase' })),
+      ...systemEvents.map(e => ({ timestamp: e.timestamp, type: 'systemEvent' })),
+      ...warningEvents.map(e => ({ timestamp: e.timestamp, type: 'warningEvent' })),
+      ...mediaActions.map(e => ({ timestamp: e.timestamp, type: 'mediaAction' }))
+    ].sort((a, b) => timeToSeconds(a.timestamp) - timeToSeconds(b.timestamp));
+    
+    // Find next event after current position
+    const nextEvent = allEvents.find(e => timeToSeconds(e.timestamp) > currentSeconds);
+    
+    if (nextEvent) {
+      setIsJumping(true);
+      onPositionChange(nextEvent.timestamp);
+      setTimeout(() => setIsJumping(false), 300);
+    }
+  }, [missionPhases, systemEvents, warningEvents, mediaActions, currentSeconds, onPositionChange]);
+  
+  const jumpToPreviousEvent = useCallback(() => {
+    // Find all events and sort by timestamp
+    const allEvents = [
+      ...missionPhases.map(p => ({ timestamp: p.startTime, type: 'missionPhase' })),
+      ...systemEvents.map(e => ({ timestamp: e.timestamp, type: 'systemEvent' })),
+      ...warningEvents.map(e => ({ timestamp: e.timestamp, type: 'warningEvent' })),
+      ...mediaActions.map(e => ({ timestamp: e.timestamp, type: 'mediaAction' }))
+    ].sort((a, b) => timeToSeconds(a.timestamp) - timeToSeconds(b.timestamp));
+    
+    // Find previous event before current position
+    const prevEvents = allEvents.filter(e => timeToSeconds(e.timestamp) < currentSeconds);
+    const prevEvent = prevEvents[prevEvents.length - 1];
+    
+    if (prevEvent) {
+      setIsJumping(true);
+      onPositionChange(prevEvent.timestamp);
+      setTimeout(() => setIsJumping(false), 300);
+    }
+  }, [missionPhases, systemEvents, warningEvents, mediaActions, currentSeconds, onPositionChange]);
+  
+  // Jump to specific timestamp
+  const handleJumpTargetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setJumpTarget(e.target.value);
+  };
+  
+  const handleJumpTargetSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate timestamp format
+    const timestampPattern = /^([0-1]?[0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])$/;
+    if (timestampPattern.test(jumpTarget)) {
+      setIsJumping(true);
+      onPositionChange(jumpTarget);
+      setTimeout(() => setIsJumping(false), 300);
+    }
+  };
+  
+  // Keyboard shortcuts handler
   useEffect(() => {
-    let intervalId: NodeJS.Timeout;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Only respond if not in an input field
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+      
+      switch (e.key) {
+        case ' ': // Space bar toggles play/pause
+          e.preventDefault();
+          togglePlayback();
+          break;
+        case 'ArrowRight': // Right arrow skips forward
+          e.preventDefault();
+          skipForward();
+          break;
+        case 'ArrowLeft': // Left arrow skips backward
+          e.preventDefault();
+          skipBackward();
+          break;
+        case 'n': // n jumps to next event
+          e.preventDefault();
+          jumpToNextEvent();
+          break;
+        case 'p': // p jumps to previous event
+          e.preventDefault();
+          jumpToPreviousEvent();
+          break;
+        case '1': // 1 sets playback speed to 1x
+          e.preventDefault();
+          setPlaybackSpeed(1);
+          break;
+        case '2': // 2 sets playback speed to 2x
+          e.preventDefault();
+          setPlaybackSpeed(2);
+          break;
+        default:
+          break;
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [togglePlayback, skipForward, skipBackward, jumpToNextEvent, jumpToPreviousEvent]);
+  
+  // Playback simulation effect with speed control
+  useEffect(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
     
     if (isPlaying) {
-      intervalId = setInterval(() => {
-        const newSeconds = Math.min(currentSeconds + 0.5, flightDurationSeconds);
+      intervalRef.current = setInterval(() => {
+        const increment = 0.5 * playbackSpeed;
+        const newSeconds = Math.min(currentSeconds + increment, flightDurationSeconds);
         if (newSeconds >= flightDurationSeconds) {
           setIsPlaying(false);
         } else {
@@ -114,39 +308,28 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
     }
     
     return () => {
-      if (intervalId) clearInterval(intervalId);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
     };
-  }, [isPlaying, currentSeconds, flightDurationSeconds, onPositionChange]);
+  }, [isPlaying, currentSeconds, flightDurationSeconds, onPositionChange, playbackSpeed]);
   
-  // Handle slider change
-  const handleSliderChange = (value: number[]) => {
-    const newPosition = Math.floor((value[0] / 100) * flightDurationSeconds);
-    setSliderValue(value[0]);
-    onPositionChange(secondsToTime(newPosition));
-  };
-  
-  // Toggle play/pause
-  const togglePlayback = () => {
-    setIsPlaying(!isPlaying);
-  };
-  
-  // Skip forward/backward
-  const skipForward = () => {
-    const newPosition = Math.min(currentSeconds + 30, flightDurationSeconds);
-    onPositionChange(secondsToTime(newPosition));
-  };
-  
-  const skipBackward = () => {
-    const newPosition = Math.max(currentSeconds - 30, 0);
-    onPositionChange(secondsToTime(newPosition));
-  };
-
-  // Toggle track expansion
-  const toggleTrackExpansion = (trackName: keyof typeof expandedTracks) => {
-    setExpandedTracks(prev => ({
-      ...prev,
-      [trackName]: !prev[trackName]
-    }));
+  // Event selection handler
+  const handleEventSelect = (event: {type: string, details: string, timestamp: string}) => {
+    setSelectedEvent(event);
+    
+    // Jump to event time
+    if (event.timestamp.includes(' - ')) {
+      // For ranged events (like phases), jump to start time
+      const startTime = event.timestamp.split(' - ')[0];
+      setIsJumping(true);
+      onPositionChange(startTime);
+    } else {
+      setIsJumping(true);
+      onPositionChange(event.timestamp);
+    }
+    
+    setTimeout(() => setIsJumping(false), 300);
   };
   
   // Calculate position as percentage for timeline items
@@ -282,7 +465,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
     type: e.type
   })));
 
-  // Render cluster or individual marker
+  // Utility function to render clusters and markers with added keyboard and interaction support
   const renderClusterOrMarker = (
     cluster: {isCluster: boolean, events: any[], position: number},
     renderMarker: (event: any) => JSX.Element,
@@ -296,7 +479,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
           <Tooltip>
             <TooltipTrigger asChild>
               <div
-                className={`absolute top-0 transform -translate-x-1/2 cursor-pointer z-10 flex items-center justify-center ${clusterClass} rounded-full h-6 w-6 border border-white/20 shadow-lg transition-transform hover:scale-110`}
+                className={`absolute top-0 transform -translate-x-1/2 cursor-pointer z-10 flex items-center justify-center ${clusterClass} rounded-full h-6 w-6 border border-white/20 shadow-lg transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2`}
                 style={{ left: `${leftPos}%` }}
                 onMouseEnter={() => setHoveredEvent({
                   type: 'cluster',
@@ -304,6 +487,22 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
                   timestamp: secondsToTime(cluster.position)
                 })}
                 onMouseLeave={() => setHoveredEvent(null)}
+                onClick={() => {
+                  setIsJumping(true);
+                  onPositionChange(secondsToTime(cluster.position));
+                  setTimeout(() => setIsJumping(false), 300);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setIsJumping(true);
+                    onPositionChange(secondsToTime(cluster.position));
+                    setTimeout(() => setIsJumping(false), 300);
+                  }
+                }}
+                tabIndex={0}
+                role="button"
+                aria-label={`Cluster of ${cluster.events.length} events at ${secondsToTime(cluster.position)}`}
               >
                 <span className="text-[10px] font-bold text-white">{cluster.events.length}</span>
               </div>
@@ -329,22 +528,29 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
     return renderMarker(cluster.events[0]);
   };
   
-  // Current time indicator (vertical line)
+  // Current time indicator with animation enhancements
   const CurrentTimeIndicator = () => {
     return (
       <div 
-        className="absolute top-0 h-full border-l-2 border-dashed border-error-200/80 z-20"
+        className={cn(
+          "absolute top-0 h-full border-l-2 border-dashed border-error-200/80 z-20 transition-all",
+          isJumping ? "animate-pulse" : "animate-none"
+        )}
         style={{ 
           left: `${currentPercentage}%`,
-          height: '100%'
+          height: '100%',
+          transition: isDragging ? 'none' : isJumping ? 'left 0.3s ease-out' : 'left 0.1s linear'
         }}
       >
-        <div className="absolute -top-1 -translate-x-1/2 w-3 h-3 rounded-full bg-error-200 animate-pulse"></div>
+        <div className={cn(
+          "absolute -top-1 -translate-x-1/2 w-3 h-3 rounded-full bg-error-200",
+          isJumping ? "animate-ping" : "animate-pulse"
+        )}></div>
       </div>
     );
   };
   
-  // Render media actions track
+  // Enhanced Media Actions Track with interaction
   const renderMediaActionsTrack = () => {
     return (
       <Collapsible
@@ -369,13 +575,19 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
                 const renderMediaEventMarker = (event: MediaAction) => {
                   const leftPos = getPositionPercentage(event.timestamp);
                   const colorClass = getMediaColor(event.type);
+                  const isSelected = selectedEvent && 
+                                    selectedEvent.type === event.type.toUpperCase() && 
+                                    selectedEvent.timestamp === event.timestamp;
                   
                   return (
                     <TooltipProvider key={`media-${index}`}>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <div
-                            className="absolute top-1/2 -translate-y-1/2 transform -translate-x-1/2 cursor-pointer transition-transform hover:scale-110"
+                            className={cn(
+                              "absolute top-1/2 -translate-y-1/2 transform -translate-x-1/2 cursor-pointer transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                              isSelected ? "scale-125" : ""
+                            )}
                             style={{ left: `${leftPos}%` }}
                             onMouseEnter={() => setHoveredEvent({
                               type: event.type.toUpperCase(),
@@ -383,17 +595,44 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
                               timestamp: event.timestamp
                             })}
                             onMouseLeave={() => setHoveredEvent(null)}
+                            onClick={() => handleEventSelect({
+                              type: event.type.toUpperCase(),
+                              details: event.fileId || '',
+                              timestamp: event.timestamp
+                            })}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                handleEventSelect({
+                                  type: event.type.toUpperCase(),
+                                  details: event.fileId || '',
+                                  timestamp: event.timestamp
+                                });
+                              }
+                            }}
+                            tabIndex={0}
+                            role="button"
+                            aria-label={`${event.type} at ${event.timestamp}`}
                           >
                             {event.type === 'photo' ? (
-                              <div className="flex items-center justify-center h-5 w-5 rounded-full bg-success-200/20 border border-success-200/50">
+                              <div className={cn(
+                                "flex items-center justify-center h-5 w-5 rounded-full bg-success-200/20 border border-success-200/50",
+                                isSelected ? "ring-2 ring-success-200 animate-pulse" : ""
+                              )}>
                                 <Camera className="h-3 w-3 text-success-200" />
                               </div>
                             ) : event.type === 'videoStart' ? (
-                              <div className="flex items-center justify-center h-5 w-5 rounded-full bg-info-200/20 border border-info-200/50">
+                              <div className={cn(
+                                "flex items-center justify-center h-5 w-5 rounded-full bg-info-200/20 border border-info-200/50",
+                                isSelected ? "ring-2 ring-info-200 animate-pulse" : ""
+                              )}>
                                 <Video className="h-3 w-3 text-info-200" />
                               </div>
                             ) : (
-                              <div className="flex items-center justify-center h-5 w-5 rounded-full bg-info-100/20 border border-info-100/50">
+                              <div className={cn(
+                                "flex items-center justify-center h-5 w-5 rounded-full bg-info-100/20 border border-info-100/50",
+                                isSelected ? "ring-2 ring-info-100 animate-pulse" : ""
+                              )}>
                                 <Square className="h-3 w-3 text-info-100" fill="currentColor" />
                               </div>
                             )}
@@ -422,23 +661,36 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
     );
   };
   
-  // Playback controls component
+  // Enhanced Playback Controls component with speed control
   const PlaybackControls = () => {
     return (
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-2 h-10">
         <Button 
-          variant="ghost" 
+          variant="secondary" 
+          size="icon" 
+          onClick={jumpToPreviousEvent}
+          aria-label="Jump to previous event"
+          className="h-10 w-10 bg-[#414E6D] hover:bg-[#516185]"
+        >
+          <ChevronsLeft className="h-4 w-4" />
+        </Button>
+        
+        <Button 
+          variant="secondary" 
           size="icon" 
           onClick={skipBackward}
           aria-label="Skip backward 30 seconds"
+          className="h-10 w-10 bg-[#414E6D] hover:bg-[#516185]"
         >
           <SkipBack className="h-4 w-4" />
         </Button>
+        
         <Button 
-          variant="ghost" 
+          variant="secondary" 
           size="icon" 
           onClick={togglePlayback}
           aria-label={isPlaying ? "Pause playback" : "Start playback"}
+          className="h-10 w-10 bg-[#414E6D] hover:bg-[#516185]"
         >
           {isPlaying ? (
             <Pause className="h-5 w-5" />
@@ -446,408 +698,87 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
             <PlayCircle className="h-5 w-5" />
           )}
         </Button>
+        
         <Button 
-          variant="ghost" 
+          variant="secondary" 
           size="icon" 
           onClick={skipForward}
           aria-label="Skip forward 30 seconds"
+          className="h-10 w-10 bg-[#414E6D] hover:bg-[#516185]"
         >
           <SkipForward className="h-4 w-4" />
         </Button>
-        <div className="text-xs text-text-icon-02 ml-2 w-16 text-right">
+        
+        <Button 
+          variant="secondary" 
+          size="icon" 
+          onClick={jumpToNextEvent}
+          aria-label="Jump to next event"
+          className="h-10 w-10 bg-[#414E6D] hover:bg-[#516185]"
+        >
+          <ChevronsRight className="h-4 w-4" />
+        </Button>
+        
+        <div className="text-sm text-text-icon-01 ml-2 min-w-16 text-right">
           {currentPosition.timestamp}
         </div>
+        
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button 
+              variant="secondary" 
+              size="sm"
+              className="ml-2 bg-[#414E6D] hover:bg-[#516185]"
+            >
+              <FastForward className="h-4 w-4 mr-1" />
+              {playbackSpeed}x
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem onClick={() => setPlaybackSpeed(1)}>
+              1x
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setPlaybackSpeed(1.5)}>
+              1.5x
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setPlaybackSpeed(2)}>
+              2x
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        
+        <form onSubmit={handleJumpTargetSubmit} className="ml-auto flex items-center">
+          <input
+            ref={jumpTargetInputRef}
+            type="text"
+            value={jumpTarget}
+            onChange={handleJumpTargetChange}
+            placeholder="HH:MM:SS"
+            className="w-24 h-8 bg-background-level-3 border border-outline-primary text-text-icon-01 text-xs rounded px-2"
+            pattern="^([0-1]?[0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])$"
+            title="Format: HH:MM:SS"
+          />
+          <Button 
+            type="submit" 
+            variant="secondary" 
+            size="sm"
+            className="ml-2 bg-[#414E6D] hover:bg-[#516185]"
+          >
+            Jump
+          </Button>
+        </form>
       </div>
     );
   };
   
-  return (
-    <div className="h-[320px] w-full bg-background-level-2 border-t border-t-white/[0.08]" aria-label="Flight timeline">
-      {/* Header Bar - 40px height */}
-      <div className="h-[40px] px-[16px] flex items-center justify-between">
-        <h2 className="text-[14px] font-medium text-text-icon-01">Flight Timeline</h2>
-        <div className="flex gap-[8px]">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" aria-label="Show timeline legend">
-                  <Info className="h-[18px] w-[18px] text-text-icon-02" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" className="max-w-xs bg-background-level-3 border-outline-primary p-300">
-                <div className="space-y-200">
-                  <p className="fb-body2-medium text-text-icon-01">Timeline Legend</p>
-                  <div className="grid grid-cols-2 gap-200">
-                    <div className="flex items-center gap-100">
-                      <div className="h-3 w-3 rounded-sm bg-green-500"></div>
-                      <span className="text-xs text-text-icon-02">Takeoff</span>
-                    </div>
-                    <div className="flex items-center gap-100">
-                      <div className="h-3 w-3 rounded-sm bg-blue-500"></div>
-                      <span className="text-xs text-text-icon-02">Mission</span>
-                    </div>
-                    <div className="flex items-center gap-100">
-                      <div className="h-3 w-3 rounded-sm bg-purple-500"></div>
-                      <span className="text-xs text-text-icon-02">Hover</span>
-                    </div>
-                    <div className="flex items-center gap-100">
-                      <div className="h-3 w-3 rounded-sm bg-yellow-500"></div>
-                      <span className="text-xs text-text-icon-02">Manual</span>
-                    </div>
-                    <div className="flex items-center gap-100">
-                      <div className="h-3 w-3 rounded-sm bg-orange-500"></div>
-                      <span className="text-xs text-text-icon-02">RTL</span>
-                    </div>
-                    <div className="flex items-center gap-100">
-                      <div className="h-3 w-3 rounded-sm bg-red-500"></div>
-                      <span className="text-xs text-text-icon-02">Landing</span>
-                    </div>
-                  </div>
-                  <Separator className="bg-white/10" />
-                  <div className="grid grid-cols-2 gap-200">
-                    <div className="flex items-center gap-100">
-                      <Square className="h-3 w-3 text-secondary-50" />
-                      <span className="text-xs text-text-icon-02">System Event</span>
-                    </div>
-                    <div className="flex items-center gap-100">
-                      <Triangle className="h-3 w-3 text-caution-200" />
-                      <span className="text-xs text-text-icon-02">Warning</span>
-                    </div>
-                    <div className="flex items-center gap-100">
-                      <Octagon className="h-3 w-3 text-error-200" />
-                      <span className="text-xs text-text-icon-02">Error</span>
-                    </div>
-                    <div className="flex items-center gap-100">
-                      <Circle className="h-3 w-3 text-success-200" fill="currentColor" />
-                      <span className="text-xs text-text-icon-02">Photo</span>
-                    </div>
-                    <div className="flex items-center gap-100">
-                      <Circle className="h-3 w-3 text-info-200" />
-                      <span className="text-xs text-text-icon-02">Video</span>
-                    </div>
-                  </div>
-                </div>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          <Button variant="ghost" size="icon" aria-label="Timeline settings">
-            <Settings className="h-[18px] w-[18px] text-text-icon-02" />
-          </Button>
-        </div>
-      </div>
-      
-      {/* Tracks Container - Variable height based on tracks */}
-      <div 
-        ref={tracksContainerRef}
-        className="px-[16px] py-[8px] max-h-[180px] overflow-y-auto flex flex-col gap-[8px] relative"
+  // Mission Phases Track - Phase Track
+  const renderMissionPhasesTrack = () => {
+    return (
+      <Collapsible
+        open={expandedTracks.missionPhases}
+        onOpenChange={() => toggleTrackExpansion('missionPhases')}
+        className="track-container"
       >
-        {/* Current time indicator (vertical line across all tracks) */}
-        <CurrentTimeIndicator />
-        
-        {/* Display event info on hover */}
-        {hoveredEvent && (
-          <div 
-            className="absolute top-2 right-2 z-50 bg-background-level-4/90 backdrop-blur-sm p-200 rounded-md border border-outline-primary shadow-lg"
-            style={{ maxWidth: '250px' }}
-          >
-            <div className="flex flex-col gap-1">
-              <div className="flex justify-between items-center">
-                <span className="text-xs font-medium text-text-icon-01">{hoveredEvent.type}</span>
-                <span className="text-xs text-text-icon-02">{hoveredEvent.timestamp}</span>
-              </div>
-              <p className="text-xs text-text-icon-02 truncate">{hoveredEvent.details}</p>
-            </div>
-          </div>
-        )}
-        
-        {/* Mission Phases Track - Phase Track */}
-        <Collapsible
-          open={expandedTracks.missionPhases}
-          onOpenChange={() => toggleTrackExpansion('missionPhases')}
-          className="track-container"
-        >
-          <div className="h-[60px] bg-background-level-3 rounded-[8px] overflow-hidden">
-            <CollapsibleTrigger asChild>
-              <div className="px-[12px] py-[4px] flex items-center justify-between cursor-pointer hover:bg-background-level-4/50">
-                <span className="text-[12px] text-text-icon-01">Mission Phases</span>
-                {expandedTracks.missionPhases ? 
-                  <ChevronUp className="h-[14px] w-[14px] text-text-icon-02" /> : 
-                  <ChevronDown className="h-[14px] w-[14px] text-text-icon-02" />
-                }
-              </div>
-            </CollapsibleTrigger>
-            
-            <CollapsibleContent className="p-[12px]">
-              <div className="h-[24px] bg-background-level-4 rounded-[4px] w-full relative">
-                {missionPhases.map((phase, index) => {
-                  const leftPos = getPositionPercentage(phase.startTime);
-                  const width = getWidthPercentage(phase.startTime, phase.endTime);
-                  return (
-                    <div
-                      key={`phase-${index}`}
-                      className={`absolute h-full bg-gradient-to-r ${getMissionPhaseColor(phase.type)} rounded-[2px] flex items-center justify-center overflow-hidden border transition-all hover:brightness-125 cursor-pointer`}
-                      style={{
-                        left: `${leftPos}%`,
-                        width: `${width}%`,
-                        minWidth: '20px'
-                      }}
-                      title={`${phase.label}: ${phase.startTime} - ${phase.endTime}`}
-                      onMouseEnter={() => setHoveredEvent({
-                        type: phase.type.toUpperCase(),
-                        details: phase.label,
-                        timestamp: `${phase.startTime} - ${phase.endTime}`
-                      })}
-                      onMouseLeave={() => setHoveredEvent(null)}
-                    >
-                      <span className="text-[10px] text-white whitespace-nowrap overflow-hidden text-ellipsis px-[4px] font-medium drop-shadow-md">
-                        {phase.label}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </CollapsibleContent>
-          </div>
-        </Collapsible>
-        
-        {/* Video Segments Track */}
-        <Collapsible
-          open={expandedTracks.videoSegments}
-          onOpenChange={() => toggleTrackExpansion('videoSegments')}
-          className="track-container"
-        >
-          <div className="h-[60px] bg-background-level-3 rounded-[8px] overflow-hidden">
-            <CollapsibleTrigger asChild>
-              <div className="px-[12px] py-[4px] flex items-center justify-between cursor-pointer hover:bg-background-level-4/50">
-                <span className="text-[12px] text-text-icon-01">Video Segments</span>
-                {expandedTracks.videoSegments ? 
-                  <ChevronUp className="h-[14px] w-[14px] text-text-icon-02" /> : 
-                  <ChevronDown className="h-[14px] w-[14px] text-text-icon-02" />
-                }
-              </div>
-            </CollapsibleTrigger>
-            
-            <CollapsibleContent className="p-[12px]">
-              <div className="h-[24px] bg-background-level-4 rounded-full w-full relative">
-                {videoSegments.map((segment, index) => {
-                  // Calculate segment position and width as percentage
-                  const leftPos = getPositionPercentage(segment.startTime);
-                  const width = getWidthPercentage(segment.startTime, segment.endTime);
-                  
-                  return (
-                    <TooltipProvider key={`video-${index}`}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div
-                            className="absolute h-full bg-gradient-to-r from-primary-200/90 to-primary-300/90 rounded-full cursor-pointer shadow-inner border border-primary-300/50 hover:brightness-125 transition-all"
-                            style={{
-                              left: `${leftPos}%`,
-                              width: `${width}%`
-                            }}
-                            onMouseEnter={() => setHoveredEvent({
-                              type: 'VIDEO',
-                              details: segment.url,
-                              timestamp: `${segment.startTime} - ${segment.endTime}`
-                            })}
-                            onMouseLeave={() => setHoveredEvent(null)}
-                            onClick={() => onPositionChange(segment.startTime)}
-                            role="button"
-                            tabIndex={0}
-                          >
-                            {/* Video segment start/end markers */}
-                            <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1 h-5 w-5 rounded-full bg-info-200 flex items-center justify-center shadow">
-                              <Video className="h-3 w-3 text-white" />
-                            </div>
-                            <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1 h-5 w-5 rounded-full bg-info-100 flex items-center justify-center shadow">
-                              <Square className="h-3 w-3 text-white" fill="currentColor" />
-                            </div>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent className="p-200 bg-background-level-3 border-outline-primary">
-                          <p className="text-xs text-text-icon-01">Video Segment</p>
-                          <p className="text-xs text-text-icon-02">{segment.startTime} - {segment.endTime}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  );
-                })}
-              </div>
-            </CollapsibleContent>
-          </div>
-        </Collapsible>
-        
-        {/* System Events Track - Event Track */}
-        <Collapsible
-          open={expandedTracks.systemEvents}
-          onOpenChange={() => toggleTrackExpansion('systemEvents')}
-          className="track-container"
-        >
-          <div className="h-[40px] bg-background-level-3 rounded-[8px] overflow-hidden">
-            <CollapsibleTrigger asChild>
-              <div className="px-[12px] py-[4px] flex items-center justify-between cursor-pointer hover:bg-background-level-4/50">
-                <span className="text-[12px] text-text-icon-01">System Events</span>
-                {expandedTracks.systemEvents ? 
-                  <ChevronUp className="h-[14px] w-[14px] text-text-icon-02" /> : 
-                  <ChevronDown className="h-[14px] w-[14px] text-text-icon-02" />
-                }
-              </div>
-            </CollapsibleTrigger>
-            
-            <CollapsibleContent className="px-[12px]">
-              <div className="h-[20px] w-full relative flex items-center">
-                {systemEventClusters.map((cluster, index) => {
-                  const renderSystemEventMarker = (event: SystemEvent) => {
-                    const leftPos = getPositionPercentage(event.timestamp);
-                    return (
-                      <TooltipProvider key={`sysevent-${index}`}>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <div
-                              className="absolute top-1/2 -translate-y-1/2 transform -translate-x-1/2 cursor-pointer transition-transform hover:scale-110"
-                              style={{ left: `${leftPos}%` }}
-                              onMouseEnter={() => setHoveredEvent({
-                                type: event.type.toUpperCase(),
-                                details: event.details,
-                                timestamp: event.timestamp
-                              })}
-                              onMouseLeave={() => setHoveredEvent(null)}
-                            >
-                              <div className="flex items-center justify-center h-5 w-5 rounded bg-secondary-50/20 border border-secondary-50/50 shadow-sm">
-                                {getSystemEventIcon(event.type)}
-                              </div>
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent className="p-200 bg-background-level-3 border-outline-primary">
-                            <p className="text-xs text-text-icon-01">{event.type}</p>
-                            <p className="text-xs text-text-icon-02">{event.details}</p>
-                            <p className="text-xs text-text-icon-02">{event.timestamp}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    );
-                  };
-                  
-                  return renderClusterOrMarker(
-                    cluster, 
-                    renderSystemEventMarker, 
-                    "bg-secondary-50/30"
-                  );
-                })}
-              </div>
-            </CollapsibleContent>
-          </div>
-        </Collapsible>
-        
-        {/* Warnings/Errors Track - Event Track */}
-        <Collapsible
-          open={expandedTracks.warnings}
-          onOpenChange={() => toggleTrackExpansion('warnings')}
-          className="track-container"
-        >
-          <div className="h-[40px] bg-background-level-3 rounded-[8px] overflow-hidden">
-            <CollapsibleTrigger asChild>
-              <div className="px-[12px] py-[4px] flex items-center justify-between cursor-pointer hover:bg-background-level-4/50">
-                <span className="text-[12px] text-text-icon-01">Warnings & Errors</span>
-                {expandedTracks.warnings ? 
-                  <ChevronUp className="h-[14px] w-[14px] text-text-icon-02" /> : 
-                  <ChevronDown className="h-[14px] w-[14px] text-text-icon-02" />
-                }
-              </div>
-            </CollapsibleTrigger>
-            
-            <CollapsibleContent className="px-[12px]">
-              <div className="h-[20px] w-full relative flex items-center">
-                {warningEventClusters.map((cluster, index) => {
-                  const renderWarningEventMarker = (event: WarningEvent) => {
-                    const leftPos = getPositionPercentage(event.timestamp);
-                    const colorClass = getWarningColor(event.type, event.severity);
-                    const isHighSeverity = event.severity === 'high';
-                    
-                    return (
-                      <TooltipProvider key={`warning-${index}`}>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <div
-                              className={`absolute top-1/2 -translate-y-1/2 transform -translate-x-1/2 cursor-pointer transition-transform hover:scale-110 ${isHighSeverity ? 'animate-pulse' : ''}`}
-                              style={{ left: `${leftPos}%` }}
-                              onMouseEnter={() => setHoveredEvent({
-                                type: event.type.toUpperCase(),
-                                details: event.details,
-                                timestamp: event.timestamp
-                              })}
-                              onMouseLeave={() => setHoveredEvent(null)}
-                            >
-                              {event.type === 'warning' ? (
-                                <div className={`flex items-center justify-center h-5 w-5 ${isHighSeverity ? 'h-6 w-6' : ''}`}>
-                                  <Triangle 
-                                    className={`h-full w-full ${colorClass}`}
-                                    fill="rgba(253, 176, 34, 0.15)" 
-                                    strokeWidth={2}
-                                  />
-                                  <AlertTriangle className="absolute h-3 w-3 text-white" />
-                                </div>
-                              ) : (
-                                <div className={`flex items-center justify-center h-5 w-5 ${isHighSeverity ? 'h-6 w-6' : ''}`}>
-                                  <Octagon 
-                                    className={`h-full w-full ${colorClass}`}
-                                    fill="rgba(248, 71, 58, 0.15)" 
-                                    strokeWidth={2} 
-                                  />
-                                  <X className="absolute h-3 w-3 text-white" />
-                                </div>
-                              )}
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent className="p-200 bg-background-level-3 border-outline-primary">
-                            <div className="flex items-center gap-2">
-                              <Badge variant={event.type === 'warning' ? "secondary" : "destructive"} className={`uppercase text-[10px] ${event.type === 'warning' ? 'bg-amber-600 text-white' : ''}`}>
-                                {event.severity} {event.type}
-                              </Badge>
-                            </div>
-                            <p className="text-xs text-text-icon-02 mt-1">{event.details}</p>
-                            <p className="text-xs text-text-icon-02">{event.timestamp}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    );
-                  };
-                  
-                  return renderClusterOrMarker(
-                    cluster, 
-                    renderWarningEventMarker, 
-                    "bg-caution-100/30"
-                  );
-                })}
-              </div>
-            </CollapsibleContent>
-          </div>
-        </Collapsible>
-        
-        {/* Media Actions Track */}
-        {renderMediaActionsTrack()}
-      </div>
-      
-      {/* Timeline Bottom Section - 60px height */}
-      <div className="h-[60px] px-[16px] py-[8px] flex items-center justify-between">
-        <PlaybackControls />
-        
-        <div className="flex-1 max-w-[500px] mx-[16px]">
-          <Slider
-            value={[currentPercentage]}
-            min={0}
-            max={100}
-            step={0.1}
-            onValueChange={handleSliderChange}
-            className="w-full"
-          />
-        </div>
-        
-        <div className="text-xs text-text-icon-02">
-          {flightDuration}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default FlightTimeline;
+        <div className="h-[60px] bg-background-level-3 rounded-[8px] overflow-hidden">
+          <CollapsibleTrigger asChild>
+            <div className="px-[12px] py-[4px] flex items-center justify-between cursor-pointer hover
