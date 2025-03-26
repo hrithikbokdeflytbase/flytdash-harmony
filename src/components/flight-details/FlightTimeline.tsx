@@ -429,7 +429,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
           const clusterPosition = currentCluster.reduce((sum, e) => sum + timeToSeconds(e.timestamp), 0) / currentCluster.length;
           clusters.push({
             isCluster: currentCluster.length > 1,
-            events: [...currentCluster],
+            events: [...currentCluster],\
             position: clusterPosition
           });
         }
@@ -779,7 +779,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
     );
   };
   
-  // Mission Phases Track - Phase Track
+  // Mission Phases Track
   const renderMissionPhasesTrack = () => {
     return (
       <Collapsible
@@ -787,4 +787,4 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
         onOpenChange={() => toggleTrackExpansion('missionPhases')}
         className="track-container"
       >
-        <div className
+        <div className="h-[
