@@ -23,7 +23,7 @@ import {
   PopoverContent,
   PopoverTrigger
 } from '@/components/ui/popover';
-import { Check, ChevronsUpDown, Zap, BellRing, CheckSquare, Search, Target, Route } from 'lucide-react';
+import { Check, ChevronsUpDown, Zap, BellRing, CheckSquare, Search, Target } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 
@@ -122,17 +122,16 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
               </Button>
             </PopoverTrigger>
             <PopoverContent 
-              className="w-[300px] p-0 bg-background-level-3 border-[rgba(255,255,255,0.08)] shadow-md rounded-lg" 
+              className="w-[300px] p-0 bg-background-level-2 border-[rgba(255,255,255,0.08)] shadow-md rounded-md" 
               align="start"
               sideOffset={8}
-              style={{ boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)' }}
             >
               <Command className="bg-transparent rounded-md">
                 <div className="flex items-center p-3 border-b border-[rgba(255,255,255,0.08)]">
                   <Search className="mr-2 h-4 w-4 shrink-0 text-text-icon-02" />
                   <CommandInput 
                     placeholder="Search drones..." 
-                    className="h-10 text-text-icon-01 bg-background-level-4 rounded flex-1 border-none text-sm placeholder:text-text-icon-02 placeholder:opacity-60 focus:outline-none focus:ring-0" 
+                    className="h-10 text-text-icon-01 bg-background-level-3 rounded flex-1 border-none text-sm placeholder:text-text-icon-02 placeholder:opacity-60 focus:outline-none focus:ring-0" 
                   />
                 </div>
                 <div className="p-4">
@@ -167,9 +166,6 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                           <span className="text-text-icon-01 text-sm font-medium">
                             {drone.label}
                           </span>
-                          {selectedDrones.includes(drone.value) && (
-                            <Check className="h-4 w-4 ml-auto text-primary-100" />
-                          )}
                         </CommandItem>
                       ))}
                     </CommandGroup>
