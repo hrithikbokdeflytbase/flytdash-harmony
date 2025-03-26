@@ -1,8 +1,7 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { Loader2, Plus, Minus, Layers, Map as MapIcon, Drone, Anchor, Maximize, Compass, Info } from 'lucide-react';
+import { Loader2, Plus, Minus, Layers, Map as MapIcon, PlaneTakeoff, Anchor, Maximize, Compass, Info } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -456,7 +455,7 @@ const FlightMap: React.FC<FlightMapProps> = ({
                 className="h-10 w-10 rounded-md bg-background-level-3/70 backdrop-blur-sm hover:bg-background-level-3/90"
                 disabled={!currentPosition}
               >
-                <Drone className="h-5 w-5" />
+                <PlaneTakeoff className="h-5 w-5" />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="left">
