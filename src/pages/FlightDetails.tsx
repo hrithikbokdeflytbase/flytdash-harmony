@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import VideoFeed from '@/components/flight-details/VideoFeed';
 import FlightMap from '@/components/flight-details/FlightMap';
+import FlightTimeline from '@/components/flight-details/FlightTimeline';
 
 // View mode type
 type ViewMode = 'map' | 'video' | 'split';
@@ -135,6 +136,17 @@ const FlightDetails = () => {
   }, []);
   
   // Handle timeline position updates (would be triggered by timeline interactions)
+  const handleVideoPositionUpdate = (position: string) => {
+    // Update the timestamp but don't change the hasVideo property
+    setTimelinePosition(prev => ({
+      ...prev,
+      timestamp: position
+    }));
+    
+    setTimestamp(position);
+  };
+  
+  // Handle timeline position changes from the timeline component
   const handleTimelinePositionChange = (newPosition: string) => {
     // Check if the new position has video content
     const positionHasVideo = videoSegments.some(segment => {
@@ -176,17 +188,6 @@ const FlightDetails = () => {
     }
     
     console.log(`Timeline position updated to ${newPosition} (has video: ${positionHasVideo})`);
-  };
-  
-  // Handle position updates from video feed (e.g., during playback)
-  const handleVideoPositionUpdate = (position: string) => {
-    // Update the timestamp but don't change the hasVideo property
-    setTimelinePosition(prev => ({
-      ...prev,
-      timestamp: position
-    }));
-    
-    setTimestamp(position);
   };
   
   // Fetch flight details (placeholder)
@@ -291,73 +292,13 @@ const FlightDetails = () => {
       </main>
       
       {/* Bottom Section - Timeline */}
-      <footer className="bg-background-level-1 h-[240px] p-400">
-        <div className="bg-background-level-2 h-full rounded-200 p-400">
-          <h2 className="fb-title1-medium text-text-icon-01 mb-300">Flight Timeline</h2>
-          {/* Timeline with video segment indicators */}
-          <div className="bg-background-level-3 h-[160px] rounded-200 flex flex-col">
-            <div className="flex-1 flex items-center justify-center relative">
-              {/* Video segment markers */}
-              <div className="absolute left-0 right-0 h-[20px] top-1/2 transform -translate-y-1/2">
-                {videoSegments.map((segment, index) => {
-                  // Calculate segment position and width as percentage of timeline
-                  const timelineStart = timeToSeconds('00:00:00');
-                  const timelineEnd = timeToSeconds('05:30:00'); // Total flight duration
-                  const duration = timelineEnd - timelineStart;
-                  
-                  const segmentStart = timeToSeconds(segment.startTime);
-                  const segmentEnd = timeToSeconds(segment.endTime);
-                  
-                  const startPercent = ((segmentStart - timelineStart) / duration) * 100;
-                  const endPercent = ((segmentEnd - timelineStart) / duration) * 100;
-                  const width = endPercent - startPercent;
-                  
-                  return (
-                    <div
-                      key={index}
-                      className="absolute h-full bg-primary-200 rounded-[4px]"
-                      style={{
-                        left: `${startPercent}%`,
-                        width: `${width}%`
-                      }}
-                      title={`Video segment: ${segment.startTime} - ${segment.endTime}`}
-                      onClick={() => handleTimelinePositionChange(segment.startTime)}
-                      role="button"
-                      tabIndex={0}
-                    />
-                  );
-                })}
-                
-                {/* Current position indicator */}
-                <div 
-                  className="absolute top-0 bottom-0 w-[2px] bg-white transform translate-x(-50%)"
-                  style={{
-                    left: `${((timeToSeconds(timelinePosition.timestamp) - timeToSeconds('00:00:00')) / (timeToSeconds('05:30:00') - timeToSeconds('00:00:00'))) * 100}%`
-                  }}
-                >
-                  <div className="h-[12px] w-[12px] rounded-full bg-white absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
-                </div>
-              </div>
-              
-              <p className="text-text-icon-02">
-                {!videoSegments.length 
-                  ? "No video segments available for this flight" 
-                  : `${videoSegments.length} video segments available. Click to navigate.`
-                }
-              </p>
-            </div>
-            
-            {/* Timestamp markers */}
-            <div className="h-[40px] flex justify-between px-[20px] items-center text-text-icon-02 text-xs">
-              <span>00:00:00</span>
-              <span>01:00:00</span>
-              <span>02:00:00</span>
-              <span>03:00:00</span>
-              <span>04:00:00</span>
-              <span>05:00:00</span>
-            </div>
-          </div>
-        </div>
+      <footer className="bg-background-level-1">
+        <FlightTimeline 
+          currentPosition={timelinePosition}
+          videoSegments={videoSegments}
+          flightDuration="05:30:00"
+          onPositionChange={handleTimelinePositionChange}
+        />
       </footer>
     </div>
   );
