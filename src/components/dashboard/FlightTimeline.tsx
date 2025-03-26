@@ -100,7 +100,7 @@ const generateMockData = (dateRange: DateRangeType, viewType: ViewType) => {
             name: 'Jul',
             successful: Math.floor(Math.random() * 60) + 20,
             failed: Math.floor(Math.random() * 15),
-            aborted: Math.floor(Mathrandom() * 8),
+            aborted: Math.floor(Math.random() * 8),
           },
           {
             name: 'Aug',
