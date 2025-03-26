@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Video, Map, Columns } from 'lucide-react';
@@ -235,12 +234,8 @@ const FlightDetails = () => {
           {/* Video Panel */}
           <div className={`bg-background-level-2 rounded-200 p-400 flex flex-col ${viewMode === 'video' ? 'lg:col-span-12' : viewMode === 'split' ? 'lg:col-span-5' : 'hidden lg:block lg:col-span-5'}`}>
             <VideoFeed 
-              hasVideoContent={hasVideo}
-              currentTimestamp={timestamp}
               cameraType={cameraType}
-              isRecording={hasVideo} // Just for demo
               videoState={videoState}
-              recordingDuration={recordingDuration}
               timelinePosition={timelinePosition}
               videoSegments={videoSegments}
               onPositionUpdate={handleVideoPositionUpdate}

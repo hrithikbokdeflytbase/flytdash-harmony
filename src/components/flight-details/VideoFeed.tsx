@@ -1,6 +1,5 @@
-
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, Maximize2, Square, Drone, Loader2 } from 'lucide-react';
+import { Camera, Maximize2, Square, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
@@ -163,7 +162,7 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
         {videoState === 'empty' && (
           /* Empty state */
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-400 bg-background-level-3">
-            <Drone className="h-[60px] w-[60px] text-text-icon-02 mb-400" />
+            <Square className="h-[60px] w-[60px] text-text-icon-02 mb-400" />
             <p className="text-text-icon-01 text-base font-medium mb-200">No video available at current position</p>
           </div>
         )}
