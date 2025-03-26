@@ -8,6 +8,7 @@ import FlightMap from '@/components/flight-details/FlightMap';
 import FlightTimeline from '@/components/flight-details/FlightTimeline';
 import FlightDetailsPanel from '@/components/flight-details/FlightDetailsPanel';
 import DetailsPanelHeader from '@/components/flight-details/DetailsPanelHeader';
+import { cn } from '@/lib/utils';
 
 // View mode type
 type ViewMode = 'map' | 'video' | 'split';
@@ -416,6 +417,7 @@ const FlightDetails = () => {
               viewMode === 'map' ? 'col-span-12' : 'col-span-6'
             )}>
               <FlightMap 
+                flightId={flightId || 'unknown'}
                 flightPath={mockFlightPath} 
                 waypoints={mockWaypoints} 
                 isLoading={mapLoading}
