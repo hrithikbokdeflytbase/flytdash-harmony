@@ -7,14 +7,26 @@ import {
   DialogTitle,
   DialogClose,
 } from '@/components/ui/dialog';
-import { X, ChevronDown, AlertTriangle, FileText, Activity } from 'lucide-react';
+import { 
+  X, 
+  ChevronRight, 
+  AlertTriangle, 
+  FileText, 
+  Activity, 
+  Wind, 
+  MapPin, 
+  AlertCircle,
+  Shield,
+  Battery,
+  Cpu
+} from 'lucide-react';
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
+import { useNavigate } from 'react-router-dom';
 
 interface FailedFlightsPopupProps {
   open: boolean;
@@ -28,6 +40,7 @@ const failureData = [
   {
     cause: 'Airspace Issues',
     count: 3,
+    icon: AlertCircle,
     flights: [
       { id: 'Flight #1204', date: 'Mar 19', type: 'Site Survey', details: 'Aircraft Detected: 1.8km NE, 380ft above' },
       { id: 'Flight #1198', date: 'Mar 18', type: 'Perimeter Scan', details: 'Restricted Airspace: 800m ahead' },
@@ -37,6 +50,7 @@ const failureData = [
   {
     cause: 'Weather Conditions',
     count: 3,
+    icon: Wind,
     flights: [
       { id: 'Flight #1201', date: 'Mar 20', type: 'Inspection', details: 'High Wind Speed: 13.4 m/s, gusting to 16 m/s' },
       { id: 'Flight #1195', date: 'Mar 17', type: 'Site Survey', details: 'Rain Detected in operation area' },
@@ -46,6 +60,7 @@ const failureData = [
   {
     cause: 'Zone Violations',
     count: 3,
+    icon: Shield,
     flights: [
       { id: 'Flight #1192', date: 'Mar 17', type: 'Manual Flight', details: 'NFZ Breach: 40m from No-Fly Zone boundary' },
       { id: 'Flight #1185', date: 'Mar 16', type: 'Mission', details: 'Geofence Breach: 80m from boundary' },
@@ -55,6 +70,7 @@ const failureData = [
   {
     cause: 'Navigation Issues',
     count: 2,
+    icon: MapPin,
     flights: [
       { id: 'Flight #1178', date: 'Mar 14', type: 'Infrastructure', details: 'GPS Signal Loss (8/14 satellites)' },
       { id: 'Flight #1177', date: 'Mar 14', type: 'Inspection', details: 'Compass Interference Detected' },
@@ -63,6 +79,7 @@ const failureData = [
   {
     cause: 'Battery Issues',
     count: 2,
+    icon: Battery,
     flights: [
       { id: 'Flight #1190', date: 'Mar 16', type: 'GTL', details: 'Critical Battery Level (12%)' },
       { id: 'Flight #1186', date: 'Mar 15', type: 'Site Survey', details: 'Battery Cell Imbalance (0.4V)' },
@@ -71,6 +88,7 @@ const failureData = [
   {
     cause: 'System Failures',
     count: 2,
+    icon: Cpu,
     flights: [
       { id: 'Flight #1188', date: 'Mar 16', type: 'Mission', details: 'IMU Calibration Error' },
       { id: 'Flight #1182', date: 'Mar 15', type: 'Manual Flight', details: 'Flight Controller Malfunction' },
@@ -80,6 +98,17 @@ const failureData = [
 
 const FailedFlightsPopup = ({ open, onOpenChange, failedCount, totalCount }: FailedFlightsPopupProps) => {
   const failureRate = totalCount > 0 ? ((failedCount / totalCount) * 100).toFixed(1) : '0';
+  const navigate = useNavigate();
+
+  const handleFlightClick = (flightId: string) => {
+    // Simulate navigation to flight detail page
+    console.log(`Navigating to flight detail: ${flightId}`);
+    // Uncomment this when flight detail page is ready
+    // navigate(`/flights/${flightId.replace('Flight #', '')}`);
+    
+    // Close the dialog after navigation
+    onOpenChange(false);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -102,55 +131,49 @@ const FailedFlightsPopup = ({ open, onOpenChange, failedCount, totalCount }: Fai
           </div>
         </div>
 
-        <div className="py-4 border-b border-outline-primary">
+        <div className="py-4 border-b border-outline-primary max-h-[40vh] overflow-y-auto">
           <h3 className="text-sm font-semibold text-text-icon-02 mb-3">FAILED FLIGHTS BY CAUSE</h3>
           
-          <Accordion type="single" collapsible className="w-full">
-            {failureData.map((category, index) => (
-              <AccordionItem 
-                key={index} 
-                value={`item-${index}`}
-                className="border-b border-outline-primary last:border-0"
-              >
-                <AccordionTrigger className="hover:no-underline py-3">
-                  <div className="flex justify-between items-center w-full pr-2">
+          <div className="space-y-3">
+            {failureData.map((category, index) => {
+              const IconComponent = category.icon;
+              return (
+                <Collapsible key={index} defaultOpen={true} className="w-full border border-outline-primary rounded-md overflow-hidden">
+                  <CollapsibleTrigger className="w-full p-3 bg-background-level-3 flex justify-between items-center hover:bg-background-level-4 transition-colors">
                     <div className="flex items-center">
-                      <div className="w-1.5 h-1.5 rounded-full bg-error-200 mr-3"></div>
-                      <span className="text-text-icon-01">{category.cause}</span>
+                      <IconComponent className="h-5 w-5 text-error-200 mr-3" />
+                      <span className="text-text-icon-01">{category.cause} ({category.count} flights)</span>
                     </div>
-                    <div className="flex items-center">
-                      <span className="text-error-200 font-medium mr-6">{category.count}</span>
-                      <ChevronDown className="h-4 w-4 text-text-icon-02 shrink-0 transition-transform duration-200" />
-                    </div>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="pb-3 pt-1">
-                  <div className="rounded-md bg-background-level-3 p-3">
-                    <div className="space-y-3">
-                      {category.flights.map((flight, flightIndex) => (
-                        <div key={flightIndex} className="flex flex-col">
-                          <div className="flex justify-between mb-1">
+                    <ChevronRight className="h-4 w-4 text-text-icon-02 transform transition-transform ui-expanded:rotate-90" />
+                  </CollapsibleTrigger>
+                  
+                  <CollapsibleContent className="bg-background-level-3">
+                    {category.flights.map((flight, flightIndex) => (
+                      <div 
+                        key={flightIndex}
+                        className="p-3 border-t border-outline-primary cursor-pointer hover:bg-background-level-4 transition-colors"
+                        onClick={() => handleFlightClick(flight.id)}
+                      >
+                        <div className="flex justify-between items-center mb-1">
+                          <div className="flex items-center">
                             <span className="text-sm font-medium text-text-icon-01">{flight.id}</span>
-                            <span className="text-sm text-text-icon-02">{flight.date}</span>
+                            <span className="text-sm text-text-icon-02 ml-3">{flight.date}</span>
                           </div>
-                          <div className="flex justify-between mb-1">
-                            <span className="text-sm text-text-icon-02">Type: {flight.type}</span>
-                          </div>
-                          <div className="flex items-start">
-                            <FileText className="h-4 w-4 text-text-icon-02 mt-0.5 mr-2" />
-                            <span className="text-sm text-text-icon-02">{flight.details}</span>
-                          </div>
-                          {flightIndex < category.flights.length - 1 && (
-                            <div className="border-t border-outline-primary my-2"></div>
-                          )}
+                          <ChevronRight className="h-4 w-4 text-text-icon-02" />
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
+                        <div className="text-sm text-text-icon-02 mb-1">
+                          {flight.type}
+                        </div>
+                        <div className="text-sm text-error-200">
+                          {flight.details}
+                        </div>
+                      </div>
+                    ))}
+                  </CollapsibleContent>
+                </Collapsible>
+              );
+            })}
+          </div>
         </div>
 
         <div className="py-4">
@@ -159,24 +182,24 @@ const FailedFlightsPopup = ({ open, onOpenChange, failedCount, totalCount }: Fai
           <div className="rounded-md bg-background-level-3 p-4">
             <div className="flex items-center space-x-2 mb-3">
               <Activity className="h-5 w-5 text-warning-200" />
-              <h4 className="text-text-icon-01 font-medium">Key Findings</h4>
+              <h4 className="text-text-icon-01 font-medium">Key Insights</h4>
             </div>
             <ul className="space-y-2 text-sm text-text-icon-02">
               <li className="flex items-start">
                 <span className="text-warning-200 mr-2">•</span>
-                <span>Airspace and weather issues account for 35% of all flight failures</span>
+                <span>Most common cause: Wind Speed (60% of failures)</span>
               </li>
               <li className="flex items-start">
                 <span className="text-warning-200 mr-2">•</span>
-                <span>Zone violations are most common during manual flight operations</span>
+                <span>Most affected mission: Site Survey (40% of failures)</span>
               </li>
               <li className="flex items-start">
                 <span className="text-warning-200 mr-2">•</span>
-                <span>Navigation issues increased by 15% in areas with dense foliage</span>
+                <span>Failure threshold: Wind > 12 m/s, GPS < 4 satellites</span>
               </li>
               <li className="flex items-start">
                 <span className="text-warning-200 mr-2">•</span>
-                <span>Battery issues most frequently occur after 15 minutes of operation</span>
+                <span>Time pattern: 80% of failures occurred between 9am-12pm</span>
               </li>
             </ul>
           </div>
