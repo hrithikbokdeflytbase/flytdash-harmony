@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Settings, Info, PlayCircle, SkipBack, SkipForward, Pause, ChevronDown, ChevronUp, Circle, Square, Triangle, Octagon, Camera, Video, AlertTriangle, AlertOctagon, Check, X, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -339,6 +340,123 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
         }}
       >
         <div className="absolute -top-1 -translate-x-1/2 w-3 h-3 rounded-full bg-error-200 animate-pulse"></div>
+      </div>
+    );
+  };
+  
+  // Render media actions track
+  const renderMediaActionsTrack = () => {
+    return (
+      <Collapsible
+        open={expandedTracks.media}
+        onOpenChange={() => toggleTrackExpansion('media')}
+        className="track-container"
+      >
+        <div className="h-[40px] bg-background-level-3 rounded-[8px] overflow-hidden">
+          <CollapsibleTrigger asChild>
+            <div className="px-[12px] py-[4px] flex items-center justify-between cursor-pointer hover:bg-background-level-4/50">
+              <span className="text-[12px] text-text-icon-01">Media Actions</span>
+              {expandedTracks.media ? 
+                <ChevronUp className="h-[14px] w-[14px] text-text-icon-02" /> : 
+                <ChevronDown className="h-[14px] w-[14px] text-text-icon-02" />
+              }
+            </div>
+          </CollapsibleTrigger>
+          
+          <CollapsibleContent className="px-[12px]">
+            <div className="h-[20px] w-full relative flex items-center">
+              {mediaEventClusters.map((cluster, index) => {
+                const renderMediaEventMarker = (event: MediaAction) => {
+                  const leftPos = getPositionPercentage(event.timestamp);
+                  const colorClass = getMediaColor(event.type);
+                  
+                  return (
+                    <TooltipProvider key={`media-${index}`}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div
+                            className="absolute top-1/2 -translate-y-1/2 transform -translate-x-1/2 cursor-pointer transition-transform hover:scale-110"
+                            style={{ left: `${leftPos}%` }}
+                            onMouseEnter={() => setHoveredEvent({
+                              type: event.type.toUpperCase(),
+                              details: event.fileId || '',
+                              timestamp: event.timestamp
+                            })}
+                            onMouseLeave={() => setHoveredEvent(null)}
+                          >
+                            {event.type === 'photo' ? (
+                              <div className="flex items-center justify-center h-5 w-5 rounded-full bg-success-200/20 border border-success-200/50">
+                                <Camera className="h-3 w-3 text-success-200" />
+                              </div>
+                            ) : event.type === 'videoStart' ? (
+                              <div className="flex items-center justify-center h-5 w-5 rounded-full bg-info-200/20 border border-info-200/50">
+                                <Video className="h-3 w-3 text-info-200" />
+                              </div>
+                            ) : (
+                              <div className="flex items-center justify-center h-5 w-5 rounded-full bg-info-100/20 border border-info-100/50">
+                                <Square className="h-3 w-3 text-info-100" fill="currentColor" />
+                              </div>
+                            )}
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent className="p-200 bg-background-level-3 border-outline-primary">
+                          <p className="text-xs text-text-icon-01">{event.type === 'photo' ? 'Photo Taken' : event.type === 'videoStart' ? 'Video Started' : 'Video Ended'}</p>
+                          {event.fileId && <p className="text-xs text-text-icon-02">ID: {event.fileId}</p>}
+                          <p className="text-xs text-text-icon-02">{event.timestamp}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  );
+                };
+                
+                return renderClusterOrMarker(
+                  cluster, 
+                  renderMediaEventMarker, 
+                  "bg-info-100/30"
+                );
+              })}
+            </div>
+          </CollapsibleContent>
+        </div>
+      </Collapsible>
+    );
+  };
+  
+  // Playback controls component
+  const PlaybackControls = () => {
+    return (
+      <div className="flex items-center space-x-2">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={skipBackward}
+          aria-label="Skip backward 30 seconds"
+        >
+          <SkipBack className="h-4 w-4" />
+        </Button>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={togglePlayback}
+          aria-label={isPlaying ? "Pause playback" : "Start playback"}
+        >
+          {isPlaying ? (
+            <Pause className="h-5 w-5" />
+          ) : (
+            <PlayCircle className="h-5 w-5" />
+          )}
+        </Button>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={skipForward}
+          aria-label="Skip forward 30 seconds"
+        >
+          <SkipForward className="h-4 w-4" />
+        </Button>
+        <div className="text-xs text-text-icon-02 ml-2 w-16 text-right">
+          {currentPosition.timestamp}
+        </div>
       </div>
     );
   };
@@ -706,9 +824,32 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
         </Collapsible>
         
         {/* Media/Actions Track - Event Track */}
-        <Collapsible
-          open={expandedTracks.media}
-          onOpenChange={() => toggleTrackExpansion('media')}
-          className="track-container"
-        >
-          <div className="h-[40px] bg-background-level-
+        {renderMediaActionsTrack()}
+      </div>
+      
+      {/* Timeline Scrubber - Slider with timestamp markers */}
+      <div className="px-[16px] pt-[8px] pb-[16px]">
+        <div className="flex items-center justify-between">
+          <PlaybackControls />
+          
+          <div className="text-xs text-text-icon-02">
+            Duration: {flightDuration}
+          </div>
+        </div>
+        
+        {/* Slider for timeline scrubbing */}
+        <div className="mt-[12px]">
+          <Slider
+            value={[currentPercentage]}
+            max={100}
+            step={0.1}
+            onValueChange={handleSliderChange}
+            aria-label="Timeline position"
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default FlightTimeline;
