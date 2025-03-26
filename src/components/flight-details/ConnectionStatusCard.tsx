@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { cn } from '@/lib/utils';
+import { Wifi } from 'lucide-react';
 
 type ConnectionStatus = 'active' | 'inactive' | 'poor';
 
@@ -20,7 +21,7 @@ const ConnectionStatusCard: React.FC<ConnectionStatusCardProps> = ({
   // Status styling configurations
   const statusConfig = {
     active: {
-      bg: 'bg-success-200 bg-opacity-20',
+      bg: 'bg-success-200 bg-opacity-10',
       border: 'border-success-200',
       text: 'text-success-200',
       dot: 'bg-success-200'
@@ -32,8 +33,8 @@ const ConnectionStatusCard: React.FC<ConnectionStatusCardProps> = ({
       dot: 'bg-text-icon-02'
     },
     poor: {
-      bg: 'bg-caution-200 bg-opacity-20',
-      border: 'border-caution-200 border-opacity-30',
+      bg: 'bg-caution-200 bg-opacity-10',
+      border: 'border-caution-200',
       text: 'text-caution-200',
       dot: 'bg-caution-200'
     }
@@ -54,7 +55,7 @@ const ConnectionStatusCard: React.FC<ConnectionStatusCardProps> = ({
   );
 
   return (
-    <div className={cn("bg-background-level-3 rounded-[4px] p-3 flex items-center justify-between border border-outline-primary", className)}>
+    <div className={cn("flex items-center justify-between p-2 border-b border-outline-primary last:border-b-0", className)}>
       <span className="text-xs text-text-icon-01">{label}</span>
       <div className="flex items-center gap-200">
         {renderStatusIndicator()}

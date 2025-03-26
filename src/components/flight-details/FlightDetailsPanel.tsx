@@ -1,9 +1,10 @@
+
 import React, { useState } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Activity, Clock, Wifi } from 'lucide-react';
+import { Activity, Clock, Wifi, Battery } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 // Import our components
@@ -178,47 +179,57 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
           <TabsContent value="telemetry" className="p-0 h-[calc(100vh-95px)] flex flex-col overflow-hidden">
             <ScrollArea className="flex-1">
               <div className="space-y-0 pb-6">
-                {/* Telemetry Header */}
-                <SectionHeader title="Drone Telemetry">
+                {/* Battery Section */}
+                <div className="px-4 py-3">
+                  <BatteryStatusCard 
+                    percentage={telemetryData.battery.percentage}
+                    estimatedRemaining={telemetryData.battery.estimatedRemaining}
+                  />
+                </div>
+                
+                {/* General Telemetry Section */}
+                <SectionHeader title="Flight Metrics" icon={Activity}>
                   <div className="flex items-center gap-1">
                     <div className="w-2 h-2 rounded-full bg-success-200"></div>
                     <span className="text-xs text-text-icon-01">GPS {telemetryData.gpsStatus.count}</span>
                   </div>
                 </SectionHeader>
                 
-                {/* Battery Section */}
-                <div className="px-4 py-3">
-                  <div className="bg-background-level-3 p-3 rounded-md">
-                    <BatteryStatusCard 
-                      percentage={telemetryData.battery.percentage}
-                      estimatedRemaining={telemetryData.battery.estimatedRemaining}
-                    />
-                  </div>
-                </div>
-                
                 {/* Telemetry Metrics Grid */}
                 <div className="px-4 py-2">
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-2">
                     <TelemetryMetricCard 
                       label="Altitude" 
                       value={telemetryData.altitude.value} 
                       unit={telemetryData.altitude.unit}
+                      trend="up"
                     />
                     <TelemetryMetricCard 
-                      label="Distance from Home" 
+                      label="Distance" 
                       value={telemetryData.distance.value} 
                       unit={telemetryData.distance.unit}
+                      trend="neutral"
                     />
                     <TelemetryMetricCard 
                       label="Vertical Speed" 
                       value={telemetryData.verticalSpeed.value} 
                       unit={telemetryData.verticalSpeed.unit}
+                      trend="down"
                     />
                     <TelemetryMetricCard 
                       label="Horizontal Speed" 
                       value={telemetryData.horizontalSpeed.value} 
                       unit={telemetryData.horizontalSpeed.unit}
+                      trend="up"
                     />
+                  </div>
+                </div>
+                
+                {/* Time and Position Section */}
+                <SectionHeader title="Position Data" icon={Clock} />
+                
+                <div className="px-4 py-2">
+                  <div className="grid grid-cols-2 gap-2">
                     <TelemetryMetricCard 
                       label="Time Elapsed" 
                       value={telemetryData.timeElapsed}
@@ -239,10 +250,10 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
                 </div>
                 
                 {/* Network Section */}
-                <div className="px-4 pb-4 pt-2">
-                  <SectionHeader title="Network" icon={Wifi} />
-                  
-                  <div className="space-y-3 mt-2">
+                <SectionHeader title="Network Status" icon={Wifi} />
+                
+                <div className="px-4 py-2">
+                  <div className="bg-background-level-1 border border-outline-primary rounded overflow-hidden">
                     <ConnectionStatusCard 
                       label="Dock Drone RF Link"
                       status={telemetryData.connections.rfLink.status}
