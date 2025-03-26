@@ -1,9 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import { DateRangeType } from '@/components/dashboard/DateRangeFilter';
+import { DateRangeValue } from '@/components/dashboard/DateRangeFilter';
 import RecentFlightsTable from '@/components/dashboard/RecentFlightsTable';
-import FiltersBar from '@/components/dashboard/FiltersBar';
+import AllFlightsFiltersBar from '@/components/dashboard/AllFlightsFiltersBar';
 import { useLocation } from 'react-router-dom';
 import { parse } from 'date-fns';
 import { toast } from "sonner";
@@ -23,7 +23,7 @@ const parseDateParam = (param: string | null): Date | undefined => {
 
 const AllLogs = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [dateRange, setDateRange] = useState<DateRangeType>('monthly');
+  const [dateRange, setDateRange] = useState<DateRangeValue>({ from: undefined, to: undefined });
   const location = useLocation();
   
   // Parse URL parameters on component mount
@@ -45,15 +45,17 @@ const AllLogs = () => {
         // Simulate loading state for demonstration
         setIsLoading(true);
         
-        // Update date range type based on provided dates
-        if (fromParam === toParam) {
-          setDateRange('daily');
-          toast.success(`Filtered to daily view for ${fromParam}`);
+        // Update date range with parsed dates
+        setDateRange({
+          from: fromDate,
+          to: toDate
+        });
+        
+        // Show toast notification
+        if (toDate) {
+          toast.success(`Filtered from ${fromParam} to ${toParam}`);
         } else {
-          // Determine if it's weekly or monthly based on date difference
-          // This is a simplification and might need refinement
-          setDateRange('monthly');
-          toast.success(`Filtered from ${fromParam} to ${toParam || fromParam}`);
+          toast.success(`Filtered to ${fromParam}`);
         }
         
         // Simulate API fetch delay
@@ -64,8 +66,8 @@ const AllLogs = () => {
     }
   }, [location.search]);
   
-  // Simulate loading state for demonstration
-  const handleDateRangeChange = (range: DateRangeType) => {
+  // Handle date range changes
+  const handleDateRangeChange = (range: DateRangeValue) => {
     setIsLoading(true);
     setDateRange(range);
     
@@ -86,9 +88,9 @@ const AllLogs = () => {
         </div>
       </div>
       
-      {/* Improved Filters Section */}
+      {/* Filters Section - Now using AllFlightsFiltersBar which has DateRangePicker */}
       <div className="mb-600">
-        <FiltersBar
+        <AllFlightsFiltersBar
           dateRange={dateRange}
           onDateRangeChange={handleDateRangeChange}
           isLoading={isLoading}
