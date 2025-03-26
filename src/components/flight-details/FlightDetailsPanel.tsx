@@ -91,7 +91,7 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
           onValueChange={handleTabChange}
           value={activeTab}
         >
-          <TabsList className="flex w-full h-[45px] bg-transparent">
+          <TabsList className="flex w-full h-[40px] bg-transparent">
             <TabsTrigger 
               value="telemetry" 
               className="flex-1 h-full rounded-none data-[state=active]:bg-transparent data-[state=active]:text-text-icon-01 data-[state=inactive]:text-text-icon-02 relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-primary-200 after:transform after:scale-x-0 data-[state=active]:after:scale-x-100 after:transition-transform"
@@ -113,7 +113,7 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
           </TabsList>
 
           {/* Tab Contents */}
-          <div className="flex-1 overflow-hidden" style={{ height: "calc(100% - 45px)" }}>
+          <div className="flex-1 overflow-hidden" style={{ height: "calc(100% - 40px)" }}>
             <TabsContent value="telemetry" className="h-full p-0 m-0 overflow-auto">
               <TelemetryPanel telemetryData={telemetryData} />
             </TabsContent>
