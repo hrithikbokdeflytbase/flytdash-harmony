@@ -66,9 +66,9 @@ const TelemetryPanel: React.FC<TelemetryPanelProps> = ({
   telemetryData
 }) => {
   return (
-    <div className="flex-1 h-full overflow-hidden">
-      <ScrollArea className="h-full w-full">
-        <div className="space-y-0 pb-6">
+    <div className="flex flex-col h-full">
+      <ScrollArea className="flex-1">
+        <div className="space-y-0 pb-8">
           {/* Battery Section */}
           <div className="px-4 py-3">
             <BatteryStatusCard 

@@ -75,7 +75,7 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
   };
 
   return (
-    <Card className="h-full flex flex-col">
+    <Card className="flex flex-col h-full">
       {/* Header Section */}
       <DetailsPanelHeader 
         flightId={flightId} 
@@ -113,12 +113,12 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
           </TabsList>
 
           {/* Tab Contents */}
-          <div className="h-[calc(100%-45px)]">
-            <TabsContent value="telemetry" className="p-0 h-full m-0 overflow-hidden">
+          <div className="flex-1" style={{ height: "calc(100% - 45px)" }}>
+            <TabsContent value="telemetry" className="h-full p-0 m-0 overflow-hidden">
               <TelemetryPanel telemetryData={telemetryData} />
             </TabsContent>
             
-            <TabsContent value="timeline" className="p-0 h-full m-0 overflow-hidden">
+            <TabsContent value="timeline" className="h-full p-0 m-0 overflow-hidden">
               <TimelinePanel />
             </TabsContent>
           </div>
