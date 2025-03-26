@@ -407,9 +407,9 @@ const FlightDetails = () => {
         </ToggleGroup>
       </header>
       
-      {/* Main Content Area - Updated to properly align with timeline */}
-      <main className="flex-1 p-400 pb-0 overflow-hidden flex" style={{ height: 'calc(100vh - 180px)' }}>
-        <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-400 h-full">
+      {/* Main Content Area - Reduced height to make panels shorter */}
+      <main className="flex-1 p-400 pb-0 overflow-hidden flex" style={{ height: 'calc(100vh - 220px)' }}>
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-600 h-full">
           {/* Video Panel */}
           <div className={`bg-background-level-2 rounded-200 p-400 flex flex-col ${viewMode === 'video' ? 'lg:col-span-12' : viewMode === 'split' ? 'lg:col-span-6' : 'hidden lg:block lg:col-span-6'}`}>
             <VideoFeed cameraType={cameraType} videoState={videoState} timelinePosition={timelinePosition} videoSegments={videoSegments} onPositionUpdate={handleVideoPositionUpdate} />

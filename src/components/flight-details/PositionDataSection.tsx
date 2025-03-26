@@ -15,11 +15,11 @@ const PositionDataSection: React.FC<PositionDataSectionProps> = ({
   coordinates
 }) => {
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col mb-400">
       <SectionHeader title="Position Data" icon={MapPin} />
       
       <div className="px-4 py-2">
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-3">
           <TelemetryMetricCard 
             label="Latitude" 
             value={coordinates.latitude.toFixed(5)}
