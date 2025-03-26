@@ -1,18 +1,23 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, Video, Clock, Square, Maximize2, LayoutGrid, Volume2, Volume1, VolumeX, Maximize, ChevronRight } from 'lucide-react';
+import { Camera, Video, Clock, Square, Maximize2, LayoutGrid, Volume2, Volume1, VolumeX, Maximize, ChevronRight, AlertCircle, RefreshCw, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
+import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
 type CameraType = 'wide' | 'zoom' | 'thermal';
+
+type VideoState = 'loading' | 'error' | 'empty' | 'playing';
 
 type VideoFeedProps = {
   isRecording?: boolean;
   currentTimestamp?: string;
   cameraType?: CameraType;
   hasVideoContent?: boolean;
+  videoState?: VideoState;
+  recordingDuration?: string;
 };
 
 const VideoFeed: React.FC<VideoFeedProps> = ({
@@ -20,6 +25,8 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
   currentTimestamp = '00:00:00',
   cameraType = 'wide',
   hasVideoContent = false,
+  videoState = 'empty',
+  recordingDuration = '00:00:00',
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -28,6 +35,8 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState('05:30:00');
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [prevCameraType, setPrevCameraType] = useState<CameraType>(cameraType);
+  const [showCameraSwitch, setShowCameraSwitch] = useState(false);
   
   const videoContainerRef = useRef<HTMLDivElement>(null);
   const progressTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -46,6 +55,19 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
     };
   }, [isPlaying, progress, hasVideoContent]);
 
+  // Detect camera type changes
+  useEffect(() => {
+    if (cameraType !== prevCameraType && hasVideoContent) {
+      setPrevCameraType(cameraType);
+      setShowCameraSwitch(true);
+      const timer = setTimeout(() => {
+        setShowCameraSwitch(false);
+      }, 3000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [cameraType, prevCameraType, hasVideoContent]);
+
   // Toggle fullscreen
   const toggleFullscreen = () => {
     if (!document.fullscreenElement && videoContainerRef.current) {
@@ -57,6 +79,17 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
       document.exitFullscreen();
       setIsFullscreen(false);
     }
+  };
+
+  // Retry loading video
+  const handleRetry = () => {
+    console.log('Attempting to reload video');
+    // In a real app, this would trigger the video reload
+    // For demo purposes, we'll just simulate the loading state
+    videoState = 'loading';
+    setTimeout(() => {
+      videoState = 'playing';
+    }, 2000);
   };
 
   // Format seconds to mm:ss
@@ -84,6 +117,16 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
       case 'zoom': return 'bg-purple-600/70 border-purple-500';
       case 'thermal': return 'bg-orange-600/70 border-orange-500';
       default: return 'bg-blue-600/70 border-blue-500';
+    }
+  };
+
+  // Camera border color
+  const getCameraBorderColor = (type: CameraType) => {
+    switch (type) {
+      case 'wide': return 'border-blue-500/30';
+      case 'zoom': return 'border-purple-500/30';
+      case 'thermal': return 'border-orange-500/30';
+      default: return 'border-blue-500/30';
     }
   };
 
@@ -116,11 +159,50 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
 
       <div 
         ref={videoContainerRef}
-        className="relative flex-1 rounded-200 border border-[rgba(255,255,255,0.08)] overflow-hidden"
+        className={cn(
+          "relative flex-1 rounded-200 border overflow-hidden",
+          getCameraBorderColor(cameraType)
+        )}
         onMouseEnter={() => setShowControls(true)}
         onMouseLeave={() => setShowControls(false)}
+        aria-label={`Video feed showing ${cameraType} camera view`}
+        role="region"
       >
-        {hasVideoContent ? (
+        {videoState === 'loading' && (
+          /* Loading state */
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-400 bg-background-level-3">
+            <Loader2 className="h-[60px] w-[60px] text-primary-200 mb-400 animate-spin" />
+            <p className="text-text-icon-01 text-base font-medium mb-200">Loading video...</p>
+            <p className="text-text-icon-02 text-sm">Please wait while we prepare your footage</p>
+          </div>
+        )}
+
+        {videoState === 'error' && (
+          /* Error state */
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-400 bg-background-level-3">
+            <AlertCircle className="h-[60px] w-[60px] text-destructive mb-400" />
+            <p className="text-text-icon-01 text-base font-medium mb-200">Video unavailable</p>
+            <p className="text-text-icon-02 text-sm mb-400">There was a problem loading this video</p>
+            <Button variant="secondary" size="sm" onClick={handleRetry}>
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Retry
+            </Button>
+          </div>
+        )}
+
+        {videoState === 'empty' && (
+          /* Empty state */
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-400 bg-background-level-3">
+            <LayoutGrid className="h-[60px] w-[60px] text-text-icon-02 mb-400" />
+            <p className="text-text-icon-01 text-base font-medium mb-200">No video recorded at this time</p>
+            <p className="text-text-icon-02 text-sm mb-400">Current position: {currentTimestamp}</p>
+            <Button variant="secondary" size="sm">
+              Jump to nearest video
+            </Button>
+          </div>
+        )}
+
+        {videoState === 'playing' && (
           <>
             {/* Video Element */}
             <div className="absolute inset-0 bg-background-level-3">
@@ -128,7 +210,23 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
                 className="w-full h-full object-cover" 
                 src="" /* Will be populated with actual video source */
                 muted={isMuted}
+                aria-label={`${cameraType} camera video feed`}
               />
+              
+              {/* Semi-transparent overlay when paused */}
+              {!isPlaying && hasVideoContent && (
+                <div className="absolute inset-0 bg-background-level-1/30 flex items-center justify-center">
+                  <Button 
+                    variant="secondary" 
+                    size="lg" 
+                    className="rounded-full w-16 h-16 flex items-center justify-center bg-black/50 hover:bg-black/70 text-white"
+                    onClick={() => setIsPlaying(true)}
+                    aria-label="Play video"
+                  >
+                    <Video className="h-8 w-8" />
+                  </Button>
+                </div>
+              )}
             </div>
 
             {/* Overlays */}
@@ -139,6 +237,7 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
                   className={cn("flex items-center gap-1 px-2 py-1 border", 
                     getCameraBadgeColor(cameraType)
                   )}
+                  aria-label={`Camera type: ${cameraType}`}
                 >
                   <CameraIcon />
                   <span className="capitalize">{cameraType}</span>
@@ -148,9 +247,25 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
                   <div className="flex items-center gap-2 bg-background-level-3/70 px-2 py-1 rounded-200">
                     <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
                     <span className="text-xs text-red-400">REC</span>
+                    <span className="text-xs text-text-icon-02">{recordingDuration}</span>
                   </div>
                 )}
               </div>
+
+              {/* Camera switch indicator */}
+              {showCameraSwitch && (
+                <div className="absolute left-1/2 top-1/3 transform -translate-x-1/2 -translate-y-1/2 bg-background-level-1/80 backdrop-blur-sm px-4 py-2 rounded-lg flex items-center gap-2 animate-fade-in text-white">
+                  <span>Switching to</span>
+                  <Badge 
+                    className={cn("flex items-center gap-1 px-2 py-1 border", 
+                      getCameraBadgeColor(cameraType)
+                    )}
+                  >
+                    <CameraIcon />
+                    <span className="capitalize">{cameraType}</span>
+                  </Badge>
+                </div>
+              )}
 
               {/* Bottom overlay - Video progress & controls */}
               <div 
@@ -158,6 +273,7 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
                   "mt-auto transition-opacity duration-300",
                   showControls ? "opacity-100" : "opacity-0"
                 )}
+                aria-hidden={!showControls}
               >
                 {/* Progress bar */}
                 <div className="relative h-[4px] bg-background-level-4 cursor-pointer group">
@@ -171,12 +287,21 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
                   <div 
                     className="absolute h-full bg-primary-200" 
                     style={{ width: `${progress}%` }}
+                    role="progressbar"
+                    aria-valuenow={progress}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
                   />
                   
                   {/* Draggable indicator */}
                   <div 
                     className="absolute top-1/2 h-[12px] w-[12px] rounded-full bg-white border-2 border-primary-200 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity"
                     style={{ left: `${progress}%`, transform: `translateX(-50%) translateY(-50%)` }}
+                    role="slider"
+                    aria-valuenow={progress}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    tabIndex={0}
                   />
                   
                   {/* Hover timestamp tooltip */}
@@ -187,7 +312,7 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
                 </div>
                 
                 {/* Controls */}
-                <div className="flex items-center justify-between bg-black/60 backdrop-blur-sm px-300 h-[40px]">
+                <div className="flex items-center justify-between bg-black/60 backdrop-blur-sm px-300 py-100 h-[40px]">
                   {/* Left controls */}
                   <div className="flex items-center gap-300">
                     <Button 
@@ -195,6 +320,7 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
                       size="sm" 
                       className="text-white p-1 h-8 w-8"
                       onClick={() => setIsPlaying(!isPlaying)}
+                      aria-label={isPlaying ? "Pause video" : "Play video"}
                     >
                       {isPlaying ? (
                         <Square className="h-5 w-5" />
@@ -210,6 +336,7 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
                         size="sm"
                         className="text-white p-1 h-8 w-8"
                         onClick={() => setIsMuted(!isMuted)}
+                        aria-label={isMuted ? "Unmute" : "Mute"}
                       >
                         <VolumeIcon />
                       </Button>
@@ -224,6 +351,7 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
                             if (values[0] > 0) setIsMuted(false);
                           }}
                           className="h-[4px]"
+                          aria-label="Volume"
                         />
                       </div>
                     </div>
@@ -236,7 +364,12 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
                   
                   {/* Right controls */}
                   <div className="flex items-center gap-200">
-                    <Button variant="ghost" size="sm" className="text-white p-1 h-8">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-white p-1 h-8"
+                      aria-label="Capture frame"
+                    >
                       <Camera className="h-4 w-4 mr-1" />
                       <span className="text-xs">Capture</span>
                     </Button>
@@ -246,6 +379,7 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
                       size="sm" 
                       className="text-white p-1 h-8 w-8"
                       onClick={toggleFullscreen}
+                      aria-label="Toggle fullscreen"
                     >
                       <Maximize className="h-5 w-5" />
                     </Button>
@@ -254,16 +388,6 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
               </div>
             </div>
           </>
-        ) : (
-          /* Empty state */
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-400 bg-background-level-3">
-            <LayoutGrid className="h-[60px] w-[60px] text-text-icon-02 mb-400" />
-            <p className="text-text-icon-01 text-base font-medium mb-200">No video recorded at this time</p>
-            <p className="text-text-icon-02 text-sm mb-400">Current position: {currentTimestamp}</p>
-            <Button variant="secondary" size="sm">
-              Jump to nearest video
-            </Button>
-          </div>
         )}
       </div>
     </div>

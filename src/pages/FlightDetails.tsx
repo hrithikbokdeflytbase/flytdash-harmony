@@ -9,24 +9,52 @@ import VideoFeed from '@/components/flight-details/VideoFeed';
 // View mode type
 type ViewMode = 'map' | 'video' | 'split';
 
+// Video state type
+type VideoState = 'loading' | 'error' | 'empty' | 'playing';
+
 const FlightDetails = () => {
   const { flightId } = useParams();
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<ViewMode>('split');
   
   // Mock state for video feed props (would come from API in real app)
+  const [videoState, setVideoState] = useState<VideoState>('loading');
   const [hasVideo, setHasVideo] = useState(false);
   const [timestamp, setTimestamp] = useState('00:15:32');
   const [cameraType, setCameraType] = useState<'wide' | 'zoom' | 'thermal'>('wide');
+  const [recordingDuration, setRecordingDuration] = useState('00:03:45');
   
-  // Toggle between video modes for demo purposes
+  // Simulate loading state and transitions for demo purposes
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setHasVideo(prev => !prev);
-    }, 5000);
+    // First show loading state
+    setVideoState('loading');
     
-    return () => clearTimeout(timer);
-  }, [hasVideo]);
+    // Then transition to either empty or playing after 2 seconds
+    const loadTimer = setTimeout(() => {
+      if (Math.random() > 0.3) { // 70% chance of success
+        setVideoState('playing');
+        setHasVideo(true);
+      } else {
+        setVideoState('empty');
+        setHasVideo(false);
+      }
+    }, 2000);
+    
+    return () => clearTimeout(loadTimer);
+  }, []);
+  
+  // Simulate camera type switching for demo purposes
+  useEffect(() => {
+    const cameras: Array<'wide' | 'zoom' | 'thermal'> = ['wide', 'zoom', 'thermal'];
+    let currentIndex = 0;
+    
+    const cameraTimer = setInterval(() => {
+      currentIndex = (currentIndex + 1) % cameras.length;
+      setCameraType(cameras[currentIndex]);
+    }, 10000);
+    
+    return () => clearInterval(cameraTimer);
+  }, []);
   
   // Fetch flight details (placeholder)
   useEffect(() => {
@@ -77,6 +105,8 @@ const FlightDetails = () => {
               currentTimestamp={timestamp}
               cameraType={cameraType}
               isRecording={hasVideo} // Just for demo
+              videoState={videoState}
+              recordingDuration={recordingDuration}
             />
           </div>
           
