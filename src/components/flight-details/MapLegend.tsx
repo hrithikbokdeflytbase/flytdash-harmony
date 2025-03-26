@@ -25,6 +25,7 @@ const MapLegend: React.FC<MapLegendProps> = ({
   const [isOpen, setIsOpen] = useState(true);
   const [isVisible, setIsVisible] = useState(true);
 
+  // Define these constants outside of any conditional blocks
   const pathTypes: MapLegendItem[] = [
     { color: '#496DC8', label: 'Mission Mode' },
     { color: '#8B5CF6', label: 'GTL Mode' },
@@ -60,6 +61,7 @@ const MapLegend: React.FC<MapLegendProps> = ({
     return `${secs}s`;
   };
 
+  // Render the collapsed view if not visible
   if (!isVisible) {
     return (
       <Button
@@ -74,6 +76,7 @@ const MapLegend: React.FC<MapLegendProps> = ({
     );
   }
 
+  // Render the full legend component
   return (
     <div className={cn(
       "absolute bottom-2 left-2 z-10 w-48 bg-background-level-2/90 backdrop-blur-sm rounded-md shadow-md border border-[rgba(255,255,255,0.08)] text-text-icon-01 text-xs",
