@@ -410,14 +410,23 @@ const FlightDetails = () => {
       {/* Main Content Area - Reduced height with bottom margin for spacing */}
       <main className="flex-1 p-400 pb-0 overflow-hidden flex" style={{ height: 'calc(100vh - 280px)' }}>
         <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-600 h-full">
-          {/* Video Panel */}
-          <div className={`bg-background-level-2 rounded-200 p-400 flex flex-col ${viewMode === 'video' ? 'lg:col-span-12' : viewMode === 'split' ? 'lg:col-span-6' : 'hidden lg:block lg:col-span-6'}`}>
+          {/* Video Panel - Only hide when in map mode */}
+          <div className={cn(
+            "bg-background-level-2 rounded-200 p-400 flex flex-col",
+            viewMode === 'map' ? 'hidden' : 'lg:col-span-9',
+            viewMode === 'video' ? 'lg:col-span-9' : '',
+            viewMode === 'split' ? 'lg:col-span-6' : ''
+          )}>
             <VideoFeed cameraType={cameraType} videoState={videoState} timelinePosition={timelinePosition} videoSegments={videoSegments} onPositionUpdate={handleVideoPositionUpdate} />
           </div>
           
-          {/* Map Panel */}
-          <div className={`bg-background-level-2 rounded-200 p-400 flex flex-col ${viewMode === 'map' ? 'lg:col-span-12' : viewMode === 'split' ? 'lg:col-span-3' : 'hidden lg:block lg:col-span-6'}`}>
-            
+          {/* Map Panel - Only hide when in video mode */}
+          <div className={cn(
+            "bg-background-level-2 rounded-200 p-400 flex flex-col",
+            viewMode === 'video' ? 'hidden' : 'lg:col-span-9',
+            viewMode === 'map' ? 'lg:col-span-9' : '',
+            viewMode === 'split' ? 'lg:col-span-3' : ''
+          )}>
             <div className="flex-1 bg-background-level-3 rounded-200">
               <FlightMap flightId={flightId || 'unknown'} flightPath={mockFlightPath} takeoffPoint={{
               lat: mockFlightPath[0].lat,
@@ -432,8 +441,8 @@ const FlightDetails = () => {
             </div>
           </div>
           
-          {/* Flight Details Panel */}
-          <div className={`lg:col-span-3 h-full`}>
+          {/* Flight Details Panel - Always lg:col-span-3 regardless of view mode */}
+          <div className="lg:col-span-3 h-full">
             <FlightDetailsPanel 
               flightId={flightId || 'unknown'} 
               flightMode="MISSION"
