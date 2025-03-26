@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Settings, Info, PlayCircle, SkipBack, SkipForward, Pause, Circle, Square, 
   Triangle, Octagon, Camera, Video, AlertTriangle, AlertOctagon, Check, X, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
+import { TimelineSlider } from '@/components/ui/slider';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -71,6 +71,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
   const [sliderValue, setSliderValue] = useState(0);
   const [hoveredEvent, setHoveredEvent] = useState<null | {type: string, details: string, timestamp: string}>(null);
   const tracksContainerRef = useRef<HTMLDivElement>(null);
+  const tracksHeightRef = useRef<number>(0);
   
   // Convert HH:MM:SS to seconds
   const timeToSeconds = (timeString: string): number => {
@@ -89,6 +90,13 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
   const flightDurationSeconds = timeToSeconds(flightDuration);
   const currentSeconds = timeToSeconds(currentPosition.timestamp);
   const currentPercentage = (currentSeconds / flightDurationSeconds) * 100;
+  
+  // Calculate tracks container height for the position indicator
+  useEffect(() => {
+    if (tracksContainerRef.current) {
+      tracksHeightRef.current = tracksContainerRef.current.clientHeight;
+    }
+  }, []);
   
   // Playback simulation effect
   useEffect(() => {
@@ -253,23 +261,6 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
     details: e.fileId || '',
     type: e.type
   })));
-
-  // Current time indicator (vertical line)
-  const CurrentTimeIndicator = () => {
-    return (
-      <div 
-        className="absolute top-0 h-full border-0 z-40 pointer-events-none"
-        style={{ 
-          left: `${currentPercentage}%`,
-          height: 'calc(100% + 15px)',
-          width: '2px',
-          background: 'rgba(248, 71, 58, 0.8)',
-          boxShadow: '0 0 4px rgba(248, 71, 58, 0.6)',
-          transform: 'translateY(-15px)',
-        }}
-      />
-    );
-  };
   
   // Combined Media Track (Video Segments + Photo captures)
   const renderMediaTrack = () => {
@@ -682,18 +673,16 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
         
         {/* Bottom section - slider and controls in a new layout */}
         <div className="px-4 pb-3 relative mt-1">
-          {/* Current time indicator line */}
-          <CurrentTimeIndicator />
-          
           {/* Slider that spans full width and aligns with tracks */}
           <div className="w-full">
-            <Slider
+            <TimelineSlider
               value={[sliderValue]}
               max={100}
               step={0.1}
               onValueChange={handleSliderChange}
               aria-label="Timeline position"
               className="w-full z-30"
+              indicatorHeight={tracksHeightRef.current || 140}
             />
           </div>
           

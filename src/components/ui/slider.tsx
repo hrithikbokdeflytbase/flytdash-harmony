@@ -24,4 +24,36 @@ const Slider = React.forwardRef<
 ))
 Slider.displayName = SliderPrimitive.Root.displayName
 
-export { Slider }
+// New timeline-specific slider component
+const TimelineSlider = React.forwardRef<
+  React.ElementRef<typeof SliderPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root> & {
+    indicatorHeight?: number;
+  }
+>(({ className, indicatorHeight = 200, ...props }, ref) => (
+  <SliderPrimitive.Root
+    ref={ref}
+    className={cn(
+      "relative flex w-full touch-none select-none items-center",
+      className
+    )}
+    {...props}
+  >
+    <SliderPrimitive.Track className="relative h-2 w-full grow overflow-hidden rounded-sm bg-background-level-4">
+      <SliderPrimitive.Range className="absolute h-full bg-error-200" />
+    </SliderPrimitive.Track>
+    <SliderPrimitive.Thumb className="relative block h-5 w-5 rounded-full border-2 border-error-200 bg-background-level-1 ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 shadow-md hover:scale-110 cursor-pointer z-40">
+      {/* Position indicator line as part of the thumb */}
+      <div 
+        className="absolute top-0 left-1/2 -translate-x-1/2 w-[2px] bg-error-200 shadow-[0_0_4px_rgba(248,71,58,0.6)]" 
+        style={{ 
+          height: `${indicatorHeight}px`,
+          transform: 'translate(-50%, -100%)'
+        }}
+      />
+    </SliderPrimitive.Thumb>
+  </SliderPrimitive.Root>
+))
+TimelineSlider.displayName = "TimelineSlider"
+
+export { Slider, TimelineSlider }
