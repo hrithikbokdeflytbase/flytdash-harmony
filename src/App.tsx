@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import React from 'react'; // Add explicit React import
 import Index from "./pages/Index";
 import AllLogs from "./pages/AllLogs";
+import FlightDetails from "./pages/FlightDetails";
 import NotFound from "./pages/NotFound";
 
 // Create the client outside of the component
@@ -23,6 +24,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/all-logs" element={<AllLogs />} />
+            <Route path="/flight-details/:flightId" element={<FlightDetails />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
