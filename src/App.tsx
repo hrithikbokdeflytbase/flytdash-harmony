@@ -25,6 +25,7 @@ function App() {
             <Route path="/" element={<Index />} />
             <Route path="/all-logs" element={<AllLogs />} />
             <Route path="/flight-details" element={<FlightDetails />} />
+            <Route path="/flight-details/:flightId" element={<FlightDetails />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

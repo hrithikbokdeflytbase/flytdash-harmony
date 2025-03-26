@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Loader, CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import {
   Table,
   TableBody,
@@ -9,7 +10,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface RecentFlightsTableProps {
@@ -127,6 +127,12 @@ const getStatusIcon = (status: FlightStatus) => {
 };
 
 const RecentFlightsTable: React.FC<RecentFlightsTableProps> = ({ isLoading = false }) => {
+  const navigate = useNavigate();
+
+  const handleFlightClick = (flightId: string) => {
+    navigate(`/flight-details/${flightId}`);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -154,6 +160,7 @@ const RecentFlightsTable: React.FC<RecentFlightsTableProps> = ({ isLoading = fal
             <TableRow 
               key={flight.id}
               className="hover:bg-surface-states-hover cursor-pointer border-b border-outline-primary last:border-0"
+              onClick={() => handleFlightClick(flight.id)}
             >
               <TableCell>
                 <TooltipProvider>
