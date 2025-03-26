@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect, useRef } from 'react';
-import { Settings, Info, PlayCircle, SkipBack, SkipForward, Pause, ChevronDown, ChevronUp, Circle, Square, 
+import { Settings, Info, PlayCircle, SkipBack, SkipForward, Pause, Circle, Square, 
   Triangle, Octagon, Camera, Video, AlertTriangle, AlertOctagon, Check, X, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -300,15 +301,17 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
           <CollapsibleTrigger asChild>
             <div className="px-3 py-1 flex items-center justify-between cursor-pointer hover:bg-background-level-4/50">
               <span className="text-[11px] text-text-icon-01">Media</span>
-              {expandedTracks.media ? 
-                <ChevronUp className="h-3 w-3 text-text-icon-02" /> : 
-                <ChevronDown className="h-3 w-3 text-text-icon-02" />
-              }
+              {/* Chevron icons removed */}
             </div>
           </CollapsibleTrigger>
           
           <CollapsibleContent className="px-3 py-1">
             <div className="h-[16px] bg-background-level-4 rounded-[2px] w-full relative">
+              {/* Label overlay */}
+              <div className="absolute top-0 left-0 z-10 bg-background-level-4/70 backdrop-blur-[1px] px-1.5 py-0.5 text-[9px] text-text-icon-02 rounded-sm">
+                Media
+              </div>
+              
               {/* Video Segments - Slimmer blue bars with improved contrast */}
               {videoSegments.map((segment, index) => {
                 const leftPos = getPositionPercentage(segment.startTime);
@@ -445,15 +448,17 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
           <CollapsibleTrigger asChild>
             <div className="px-3 py-1 flex items-center justify-between cursor-pointer hover:bg-background-level-4/50">
               <span className="text-[11px] text-text-icon-01">Mission Phases</span>
-              {expandedTracks.missionPhases ? 
-                <ChevronUp className="h-3 w-3 text-text-icon-02" /> : 
-                <ChevronDown className="h-3 w-3 text-text-icon-02" />
-              }
+              {/* Chevron icons removed */}
             </div>
           </CollapsibleTrigger>
           
           <CollapsibleContent className="px-3 py-1">
             <div className="h-[20px] bg-background-level-4 rounded-[2px] w-full relative">
+              {/* Label overlay */}
+              <div className="absolute top-0 left-0 z-10 bg-background-level-4/70 backdrop-blur-[1px] px-1.5 py-0.5 text-[9px] text-text-icon-02 rounded-sm">
+                Mission Phases
+              </div>
+              
               {missionPhases.map((phase, index) => {
                 const leftPos = getPositionPercentage(phase.startTime);
                 const width = getWidthPercentage(phase.startTime, phase.endTime);
@@ -504,15 +509,17 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
           <CollapsibleTrigger asChild>
             <div className="px-3 py-1 flex items-center justify-between cursor-pointer hover:bg-background-level-4/50">
               <span className="text-[11px] text-text-icon-01">System Events</span>
-              {expandedTracks.systemEvents ? 
-                <ChevronUp className="h-3 w-3 text-text-icon-02" /> : 
-                <ChevronDown className="h-3 w-3 text-text-icon-02" />
-              }
+              {/* Chevron icons removed */}
             </div>
           </CollapsibleTrigger>
           
           <CollapsibleContent className="px-3 py-1">
             <div className="h-[16px] w-full relative flex items-center">
+              {/* Label overlay */}
+              <div className="absolute top-0 left-0 z-10 bg-background-level-4/70 backdrop-blur-[1px] px-1.5 py-0.5 text-[9px] text-text-icon-02 rounded-sm">
+                System Events
+              </div>
+              
               {systemEventClusters.map((cluster, index) => {
                 const renderSystemEventMarker = (event: SystemEvent) => {
                   const leftPos = getPositionPercentage(event.timestamp);
@@ -582,15 +589,17 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
           <CollapsibleTrigger asChild>
             <div className="px-3 py-1 flex items-center justify-between cursor-pointer hover:bg-background-level-4/50">
               <span className="text-[11px] text-text-icon-01">Warnings & Errors</span>
-              {expandedTracks.warnings ? 
-                <ChevronUp className="h-3 w-3 text-text-icon-02" /> : 
-                <ChevronDown className="h-3 w-3 text-text-icon-02" />
-              }
+              {/* Chevron icons removed */}
             </div>
           </CollapsibleTrigger>
           
           <CollapsibleContent className="px-3 py-1">
             <div className="h-[16px] w-full relative flex items-center">
+              {/* Label overlay */}
+              <div className="absolute top-0 left-0 z-10 bg-background-level-4/70 backdrop-blur-[1px] px-1.5 py-0.5 text-[9px] text-text-icon-02 rounded-sm">
+                Warnings & Errors
+              </div>
+              
               {warningEventClusters.map((cluster, index) => {
                 const renderWarningEventMarker = (event: WarningEvent) => {
                   const leftPos = getPositionPercentage(event.timestamp);
