@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Video, Map, Columns } from 'lucide-react';
@@ -218,7 +217,7 @@ const FlightDetails = () => {
     setTimestamp(position);
   };
   
-  // Handle timeline position changes from the timeline component
+  // Enhanced version of handleTimelinePositionChange
   const handleTimelinePositionChange = (newPosition: string) => {
     // Check if the new position has video content
     const positionHasVideo = videoSegments.some(segment => {
@@ -368,7 +367,7 @@ const FlightDetails = () => {
         <FlightTimeline 
           currentPosition={timelinePosition}
           videoSegments={videoSegments}
-          flightDuration="05:30:00"
+          flightDuration="00:25:30"
           onPositionChange={handleTimelinePositionChange}
           missionPhases={missionPhases}
           systemEvents={systemEvents}
