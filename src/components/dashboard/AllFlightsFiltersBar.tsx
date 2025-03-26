@@ -32,6 +32,9 @@ const AllFlightsFiltersBar: React.FC<AllFlightsFiltersBarProps> = ({
   const [triggerType, setTriggerType] = useState<string>('all');
   const [selectedDrones, setSelectedDrones] = useState<string[]>([]);
   
+  // Ensure dateRange is not undefined
+  const safeRange = dateRange || { from: undefined, to: undefined };
+  
   const resetFilters = () => {
     onDateRangeChange({ from: undefined, to: undefined });
     setOperationType('all');
@@ -44,9 +47,9 @@ const AllFlightsFiltersBar: React.FC<AllFlightsFiltersBarProps> = ({
 
   // Get active filters for display
   const activeFilters = [
-    ...(dateRange.from ? [{
+    ...(safeRange.from ? [{
       id: 'dateRange',
-      label: `Date Range: ${format(dateRange.from, 'MMM d, yyyy')}${dateRange.to ? ` - ${format(dateRange.to, 'MMM d, yyyy')}` : ''}`
+      label: `Date Range: ${format(safeRange.from, 'MMM d, yyyy')}${safeRange.to ? ` - ${format(safeRange.to, 'MMM d, yyyy')}` : ''}`
     }] : []),
     ...(operationType !== 'all' ? [{
       id: 'operation',
@@ -106,7 +109,7 @@ const AllFlightsFiltersBar: React.FC<AllFlightsFiltersBarProps> = ({
                     size="sm" 
                     className="border-outline-primary text-text-icon-01 bg-background-level-2 hover:bg-background-level-4 transition-colors" 
                     onClick={resetFilters} 
-                    disabled={isLoading || (!dateRange.from && operationType === 'all' && !includeManual && triggerType === 'all' && selectedDrones.length === 0)}
+                    disabled={isLoading || (!safeRange.from && operationType === 'all' && !includeManual && triggerType === 'all' && selectedDrones.length === 0)}
                   >
                     <RefreshCw className="h-4 w-4 mr-1" />
                     Reset
@@ -144,7 +147,7 @@ const AllFlightsFiltersBar: React.FC<AllFlightsFiltersBarProps> = ({
         <div className="mt-400 grid grid-cols-1 md:grid-cols-2 gap-400">
           {/* Date Range Picker */}
           <DateRangePicker 
-            dateRange={dateRange}
+            dateRange={safeRange}
             onDateRangeChange={onDateRangeChange}
             disabled={isLoading}
           />

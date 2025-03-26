@@ -17,12 +17,6 @@ import {
 import { DateRangeType, DateRangeValue } from './DateRangeFilter';
 import { Label } from '@/components/ui/label';
 import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -116,9 +110,9 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
               
               <div className="w-full md:w-auto">
                 <DateRangePicker 
-                  value={selectedDateRange}
-                  onChange={handleDatePickerChange}
-                  isDisabled={isLoading}
+                  dateRange={selectedDateRange}
+                  onDateRangeChange={handleDatePickerChange}
+                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -163,8 +157,11 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
       
       {/* Advanced Filters Dialog */}
       <AdvancedFilters
-        open={advancedFiltersOpen}
-        onOpenChange={setAdvancedFiltersOpen}
+        triggerType="all"
+        setTriggerType={() => {}}
+        selectedDrones={[]}
+        setSelectedDrones={() => {}}
+        isLoading={isLoading}
       />
     </Card>
   );
