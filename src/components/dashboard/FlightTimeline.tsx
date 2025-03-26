@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { BarChart, XAxis, YAxis, Bar, Tooltip, CartesianGrid, Legend } from 'recharts';
 import { Loader, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -352,7 +353,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
         </div>
       ) : (
         <>
-          <div className="flex items-center justify-between mb-400">
+          <div className="flex items-center justify-between mb-300">
             <div className="flex items-center space-x-200">
               <Button 
                 variant="outline" 
@@ -384,26 +385,29 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
             </div>
           </div>
           
-          <ChartContainer config={chartConfig} className="w-full h-[400px]">
+          <ChartContainer config={chartConfig} className="w-full h-[350px]">
             <BarChart 
               data={data} 
-              margin={{ top: 20, right: 30, left: 20, bottom: 25 }}
+              margin={{ top: 10, right: 30, left: 20, bottom: 30 }}
               width={800}
-              height={400}
+              height={350}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
               <XAxis 
                 dataKey="name" 
                 tick={{ fill: 'rgba(255,255,255,0.54)' }} 
                 axisLine={{ stroke: 'rgba(255,255,255,0.12)' }}
-                tickMargin={10}
+                tickMargin={15}
                 scale="point"
-                padding={{ left: 20, right: 20 }}
+                padding={{ left: 30, right: 30 }}
+                height={30}
+                tickSize={0}
               />
               <YAxis 
                 tick={{ fill: 'rgba(255,255,255,0.54)' }} 
                 axisLine={{ stroke: 'rgba(255,255,255,0.12)' }}
                 tickMargin={10}
+                tickSize={0}
               />
               <ChartTooltip 
                 content={<CustomTooltip />} 
@@ -420,7 +424,8 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
                   activeBar={{ fill: '#33BBFF', stroke: '#77DDFF', strokeWidth: 2 }}
                   shape={<CustomBar />}
                   isAnimationActive={true}
-                  barSize={dateRange === 'daily' ? 40 : 60}
+                  barSize={dateRange === 'daily' ? 40 : 50}
+                  maxBarSize={60}
                 />
               ) : (
                 <>
@@ -435,7 +440,8 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
                     activeBar={{ fill: '#25D684', stroke: '#77DDFF', strokeWidth: 1 }}
                     shape={<CustomBar />}
                     isAnimationActive={true}
-                    barSize={dateRange === 'daily' ? 40 : 60}
+                    barSize={dateRange === 'daily' ? 40 : 50}
+                    maxBarSize={60}
                   />
                   <Bar 
                     dataKey="failed" 

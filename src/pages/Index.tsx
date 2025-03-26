@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { DateRangeType } from '@/components/dashboard/DateRangeFilter';
@@ -29,10 +28,10 @@ const Index = () => {
   // Updated counts to match the failure data
   const totalFlights = 30;
   const failedFlights = 15; // Sum of all failures in the categories
-
+  
   return (
     <DashboardLayout title="Flight Logs Dashboard">
-      <div className="mb-600">
+      <div className="mb-500">
         <div className="flex flex-wrap items-center justify-between">
           <div>
             <h1 className="fb-mega text-text-icon-01">Flight Logs Dashboard</h1>
@@ -42,7 +41,7 @@ const Index = () => {
       </div>
       
       {/* Improved Filters Section */}
-      <div className="mb-600">
+      <div className="mb-400">
         <FiltersBar 
           dateRange={dateRange}
           onDateRangeChange={handleDateRangeChange}
@@ -51,8 +50,8 @@ const Index = () => {
       </div>
       
       {/* Dashboard Overview Section */}
-      <div className="mb-600">
-        <h2 className="fb-title1-medium text-text-icon-01 mb-400">Dashboard Overview</h2>
+      <div className="mb-400">
+        <h2 className="fb-title1-medium text-text-icon-01 mb-300">Dashboard Overview</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-400">
           <MetricCard
             title="Total Flights"
@@ -85,8 +84,8 @@ const Index = () => {
       />
       
       {/* Flight Timeline Section */}
-      <div className="flybase-card p-400 mb-600 rounded-xl shadow-sm w-full">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-400">
+      <div className="flybase-card p-300 mb-400 rounded-xl shadow-sm w-full">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-300">
           <h2 className="fb-title1-medium text-text-icon-01">Flight Timeline</h2>
           <div className="flex items-center mt-200 sm:mt-0 space-x-200 bg-background-level-3 rounded-full p-100">
             <button 
@@ -104,7 +103,7 @@ const Index = () => {
           </div>
         </div>
         
-        <div className="w-full h-[400px]">
+        <div className="w-full h-[350px]">
           <FlightTimeline 
             viewType={timelineView} 
             dateRange={dateRange} 
@@ -114,7 +113,7 @@ const Index = () => {
       </div>
       
       {/* Recent Flights Section */}
-      <div className="flybase-card p-400 mb-600 rounded-xl shadow-sm">
+      <div className="flybase-card p-400 mb-500 rounded-xl shadow-sm">
         <h2 className="fb-title1-medium text-text-icon-01 mb-400">Recent Flights</h2>
         <RecentFlightsTable isLoading={isLoading} />
       </div>
