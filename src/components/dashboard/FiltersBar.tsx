@@ -1,14 +1,12 @@
-
 import React, { useState } from 'react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectSeparator } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Calendar as CalendarIcon, ChevronDown, Filter, RefreshCw, CheckSquare, Target, Route, Zap, BellRing, Search } from 'lucide-react';
+import { ChevronDown, Filter, RefreshCw, CheckSquare, Target, Route, Zap, BellRing, Search } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { DateRangeType } from './DateRangeFilter';
 import AdvancedFilters from './AdvancedFilters';
 import FilterChip from './FilterChip';
@@ -34,19 +32,6 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
   const [showAdvancedFilters, setShowAdvancedFilters] = useState<boolean>(false);
   const [triggerType, setTriggerType] = useState<string>('all');
   const [selectedDrones, setSelectedDrones] = useState<string[]>([]);
-
-  // Initialize with today and a week from today
-  const today = new Date();
-  const oneWeekLater = addDays(today, 7);
-  const [date, setDate] = useState<DateRange | undefined>({
-    from: today,
-    to: oneWeekLater
-  });
-  
-  const handleDateRangeSelect = (selectedRange: DateRange | undefined) => {
-    // Only update if we have a valid selection and clear any existing selection first
-    setDate(selectedRange);
-  };
   
   const resetFilters = () => {
     onDateRangeChange('monthly');
@@ -54,10 +39,6 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
     setIncludeManual(false);
     setTriggerType('all');
     setSelectedDrones([]);
-    setDate({
-      from: today,
-      to: oneWeekLater
-    });
   };
   
   const advancedFilterCount = (triggerType !== 'all' ? 1 : 0) + (selectedDrones.length > 0 ? 1 : 0);
@@ -96,15 +77,6 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
     }
   };
   
-  // Custom CSS for styling the today's date in the calendar
-  const modifiersStyles = {
-    today: {
-      fontWeight: 'bold',
-      border: '1px solid #496DC8',
-      color: 'white'
-    }
-  };
-  
   return (
     <div className="rounded-xl overflow-hidden shadow-sm border border-outline-primary">
       <div className="bg-background-level-3 p-400">
@@ -138,52 +110,7 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
           </div>
         </div>
 
-        <div className="mt-400 grid grid-cols-1 md:grid-cols-3 gap-400">
-          {/* Date Range Filter */}
-          <div>
-            <Label htmlFor="date-range" className="text-sm text-text-icon-02 mb-100 block">Date Range</Label>
-            <div className="flex gap-200 items-center">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button 
-                    id="date-range" 
-                    variant="outline" 
-                    className={cn(
-                      "w-full justify-start text-left font-normal bg-background-level-3 border-outline-primary", 
-                      isLoading && "opacity-70 cursor-not-allowed"
-                    )} 
-                    disabled={isLoading}
-                  >
-                    <CalendarIcon className="h-4 w-4 mr-2 text-primary-100" />
-                    <span className="text-text-icon-01/84">
-                      {date?.from ? (
-                        date.to ? (
-                          <>
-                            {format(date.from, "MMM d, yyyy")} - {format(date.to, "MMM d, yyyy")}
-                          </>
-                        ) : format(date.from, "MMM d, yyyy")
-                      ) : (
-                        <span>Select date range</span>
-                      )}
-                    </span>
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-background-level-3 border border-[rgba(255,255,255,0.08)] shadow-lg" align="start">
-                  <CalendarComponent 
-                    mode="range" 
-                    defaultMonth={date?.from} 
-                    selected={date} 
-                    onSelect={handleDateRangeSelect} 
-                    numberOfMonths={2}
-                    modifiers={{ today: new Date() }}
-                    modifiersStyles={modifiersStyles}
-                    className="pointer-events-auto"
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-          </div>
-
+        <div className="mt-400 grid grid-cols-1 md:grid-cols-2 gap-400">
           {/* Time Period Toggle Group */}
           <div>
             <Label className="text-sm text-text-icon-02 mb-100 block">Time Period</Label>
@@ -245,28 +172,27 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
                     <span>Mission</span>
                   </div>
                 </SelectItem>
+                <SelectSeparator />
+                <div className="px-2 py-2 flex items-center gap-2">
+                  <Checkbox 
+                    id="manual-ops" 
+                    checked={includeManual} 
+                    onCheckedChange={checked => setIncludeManual(checked as boolean)} 
+                    className="data-[state=checked]:bg-primary-200 border-outline-primary h-5 w-5" 
+                  />
+                  <Label 
+                    htmlFor="manual-ops" 
+                    className="text-text-icon-01 cursor-pointer text-sm"
+                  >
+                    Include manual operations
+                  </Label>
+                </div>
               </SelectContent>
             </Select>
           </div>
         </div>
 
-        <div className="mt-400 flex flex-col sm:flex-row sm:items-center gap-400 justify-between">
-          {/* Include Manual Operations Checkbox */}
-          <div className="flex items-center gap-200">
-            <Checkbox 
-              id="manual-ops" 
-              checked={includeManual} 
-              onCheckedChange={checked => setIncludeManual(checked as boolean)} 
-              className="data-[state=checked]:bg-primary-200 border-outline-primary h-5 w-5" 
-            />
-            <Label 
-              htmlFor="manual-ops" 
-              className="text-text-icon-01 cursor-pointer"
-            >
-              Include manual operations
-            </Label>
-          </div>
-
+        <div className="mt-400 flex flex-col sm:flex-row sm:items-center gap-400 justify-end">
           {/* Advanced Filters Button */}
           <Button 
             variant="outline" 
