@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { BarChart, XAxis, YAxis, Bar, Tooltip, CartesianGrid, Legend } from 'recharts';
 import { Loader, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -138,27 +137,54 @@ const CustomBar = (props: any) => {
   if (isFuture) {
     return (
       <g>
+        <defs>
+          <pattern id="diagonalHatch" patternUnits="userSpaceOnUse" width="4" height="4" patternTransform="rotate(45)">
+            <path d="M -1,1 l 2,-2
+                   M 0,4 l 4,-4
+                   M 3,5 l 2,-2" 
+                  stroke="rgba(255, 255, 255, 0.3)" 
+                  strokeWidth="0.5"/>
+          </pattern>
+        </defs>
         <rect 
           x={x} 
           y={y} 
           width={width} 
           height={height} 
-          fill="rgba(255, 255, 255, 0.08)"
-          stroke="rgba(255, 255, 255, 0.2)"
+          fill="url(#diagonalHatch)"
+          stroke="rgba(255, 255, 255, 0.15)"
           strokeWidth={1}
-          strokeDasharray="3 3"
           rx={4}
           ry={4}
           {...rest}
+        />
+        <rect
+          x={x}
+          y={y}
+          width={width}
+          height={height}
+          fill="rgba(255, 255, 255, 0.03)"
+          rx={4}
+          ry={4}
+        />
+        <rect
+          x={x}
+          y={y + height - 2}
+          width={width}
+          height={2}
+          fill="rgba(255, 255, 255, 0.08)"
+          rx={1}
         />
         <text
           x={x + width / 2}
           y={y + height / 2 + 5}
           textAnchor="middle"
-          fill="rgba(255, 255, 255, 0.4)"
-          fontSize="10"
+          fill="rgba(255, 255, 255, 0.5)"
+          fontSize="9"
+          fontWeight="500"
+          letterSpacing="0.5"
         >
-          Future
+          FUTURE
         </text>
       </g>
     );
@@ -271,12 +297,18 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     
     if (isFuturePeriod) {
       return (
-        <div className="flybase-card p-300 border shadow-lg rounded-lg border-outline-primary bg-background-level-2/80">
-          <p className="fb-body1-medium mb-100 text-text-icon-01">
-            {label} - Future
-          </p>
+        <div className="flybase-card p-300 border shadow-lg rounded-lg border-outline-primary bg-background-level-2/80 backdrop-blur-sm">
+          <div className="flex items-center gap-2 mb-100">
+            <span className="inline-block w-2 h-2 rounded-full bg-text-icon-02/50"></span>
+            <p className="fb-body1-medium text-text-icon-01">
+              {label}
+            </p>
+          </div>
+          <div className="flex items-center gap-2 pb-100 mb-100 border-b border-outline-primary/50">
+            <span className="text-xs py-1 px-2 bg-background-level-3 rounded-full text-text-icon-02 font-medium">FUTURE</span>
+          </div>
           <p className="fb-body2-regular text-text-icon-02">
-            No flight data available for future dates
+            No flight data available yet
           </p>
         </div>
       );
