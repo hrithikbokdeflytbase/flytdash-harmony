@@ -7,6 +7,7 @@ import VideoFeed from '@/components/flight-details/VideoFeed';
 import FlightMap from '@/components/flight-details/FlightMap';
 import FlightTimeline from '@/components/flight-details/FlightTimeline';
 import FlightDetailsPanel from '@/components/flight-details/FlightDetailsPanel';
+import DetailsPanelHeader from '@/components/flight-details/DetailsPanelHeader';
 
 // View mode type
 type ViewMode = 'map' | 'video' | 'split';
@@ -117,9 +118,7 @@ const mockWaypoints = [{
   index: 3
 }];
 const FlightDetails = () => {
-  const {
-    flightId
-  } = useParams();
+  const { flightId } = useParams();
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<ViewMode>('split');
 
@@ -377,7 +376,8 @@ const FlightDetails = () => {
     console.log(`Fetching flight details for flight: ${flightId}`);
     // This would be replaced with actual API call
   }, [flightId]);
-  return <div className="flex flex-col h-screen bg-[#111113]">
+  return (
+    <div className="flex flex-col h-screen bg-[#111113]">
       {/* Top Bar - Map/Video Controls */}
       <header className="bg-background-level-1 p-400 flex items-center justify-between z-10">
         <Button variant="ghost" className="flex items-center gap-200 text-text-icon-01" onClick={() => navigate(-1)}>
@@ -407,14 +407,70 @@ const FlightDetails = () => {
       
       {/* Main Content Area - Fixed layout with timeline at bottom */}
       <div className="flex flex-col h-[calc(100vh-65px)]">
-        {/* Content panels - with fixed height */}
-        
+        {/* Content panels - with fixed height to leave space for timeline */}
+        <div className="h-[calc(100vh-265px)] grid grid-cols-12 gap-400 p-400">
+          {/* Map Panel - Conditionally shown based on viewMode */}
+          {(viewMode === 'map' || viewMode === 'split') && (
+            <div className={cn(
+              "bg-background-level-1 rounded-md overflow-hidden",
+              viewMode === 'map' ? 'col-span-12' : 'col-span-6'
+            )}>
+              <FlightMap 
+                flightPath={mockFlightPath} 
+                waypoints={mockWaypoints} 
+                isLoading={mapLoading}
+                currentPosition={currentMapPosition}
+              />
+            </div>
+          )}
+          
+          {/* Video Panel - Conditionally shown based on viewMode */}
+          {(viewMode === 'video' || viewMode === 'split') && (
+            <div className={cn(
+              "bg-background-level-1 rounded-md p-400",
+              viewMode === 'video' ? 'col-span-8' : 'col-span-6'
+            )}>
+              <VideoFeed 
+                cameraType={cameraType}
+                videoState={videoState}
+                timelinePosition={timelinePosition}
+                videoSegments={videoSegments}
+                onPositionUpdate={handleVideoPositionUpdate}
+                onJumpToNearestVideo={() => handleTimelinePositionChange('00:10:30')}
+              />
+            </div>
+          )}
+          
+          {/* Flight Details Panel - Always shown but width varies */}
+          <div className={cn(
+            "bg-background-level-1 rounded-md overflow-hidden",
+            viewMode === 'map' ? 'col-span-6' : 
+            viewMode === 'video' ? 'col-span-4' : 'col-span-6'
+          )}>
+            <FlightDetailsPanel 
+              flightId={flightId || 'unknown'} 
+              flightMode={mockFlightPath[0]?.flightMode || 'unknown'} 
+              timestamp={timelinePosition?.timestamp || '00:00:00'} 
+            />
+          </div>
+        </div>
         
         {/* Timeline - Fixed at bottom */}
-        <div className="h-[200px] bg-background-level-1 w-full">
-          <FlightTimeline currentPosition={timelinePosition} videoSegments={videoSegments} flightDuration="00:25:30" onPositionChange={handleTimelinePositionChange} missionPhases={missionPhases} systemEvents={systemEvents} warningEvents={warningEvents} mediaActions={mediaActions} />
+        <div className="h-[200px] bg-background-level-1 w-full mt-400">
+          <FlightTimeline 
+            currentPosition={timelinePosition} 
+            videoSegments={videoSegments} 
+            flightDuration="00:25:30" 
+            onPositionChange={handleTimelinePositionChange} 
+            missionPhases={missionPhases} 
+            systemEvents={systemEvents} 
+            warningEvents={warningEvents} 
+            mediaActions={mediaActions} 
+          />
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default FlightDetails;

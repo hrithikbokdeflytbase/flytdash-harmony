@@ -14,12 +14,12 @@ const DetailsPanelHeader: React.FC<DetailsPanelHeaderProps> = ({
   timestamp
 }) => {
   return (
-    <div className="flex items-center justify-between px-4 h-[45px] border-b border-outline-primary">
+    <div className="flex items-center justify-between px-4 h-[45px] border-b border-outline-primary bg-background-level-2">
       <div className="flex items-center gap-2">
         <Badge variant="flight" className="bg-primary-200 text-text-icon-01 rounded-[10px] py-1 px-3 text-xs font-medium">
           {flightMode}
         </Badge>
-        <span className="text-text-icon-01 text-sm">#{flightId}</span>
+        <span className="text-text-icon-01 text-sm font-medium">#{flightId}</span>
       </div>
       <div className="bg-background-level-3 px-3 py-1 rounded-md">
         <span className="text-text-icon-01 fb-body2-regular">{timestamp}</span>
