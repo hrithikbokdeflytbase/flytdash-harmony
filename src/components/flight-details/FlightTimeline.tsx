@@ -717,3 +717,10 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
               {flightDuration}
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default FlightTimeline;
