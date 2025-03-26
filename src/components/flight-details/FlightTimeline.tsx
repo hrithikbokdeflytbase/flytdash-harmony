@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Settings, Info, PlayCircle, SkipBack, SkipForward, Pause, ChevronDown, ChevronUp, Circle, Square, 
   Triangle, Octagon, Camera, Video, AlertTriangle, AlertOctagon, Check, X, AlertCircle } from 'lucide-react';
@@ -272,17 +271,19 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
     type: e.type
   })));
 
-  // Current time indicator (vertical line)
+  // Current time indicator (vertical line) - Modified to match requirements
   const CurrentTimeIndicator = () => {
     return (
       <div 
-        className="absolute top-0 h-full border-l-2 border-error-200 z-20"
+        className="absolute top-0 h-full border-l-2 border-dashed border-error-200 z-50"
         style={{ 
           left: `${currentPercentage}%`,
-          height: '100%'
+          height: '100%',
+          pointerEvents: 'none' // Allows clicking through the line
         }}
       >
-        <div className="absolute -top-2 -translate-x-1/2 w-4 h-4 rounded-full bg-error-200 animate-pulse shadow-lg"></div>
+        {/* Bottom circular indicator */}
+        <div className="absolute bottom-0 -translate-x-1/2 w-4 h-4 rounded-full bg-error-200 shadow-lg"></div>
       </div>
     );
   };
@@ -708,7 +709,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
           </div>
         )}
         
-        {/* Current time indicator (vertical line across all tracks) */}
+        {/* Current time indicator (vertical line across all tracks) - Now at higher z-index */}
         <CurrentTimeIndicator />
         
         {/* Mission Phases Track */}
@@ -743,9 +744,9 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
             onValueChange={handleSliderChange}
             className="w-full"
           />
-          {/* Visual connection between slider thumb and position indicator */}
+          {/* Visual connection between slider thumb and position indicator - Made less visible */}
           <div 
-            className="absolute -top-[15px] w-[2px] h-[15px] bg-error-200 z-10"
+            className="absolute -top-[15px] w-[2px] h-[15px] bg-transparent z-10"
             style={{ left: `calc(${currentPercentage}% - 1px)` }}
           />
         </div>
