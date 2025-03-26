@@ -620,30 +620,30 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
     );
   };
   
-  // Enhanced Playback controls with more compact layout
+  // Enhanced Playback controls with more compact and centered layout
   const PlaybackControls = () => {
     return (
-      <div className="flex items-center space-x-1">
+      <div className="flex items-center justify-center gap-2">
         <Button 
           variant="ghost" 
           size="icon" 
           onClick={skipBackward}
           aria-label="Skip backward 30 seconds"
-          className="h-7 w-7"
+          className="h-8 w-8"
         >
-          <SkipBack className="h-3 w-3" />
+          <SkipBack className="h-4 w-4" />
         </Button>
         <Button 
           variant="ghost" 
           size="icon" 
           onClick={togglePlayback}
           aria-label={isPlaying ? "Pause playback" : "Start playback"}
-          className="h-7 w-7"
+          className="h-9 w-9"
         >
           {isPlaying ? (
-            <Pause className="h-4 w-4" />
+            <Pause className="h-5 w-5" />
           ) : (
-            <PlayCircle className="h-4 w-4" />
+            <PlayCircle className="h-5 w-5" />
           )}
         </Button>
         <Button 
@@ -651,23 +651,20 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
           size="icon" 
           onClick={skipForward}
           aria-label="Skip forward 30 seconds"
-          className="h-7 w-7"
+          className="h-8 w-8"
         >
-          <SkipForward className="h-3 w-3" />
+          <SkipForward className="h-4 w-4" />
         </Button>
-        <div className="text-xs text-text-icon-02 w-14 text-right mr-1">
-          {currentPosition.timestamp}
-        </div>
       </div>
     );
   };
   
   return (
-    <div className="h-[240px] w-full bg-background-level-2 border-t border-t-white/[0.08]" aria-label="Flight timeline">
+    <div className="h-[265px] w-full bg-background-level-2 border-t border-t-white/[0.08]" aria-label="Flight timeline">
       {/* Main timeline container */}
       <div className="flex flex-col h-full">
         {/* Top section - tracks */}
-        <div className="flex-1 px-4 pt-4 pb-2 overflow-y-auto space-y-2" ref={tracksContainerRef}>
+        <div className="flex-1 px-4 pt-4 pb-0 overflow-y-auto space-y-2" ref={tracksContainerRef}>
           {renderMissionPhasesTrack()}
           {renderMediaTrack()}
           {renderSystemEventsTrack()}
@@ -675,7 +672,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
           
           {/* Event hover info display */}
           {hoveredEvent && (
-            <div className="absolute bottom-20 left-4 bg-background-level-3/90 backdrop-blur-sm p-2 rounded-md border border-outline-primary text-xs z-50 max-w-xs">
+            <div className="absolute bottom-24 left-4 bg-background-level-3/90 backdrop-blur-sm p-2 rounded-md border border-outline-primary text-xs z-50 max-w-xs">
               <p className="text-text-icon-01 font-medium">{hoveredEvent.type}</p>
               <p className="text-text-icon-02">{hoveredEvent.details}</p>
               <p className="text-text-icon-02 text-primary-100">{hoveredEvent.timestamp}</p>
@@ -683,23 +680,32 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
           )}
         </div>
         
-        {/* Bottom section - slider and controls */}
-        <div className="px-4 pb-4 relative">
+        {/* Bottom section - slider and controls in a new layout */}
+        <div className="px-4 pb-3 relative mt-1">
           {/* Current time indicator line */}
           <CurrentTimeIndicator />
           
-          {/* Improved alignment: using a grid layout with proper column sizes */}
-          <div className="grid grid-cols-[auto_1fr_auto] items-center gap-2">
-            <PlaybackControls />
+          {/* Slider that spans full width and aligns with tracks */}
+          <div className="w-full">
             <Slider
               value={[sliderValue]}
               max={100}
               step={0.1}
               onValueChange={handleSliderChange}
               aria-label="Timeline position"
-              className="col-start-2"
+              className="w-full z-30"
             />
-            <div className="text-xs text-text-icon-02 w-14 text-right">
+          </div>
+          
+          {/* Controls and timestamps below the slider */}
+          <div className="flex items-center justify-between mt-2">
+            <div className="text-xs text-text-icon-02 w-16">
+              {currentPosition.timestamp}
+            </div>
+            
+            <PlaybackControls />
+            
+            <div className="text-xs text-text-icon-02 w-16 text-right">
               {flightDuration}
             </div>
           </div>
