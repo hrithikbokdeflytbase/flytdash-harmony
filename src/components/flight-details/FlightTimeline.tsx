@@ -620,16 +620,16 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
     );
   };
   
-  // Enhanced Playback controls
+  // Enhanced Playback controls with more compact layout
   const PlaybackControls = () => {
     return (
-      <div className="flex items-center space-x-2 h-8">
+      <div className="flex items-center space-x-1">
         <Button 
           variant="ghost" 
           size="icon" 
           onClick={skipBackward}
           aria-label="Skip backward 30 seconds"
-          className="h-8 w-8"
+          className="h-7 w-7"
         >
           <SkipBack className="h-3 w-3" />
         </Button>
@@ -638,7 +638,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
           size="icon" 
           onClick={togglePlayback}
           aria-label={isPlaying ? "Pause playback" : "Start playback"}
-          className="h-8 w-8"
+          className="h-7 w-7"
         >
           {isPlaying ? (
             <Pause className="h-4 w-4" />
@@ -651,11 +651,11 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
           size="icon" 
           onClick={skipForward}
           aria-label="Skip forward 30 seconds"
-          className="h-8 w-8"
+          className="h-7 w-7"
         >
           <SkipForward className="h-3 w-3" />
         </Button>
-        <div className="text-xs text-text-icon-02 ml-1 w-16 text-right">
+        <div className="text-xs text-text-icon-02 w-14 text-right mr-1">
           {currentPosition.timestamp}
         </div>
       </div>
@@ -667,13 +667,13 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
       {/* Main timeline container */}
       <div className="flex flex-col h-full">
         {/* Top section - tracks */}
-        <div className="flex-1 p-4 overflow-y-auto space-y-2" ref={tracksContainerRef}>
+        <div className="flex-1 px-4 pt-4 pb-2 overflow-y-auto space-y-2" ref={tracksContainerRef}>
           {renderMissionPhasesTrack()}
           {renderMediaTrack()}
           {renderSystemEventsTrack()}
           {renderWarningEventsTrack()}
           
-          {/* Event hover info display - KEEP ONLY THIS TOOLTIP, removed the one at the right side */}
+          {/* Event hover info display */}
           {hoveredEvent && (
             <div className="absolute bottom-20 left-4 bg-background-level-3/90 backdrop-blur-sm p-2 rounded-md border border-outline-primary text-xs z-50 max-w-xs">
               <p className="text-text-icon-01 font-medium">{hoveredEvent.type}</p>
@@ -684,22 +684,22 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
         </div>
         
         {/* Bottom section - slider and controls */}
-        <div className="p-4 pt-0 relative">
-          {/* Current time indicator line - for precise visual alignment */}
+        <div className="px-4 pb-4 relative">
+          {/* Current time indicator line */}
           <CurrentTimeIndicator />
           
-          <div className="flex items-center mb-1">
+          {/* Improved alignment: using a grid layout with proper column sizes */}
+          <div className="grid grid-cols-[auto_1fr_auto] items-center gap-2">
             <PlaybackControls />
-            <div className="flex-1 mx-2">
-              <Slider
-                value={[sliderValue]}
-                max={100}
-                step={0.1}
-                onValueChange={handleSliderChange}
-                aria-label="Timeline position"
-              />
-            </div>
-            <div className="text-xs text-text-icon-02 w-20">
+            <Slider
+              value={[sliderValue]}
+              max={100}
+              step={0.1}
+              onValueChange={handleSliderChange}
+              aria-label="Timeline position"
+              className="col-start-2"
+            />
+            <div className="text-xs text-text-icon-02 w-14 text-right">
               {flightDuration}
             </div>
           </div>
