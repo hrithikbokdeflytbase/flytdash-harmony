@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { BarChart, XAxis, YAxis, Bar, Tooltip, CartesianGrid, Legend } from 'recharts';
 import { Loader, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -111,7 +110,7 @@ const generateMockData = (dateRange: DateRangeType, viewType: ViewType, currentD
   return [];
 };
 
-// Enhanced CustomBar component with improved current period highlighting
+// Enhanced CustomBar component with significantly improved current period highlighting
 const CustomBar = (props: any) => {
   const { x, y, width, height, isCurrent, fill, dataKey, ...rest } = props;
   
@@ -122,7 +121,6 @@ const CustomBar = (props: any) => {
     const baseColor = fill;
     const lighterColor = (() => {
       // Create a lighter version of the base color for the gradient
-      // This is a simple approach; you could use a color library for more control
       if (baseColor === '#3399FF') return '#66BBFF'; // For total flights
       if (baseColor === '#1EAE6D') return '#25D684'; // For successful
       if (baseColor === '#F8473A') return '#FF5F52'; // For failed 
@@ -137,23 +135,34 @@ const CustomBar = (props: any) => {
             <stop offset="0%" stopColor={lighterColor} />
             <stop offset="100%" stopColor={baseColor} />
           </linearGradient>
+          {/* Add outer glow filter */}
+          <filter id={`glow-${dataKey}`} x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="4" result="blur" />
+            <feFlood floodColor="#9b87f5" floodOpacity="0.5" result="color" />
+            <feComposite operator="in" in="color" in2="blur" result="glow" />
+            <feMerge>
+              <feMergeNode in="glow" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
         </defs>
-        {/* Bar with gradient fill */}
+        {/* Bar with gradient fill and glow effect */}
         <rect 
           x={x} 
           y={y} 
           width={width} 
           height={height} 
           fill={`url(#${gradientId})`}
-          stroke="#fff"
-          strokeWidth={1}
-          strokeOpacity={0.3}
+          stroke="#ffffff"
+          strokeWidth={2}
+          strokeOpacity={0.5}
           rx={4}
           ry={4}
-          className="drop-shadow-md"
+          filter={`url(#glow-${dataKey})`}
+          className="drop-shadow-lg"
           {...rest}
         />
-        {/* Glow effect */}
+        {/* Highlight indicator at bottom */}
         <rect
           x={x}
           y={y + height - 4}
@@ -162,17 +171,29 @@ const CustomBar = (props: any) => {
           fill="#9b87f5"
           rx={2}
           className="animate-pulse"
-          style={{ filter: 'drop-shadow(0 0 3px rgba(155, 135, 245, 0.7))' }}
+          style={{ filter: 'drop-shadow(0 0 5px rgba(155, 135, 245, 0.9))' }}
         />
-        {/* Additional highlight dot at the top */}
+        {/* Star/highlight at top */}
         <circle
           cx={x + width / 2}
-          cy={y}
-          r={2}
-          fill="#fff"
+          cy={y - 5}
+          r={4}
+          fill="#9b87f5"
           className="animate-pulse"
-          style={{ filter: 'drop-shadow(0 0 2px rgba(255, 255, 255, 0.9))' }}
+          style={{ filter: 'drop-shadow(0 0 3px rgba(255, 255, 255, 1))' }}
         />
+        {/* "Current" label on top */}
+        <text
+          x={x + width / 2}
+          y={y - 12}
+          textAnchor="middle"
+          fill="#ffffff"
+          fontSize="10"
+          fontWeight="bold"
+          style={{ filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5))' }}
+        >
+          CURRENT
+        </text>
       </g>
     );
   }
