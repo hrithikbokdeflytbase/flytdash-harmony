@@ -14,7 +14,7 @@ import AdvancedFilters from './AdvancedFilters';
 import FilterChip from './FilterChip';
 import { cn } from '@/lib/utils';
 import { DateRange } from 'react-day-picker';
-import { format, addDays } from 'date-fns';
+import { format, addDays, isToday } from 'date-fns';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
@@ -44,10 +44,8 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
   });
   
   const handleDateRangeSelect = (selectedRange: DateRange | undefined) => {
-    // Only update if we have a valid selection
-    if (selectedRange) {
-      setDate(selectedRange);
-    }
+    // Only update if we have a valid selection and clear any existing selection first
+    setDate(selectedRange);
   };
   
   const resetFilters = () => {
@@ -95,6 +93,15 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
         break;
       default:
         break;
+    }
+  };
+  
+  // Custom CSS for styling the today's date in the calendar
+  const modifiersStyles = {
+    today: {
+      fontWeight: 'bold',
+      border: '1px solid #496DC8',
+      color: 'white'
     }
   };
   
@@ -167,7 +174,10 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
                     defaultMonth={date?.from} 
                     selected={date} 
                     onSelect={handleDateRangeSelect} 
-                    numberOfMonths={2} 
+                    numberOfMonths={2}
+                    modifiers={{ today: new Date() }}
+                    modifiersStyles={modifiersStyles}
+                    className="pointer-events-auto"
                   />
                 </PopoverContent>
               </Popover>
