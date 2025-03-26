@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Settings, Info, PlayCircle, SkipBack, SkipForward, Pause, ChevronDown, ChevronUp, Circle, Square, Triangle, Octagon, Camera, Video, AlertTriangle, AlertOctagon, Check, X, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -712,4 +713,141 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
                               onMouseLeave={() => setHoveredEvent(null)}
                             >
                               <div className="flex items-center justify-center h-5 w-5 rounded bg-secondary-50/20 border border-secondary-50/50 shadow-sm">
-                                {getSystemEventIcon
+                                {getSystemEventIcon(event.type)}
+                              </div>
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent className="p-200 bg-background-level-3 border-outline-primary">
+                            <p className="text-xs text-text-icon-01">{event.type}</p>
+                            <p className="text-xs text-text-icon-02">{event.details}</p>
+                            <p className="text-xs text-text-icon-02">{event.timestamp}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    );
+                  };
+                  
+                  return renderClusterOrMarker(
+                    cluster, 
+                    renderSystemEventMarker, 
+                    "bg-secondary-50/30"
+                  );
+                })}
+              </div>
+            </CollapsibleContent>
+          </div>
+        </Collapsible>
+        
+        {/* Warnings/Errors Track - Event Track */}
+        <Collapsible
+          open={expandedTracks.warnings}
+          onOpenChange={() => toggleTrackExpansion('warnings')}
+          className="track-container"
+        >
+          <div className="h-[40px] bg-background-level-3 rounded-[8px] overflow-hidden">
+            <CollapsibleTrigger asChild>
+              <div className="px-[12px] py-[4px] flex items-center justify-between cursor-pointer hover:bg-background-level-4/50">
+                <span className="text-[12px] text-text-icon-01">Warnings & Errors</span>
+                {expandedTracks.warnings ? 
+                  <ChevronUp className="h-[14px] w-[14px] text-text-icon-02" /> : 
+                  <ChevronDown className="h-[14px] w-[14px] text-text-icon-02" />
+                }
+              </div>
+            </CollapsibleTrigger>
+            
+            <CollapsibleContent className="px-[12px]">
+              <div className="h-[20px] w-full relative flex items-center">
+                {warningEventClusters.map((cluster, index) => {
+                  const renderWarningEventMarker = (event: WarningEvent) => {
+                    const leftPos = getPositionPercentage(event.timestamp);
+                    const colorClass = getWarningColor(event.type, event.severity);
+                    const isHighSeverity = event.severity === 'high';
+                    
+                    return (
+                      <TooltipProvider key={`warning-${index}`}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div
+                              className={`absolute top-1/2 -translate-y-1/2 transform -translate-x-1/2 cursor-pointer transition-transform hover:scale-110 ${isHighSeverity ? 'animate-pulse' : ''}`}
+                              style={{ left: `${leftPos}%` }}
+                              onMouseEnter={() => setHoveredEvent({
+                                type: event.type.toUpperCase(),
+                                details: event.details,
+                                timestamp: event.timestamp
+                              })}
+                              onMouseLeave={() => setHoveredEvent(null)}
+                            >
+                              {event.type === 'warning' ? (
+                                <div className={`flex items-center justify-center h-5 w-5 ${isHighSeverity ? 'h-6 w-6' : ''}`}>
+                                  <Triangle 
+                                    className={`h-full w-full ${colorClass}`}
+                                    fill="rgba(253, 176, 34, 0.15)" 
+                                    strokeWidth={2}
+                                  />
+                                  <AlertTriangle className="absolute h-3 w-3 text-white" />
+                                </div>
+                              ) : (
+                                <div className={`flex items-center justify-center h-5 w-5 ${isHighSeverity ? 'h-6 w-6' : ''}`}>
+                                  <Octagon 
+                                    className={`h-full w-full ${colorClass}`}
+                                    fill="rgba(248, 71, 58, 0.15)" 
+                                    strokeWidth={2} 
+                                  />
+                                  <X className="absolute h-3 w-3 text-white" />
+                                </div>
+                              )}
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent className="p-200 bg-background-level-3 border-outline-primary">
+                            <div className="flex items-center gap-2">
+                              <Badge variant={event.type === 'warning' ? "secondary" : "destructive"} className={`uppercase text-[10px] ${event.type === 'warning' ? 'bg-amber-600 text-white' : ''}`}>
+                                {event.severity} {event.type}
+                              </Badge>
+                            </div>
+                            <p className="text-xs text-text-icon-02 mt-1">{event.details}</p>
+                            <p className="text-xs text-text-icon-02">{event.timestamp}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    );
+                  };
+                  
+                  return renderClusterOrMarker(
+                    cluster, 
+                    renderWarningEventMarker, 
+                    "bg-caution-100/30"
+                  );
+                })}
+              </div>
+            </CollapsibleContent>
+          </div>
+        </Collapsible>
+        
+        {/* Media Actions Track */}
+        {renderMediaActionsTrack()}
+      </div>
+      
+      {/* Timeline Bottom Section - 60px height */}
+      <div className="h-[60px] px-[16px] py-[8px] flex items-center justify-between">
+        <PlaybackControls />
+        
+        <div className="flex-1 max-w-[500px] mx-[16px]">
+          <Slider
+            value={[currentPercentage]}
+            min={0}
+            max={100}
+            step={0.1}
+            onValueChange={handleSliderChange}
+            className="w-full"
+          />
+        </div>
+        
+        <div className="text-xs text-text-icon-02">
+          {flightDuration}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default FlightTimeline;
