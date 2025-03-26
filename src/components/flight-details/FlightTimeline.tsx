@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Settings, Info, PlayCircle, SkipBack, SkipForward, Pause, Circle, Square, 
   Triangle, Octagon, Camera, Video, AlertTriangle, AlertOctagon, Check, X, AlertCircle } from 'lucide-react';
@@ -688,9 +687,9 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
           {renderSystemEventsTrack()}
           {renderWarningEventsTrack()}
           
-          {/* Event hover info display (optional) */}
+          {/* Event hover info display - KEEP ONLY THIS TOOLTIP, removed the one at the right side */}
           {hoveredEvent && (
-            <div className="absolute bottom-20 right-4 bg-background-level-3/90 backdrop-blur-sm p-2 rounded-md border border-outline-primary text-xs z-50 max-w-xs">
+            <div className="absolute bottom-20 left-4 bg-background-level-3/90 backdrop-blur-sm p-2 rounded-md border border-outline-primary text-xs z-50 max-w-xs">
               <p className="text-text-icon-01 font-medium">{hoveredEvent.type}</p>
               <p className="text-text-icon-02">{hoveredEvent.details}</p>
               <p className="text-text-icon-02 text-primary-100">{hoveredEvent.timestamp}</p>
@@ -717,11 +716,3 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
             <div className="text-xs text-text-icon-02 w-20">
               {flightDuration}
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default FlightTimeline;
