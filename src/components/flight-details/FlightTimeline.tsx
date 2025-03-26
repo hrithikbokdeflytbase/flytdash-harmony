@@ -91,11 +91,23 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
   const currentSeconds = timeToSeconds(currentPosition.timestamp);
   const currentPercentage = (currentSeconds / flightDurationSeconds) * 100;
   
-  // Calculate tracks container height for the position indicator
+  // Calculate tracks container height for the position indicator - improved to be more precise
   useEffect(() => {
-    if (tracksContainerRef.current) {
-      tracksHeightRef.current = tracksContainerRef.current.clientHeight;
-    }
+    const updateHeight = () => {
+      if (tracksContainerRef.current) {
+        // Get only the visible height that should be covered by the indicator
+        const visibleHeight = tracksContainerRef.current.scrollHeight - 16; // Subtract some padding
+        tracksHeightRef.current = Math.min(visibleHeight, tracksContainerRef.current.clientHeight);
+      }
+    };
+    
+    updateHeight();
+    // Add resize listener to update height if window size changes
+    window.addEventListener('resize', updateHeight);
+    
+    return () => {
+      window.removeEventListener('resize', updateHeight);
+    };
   }, []);
   
   // Playback simulation effect

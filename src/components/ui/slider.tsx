@@ -48,7 +48,11 @@ const TimelineSlider = React.forwardRef<
         className="absolute top-0 left-1/2 -translate-x-1/2 w-[2px] bg-error-200 shadow-[0_0_4px_rgba(248,71,58,0.6)]" 
         style={{ 
           height: `${indicatorHeight}px`,
-          transform: 'translate(-50%, -100%)'
+          transform: 'translate(-50%, -100%)',
+          // Ensure the indicator never exceeds its container
+          maxHeight: `${indicatorHeight}px`,
+          // Add clip path to ensure the line doesn't extend beyond its intended area
+          clipPath: 'inset(0 0 0 0)'
         }}
       />
     </SliderPrimitive.Thumb>
