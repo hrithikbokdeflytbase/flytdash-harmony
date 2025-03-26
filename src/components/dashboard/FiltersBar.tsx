@@ -109,7 +109,7 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
               </Tooltip>
             </TooltipProvider>
             
-            {/* Advanced Filters Button - Moved up next to Reset button */}
+            {/* Advanced Filters Button - Placed next to Reset button */}
             <Button 
               variant="outline" 
               size="sm" 
