@@ -5,6 +5,7 @@ import { ArrowLeft, Video, Map, Columns } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import VideoFeed from '@/components/flight-details/VideoFeed';
+import FlightMap from '@/components/flight-details/FlightMap';
 
 // View mode type
 type ViewMode = 'map' | 'video' | 'split';
@@ -24,6 +25,24 @@ type VideoSegment = {
   endTime: string;   // Format: "HH:MM:SS"
   url: string;
 };
+
+// Mock flight path data
+const mockFlightPath = [
+  { lat: 37.7856, lng: -122.4308, altitude: 120, timestamp: '00:05:00', flightMode: 'mission' as const },
+  { lat: 37.7845, lng: -122.4318, altitude: 125, timestamp: '00:06:00', flightMode: 'mission' as const },
+  { lat: 37.7834, lng: -122.4328, altitude: 130, timestamp: '00:07:00', flightMode: 'gtl' as const },
+  { lat: 37.7823, lng: -122.4338, altitude: 135, timestamp: '00:08:00', flightMode: 'gtl' as const },
+  { lat: 37.7812, lng: -122.4348, altitude: 140, timestamp: '00:09:00', flightMode: 'manual' as const },
+  { lat: 37.7801, lng: -122.4358, altitude: 145, timestamp: '00:10:00', flightMode: 'mission' as const },
+  { lat: 37.7790, lng: -122.4368, altitude: 150, timestamp: '00:11:00', flightMode: 'mission' as const },
+];
+
+// Mock waypoints
+const mockWaypoints = [
+  { lat: 37.7845, lng: -122.4318, index: 1 },
+  { lat: 37.7823, lng: -122.4338, index: 2 },
+  { lat: 37.7790, lng: -122.4368, index: 3 },
+];
 
 const FlightDetails = () => {
   const { flightId } = useParams();
@@ -49,6 +68,13 @@ const FlightDetails = () => {
     { startTime: '00:15:00', endTime: '00:18:45', url: '/videos/segment2.mp4' },
     { startTime: '00:22:15', endTime: '00:25:00', url: '/videos/segment3.mp4' }
   ]);
+  
+  // Map state
+  const [mapLoading, setMapLoading] = useState(true);
+  const [currentMapPosition, setCurrentMapPosition] = useState({
+    lat: mockFlightPath[0]?.lat || 37.7790,
+    lng: mockFlightPath[0]?.lng || -122.4368
+  });
   
   // Simulate loading state and transitions for demo purposes
   useEffect(() => {
@@ -79,7 +105,15 @@ const FlightDetails = () => {
       }
     }, 2000);
     
-    return () => clearTimeout(loadTimer);
+    // Simulate map loading
+    const mapTimer = setTimeout(() => {
+      setMapLoading(false);
+    }, 3000);
+    
+    return () => {
+      clearTimeout(loadTimer);
+      clearTimeout(mapTimer);
+    };
   }, []);
   
   // Convert "HH:MM:SS" format to seconds for comparison
@@ -123,6 +157,23 @@ const FlightDetails = () => {
     } else {
       setVideoState('empty');
       setHasVideo(false);
+    }
+    
+    // Update map position based on timeline position
+    // This is a simplified approach - in a real app, you'd interpolate position based on timestamps
+    const timestampSeconds = timeToSeconds(newPosition);
+    const totalFlightSeconds = timeToSeconds('00:25:00'); // End of flight time
+    const positionRatio = Math.min(timestampSeconds / totalFlightSeconds, 1);
+    const pathIndex = Math.min(
+      Math.floor(positionRatio * mockFlightPath.length),
+      mockFlightPath.length - 1
+    );
+    
+    if (mockFlightPath[pathIndex]) {
+      setCurrentMapPosition({
+        lat: mockFlightPath[pathIndex].lat,
+        lng: mockFlightPath[pathIndex].lng
+      });
     }
     
     console.log(`Timeline position updated to ${newPosition} (has video: ${positionHasVideo})`);
@@ -199,8 +250,17 @@ const FlightDetails = () => {
           {/* Map Panel */}
           <div className={`bg-background-level-2 rounded-200 p-400 flex flex-col ${viewMode === 'map' ? 'lg:col-span-12' : viewMode === 'split' ? 'lg:col-span-3' : 'hidden lg:block lg:col-span-7'}`}>
             <h2 className="fb-title1-medium text-text-icon-01 mb-300">Flight Map</h2>
-            <div className="flex-1 bg-background-level-3 rounded-200 flex items-center justify-center">
-              <p className="text-text-icon-02">Flight path map will be displayed here</p>
+            <div className="flex-1 bg-background-level-3 rounded-200">
+              <FlightMap 
+                flightId={flightId || 'unknown'}
+                flightPath={mockFlightPath}
+                takeoffPoint={{ lat: mockFlightPath[0].lat, lng: mockFlightPath[0].lng }}
+                landingPoint={{ lat: mockFlightPath[mockFlightPath.length-1].lat, lng: mockFlightPath[mockFlightPath.length-1].lng }}
+                dockLocation={{ lat: 37.7856, lng: -122.4308 }}
+                waypoints={mockWaypoints}
+                currentPosition={currentMapPosition}
+                isLoading={mapLoading}
+              />
             </div>
           </div>
           
