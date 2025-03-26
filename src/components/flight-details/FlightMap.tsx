@@ -5,6 +5,13 @@ import { Loader2, Plus, Minus, Layers, Map as MapIcon, PlaneTakeoff, Anchor, Max
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import MapLegend from './MapLegend';
+
+// Convert "HH:MM:SS" format to seconds for comparison
+const timeToSeconds = (timeString: string): number => {
+  const [hours, minutes, seconds] = timeString.split(':').map(Number);
+  return hours * 3600 + minutes * 60 + seconds;
+};
 
 // Flight path point interface
 interface FlightPathPoint {
@@ -431,6 +438,9 @@ const FlightMap: React.FC<FlightMapProps> = ({
   return <div className="relative w-full h-full rounded-200 overflow-hidden border border-[rgba(255,255,255,0.08)]">
       {/* Map container */}
       <div ref={mapContainer} className="absolute inset-0 bg-background-level-2"></div>
+      
+      {/* Add the Map Legend component */}
+      <MapLegend />
       
       {/* Focus controls (top-right) */}
       <div className="absolute top-2 right-12 flex flex-col items-end space-y-1 z-10">
