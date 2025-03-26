@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { BarChart, XAxis, YAxis, Bar, ResponsiveContainer, Tooltip, CartesianGrid, Legend } from 'recharts';
+import { BarChart, XAxis, YAxis, Bar, Tooltip, CartesianGrid, Legend } from 'recharts';
 import { Loader, ChevronLeft, ChevronRight } from 'lucide-react';
 import { DateRangeType } from './DateRangeFilter';
 import { Button } from '@/components/ui/button';
@@ -252,6 +252,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const data = React.useMemo(() => generateMockData(dateRange, viewType, currentDate), [dateRange, viewType, currentDate]);
   
+  // Navigation functions
   const navigateToPrevious = () => {
     setCurrentDate(prevDate => {
       switch (dateRange) {
@@ -323,7 +324,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full h-full">
       {isLoading ? (
         <div className="flex items-center justify-center h-64">
           <Loader className="w-8 h-8 animate-spin text-primary-100" />
@@ -362,8 +363,13 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
             </div>
           </div>
           
-          <ChartContainer config={chartConfig} className="h-[350px]">
-            <BarChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 10 }}>
+          <ChartContainer config={chartConfig} className="w-full h-[400px]">
+            <BarChart 
+              data={data} 
+              margin={{ top: 20, right: 5, left: 5, bottom: 20 }}
+              width={800}
+              height={400}
+            >
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
               <XAxis 
                 dataKey="name" 

@@ -85,7 +85,7 @@ const Index = () => {
       />
       
       {/* Flight Timeline Section */}
-      <div className="flybase-card p-400 mb-600 rounded-xl shadow-sm">
+      <div className="flybase-card p-400 mb-600 rounded-xl shadow-sm w-full">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-400">
           <h2 className="fb-title1-medium text-text-icon-01">Flight Timeline</h2>
           <div className="flex items-center mt-200 sm:mt-0 space-x-200 bg-background-level-3 rounded-full p-100">
@@ -104,11 +104,13 @@ const Index = () => {
           </div>
         </div>
         
-        <FlightTimeline 
-          viewType={timelineView} 
-          dateRange={dateRange} 
-          isLoading={isLoading} 
-        />
+        <div className="w-full h-[400px]">
+          <FlightTimeline 
+            viewType={timelineView} 
+            dateRange={dateRange} 
+            isLoading={isLoading} 
+          />
+        </div>
       </div>
       
       {/* Recent Flights Section */}
