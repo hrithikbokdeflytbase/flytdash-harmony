@@ -52,20 +52,17 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
   isLoading = false
 }) => {
   const [open, setOpen] = React.useState(false);
-  
-  // Ensure selectedDrones is not undefined
-  const safeDrones = selectedDrones || [];
 
   const handleSelectDrone = (value: string) => {
-    if (safeDrones.includes(value)) {
-      setSelectedDrones(safeDrones.filter(drone => drone !== value));
+    if (selectedDrones.includes(value)) {
+      setSelectedDrones(selectedDrones.filter(drone => drone !== value));
     } else {
-      setSelectedDrones([...safeDrones, value]);
+      setSelectedDrones([...selectedDrones, value]);
     }
   };
 
   const handleSelectAllDrones = () => {
-    if (safeDrones.length === DRONES.length) {
+    if (selectedDrones.length === DRONES.length) {
       setSelectedDrones([]);
     } else {
       setSelectedDrones(DRONES.map(drone => drone.value));
@@ -117,8 +114,8 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                 aria-expanded={open}
                 className="flex w-full justify-between items-center rounded-md border border-outline-primary bg-background-level-3 px-300 py-200 text-sm text-text-icon-01 hover:bg-surface-states-hover transition-colors"
               >
-                <span>{safeDrones.length > 0 
-                  ? `${safeDrones.length} drone${safeDrones.length > 1 ? 's' : ''} selected` 
+                <span>{selectedDrones.length > 0 
+                  ? `${selectedDrones.length} drone${selectedDrones.length > 1 ? 's' : ''} selected` 
                   : "Select drones"}
                 </span>
                 <ChevronsUpDown className="h-4 w-4 opacity-50" />
@@ -148,7 +145,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                       >
                         <div className="flex h-4 w-4 items-center justify-center rounded-[4px]">
                           <Checkbox 
-                            checked={safeDrones.length === DRONES.length} 
+                            checked={selectedDrones.length === DRONES.length} 
                             className="data-[state=checked]:bg-primary-200 border-[rgba(255,255,255,0.24)] h-4 w-4 rounded-[4px]"
                           />
                         </div>
@@ -163,7 +160,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                           className="flex items-center gap-2 w-full py-2 px-1 my-1 rounded hover:bg-surface-states-hover"
                         >
                           <Checkbox 
-                            checked={safeDrones.includes(drone.value)} 
+                            checked={selectedDrones.includes(drone.value)} 
                             className="data-[state=checked]:bg-primary-200 border-[rgba(255,255,255,0.24)] h-4 w-4 rounded-[4px]"
                           />
                           <span className="text-text-icon-01 text-sm font-medium">

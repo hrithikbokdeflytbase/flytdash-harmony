@@ -20,9 +20,6 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
   onDateRangeChange,
   disabled = false
 }) => {
-  // Ensure dateRange is not undefined to prevent errors
-  const safeRange = dateRange || { from: undefined, to: undefined };
-  
   return (
     <div>
       <Label className="text-sm text-text-icon-02 mb-100 block">Date Range</Label>
@@ -33,18 +30,18 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
             disabled={disabled}
             className={cn(
               "w-full h-10 justify-start bg-background-level-3 border-outline-primary",
-              !safeRange.from && "text-text-icon-02"
+              !dateRange && "text-text-icon-02"
             )}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {safeRange.from ? (
-              safeRange.to ? (
+            {dateRange.from ? (
+              dateRange.to ? (
                 <>
-                  {isValid(safeRange.from) && format(safeRange.from, "MMM d, yyyy")} -{" "}
-                  {isValid(safeRange.to) && format(safeRange.to, "MMM d, yyyy")}
+                  {isValid(dateRange.from) && format(dateRange.from, "MMM d, yyyy")} -{" "}
+                  {isValid(dateRange.to) && format(dateRange.to, "MMM d, yyyy")}
                 </>
               ) : (
-                isValid(safeRange.from) && format(safeRange.from, "MMM d, yyyy")
+                isValid(dateRange.from) && format(dateRange.from, "MMM d, yyyy")
               )
             ) : (
               <span>Select date range</span>
@@ -55,8 +52,8 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
           <Calendar
             mode="range"
             selected={{
-              from: safeRange.from,
-              to: safeRange.to
+              from: dateRange.from,
+              to: dateRange.to
             }}
             onSelect={(selected) => {
               onDateRangeChange({
