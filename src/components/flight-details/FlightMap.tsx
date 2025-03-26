@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -52,6 +53,12 @@ const MAPBOX_TOKEN = 'pk.eyJ1IjoiZmx5dGJhc2UiLCJhIjoiY2tlZ2QwbmUzMGR0cjJ6cGRtY3R
 
 // Simplify path if it has more than this number of points
 const PATH_SIMPLIFICATION_THRESHOLD = 200;
+
+// Convert "HH:MM:SS" format to seconds for comparison
+const timeToSeconds = (timeString: string): number => {
+  const [hours, minutes, seconds] = timeString.split(':').map(Number);
+  return hours * 3600 + minutes * 60 + seconds;
+};
 
 const FlightMap: React.FC<FlightMapProps> = ({
   flightId,
@@ -145,12 +152,6 @@ const FlightMap: React.FC<FlightMapProps> = ({
       duration: durationSeconds
     };
   }, [flightPath]);
-  
-  // Convert "HH:MM:SS" format to seconds for comparison
-  const timeToSeconds = useCallback((timeString: string): number => {
-    const [hours, minutes, seconds] = timeString.split(':').map(Number);
-    return hours * 3600 + minutes * 60 + seconds;
-  }, []);
   
   // Performance optimized markers rendering
   const renderMarkers = useCallback(() => {
