@@ -271,19 +271,22 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
     type: e.type
   })));
 
-  // Current time indicator (vertical line) - Modified to match requirements
+  // Current time indicator (vertical line) - Modified to perfectly align with slider thumb
   const CurrentTimeIndicator = () => {
     return (
       <div 
-        className="absolute top-0 h-full border-l-2 border-dashed border-error-200 z-50"
+        className="absolute top-0 h-full border-0 z-50 pointer-events-none"
         style={{ 
           left: `${currentPercentage}%`,
-          height: '100%',
-          pointerEvents: 'none' // Allows clicking through the line
+          height: 'calc(100% + 15px)', // Extend to connect with the slider thumb
+          width: '2px',
+          background: 'rgba(248, 71, 58, 0.8)', // #F8473A with 80% opacity
+          boxShadow: '0 0 4px rgba(248, 71, 58, 0.6)', // Subtle glow effect
+          transform: 'translateY(-15px)', // Move up to connect with the slider thumb
         }}
       >
         {/* Bottom circular indicator */}
-        <div className="absolute bottom-0 -translate-x-1/2 w-4 h-4 rounded-full bg-error-200 shadow-lg"></div>
+        <div className="absolute bottom-0 -translate-x-1/2 w-4 h-4 rounded-full bg-error-200 shadow-lg hidden"></div>
       </div>
     );
   };
@@ -696,7 +699,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
         {/* Display event info on hover */}
         {hoveredEvent && (
           <div 
-            className="absolute top-2 right-2 z-50 bg-background-level-4/90 backdrop-blur-sm p-2 rounded-md border border-outline-primary shadow-lg"
+            className="absolute top-2 right-2 z-40 bg-background-level-4/90 backdrop-blur-sm p-2 rounded-md border border-outline-primary shadow-lg"
             style={{ maxWidth: '200px' }}
           >
             <div className="flex flex-col gap-1">
@@ -709,7 +712,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
           </div>
         )}
         
-        {/* Current time indicator (vertical line across all tracks) - Now at higher z-index */}
+        {/* Current time indicator (vertical line across all tracks) */}
         <CurrentTimeIndicator />
         
         {/* Mission Phases Track */}
@@ -744,11 +747,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
             onValueChange={handleSliderChange}
             className="w-full"
           />
-          {/* Visual connection between slider thumb and position indicator - Made less visible */}
-          <div 
-            className="absolute -top-[15px] w-[2px] h-[15px] bg-transparent z-10"
-            style={{ left: `calc(${currentPercentage}% - 1px)` }}
-          />
+          {/* Remove the visual connector since we're now extending the timeline indicator */}
         </div>
       </div>
     </div>
