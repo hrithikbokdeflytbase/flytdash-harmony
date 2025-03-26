@@ -350,7 +350,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
   const handleBarClick = (data: any) => {
     console.log("Bar clicked event:", data);
     
-    if (!data || !data.activePayload || !data.activePayload.length === 0) {
+    if (!data || !data.activePayload || data.activePayload.length === 0) {
       console.log("No valid data in the click event");
       return;
     }
