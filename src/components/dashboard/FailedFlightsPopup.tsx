@@ -69,7 +69,7 @@ const failureData: ErrorCategory[] = [
     icon: AlertCircle,
     flights: [
       { 
-        id: 'Flight #1204', 
+        id: '1204', 
         date: 'Mar 19, 9:30 AM', 
         missionName: 'Site Survey', 
         missionType: 'GTL', 
@@ -78,7 +78,7 @@ const failureData: ErrorCategory[] = [
         severity: 'critical' 
       },
       { 
-        id: 'Flight #1198', 
+        id: '1198', 
         date: 'Mar 18, 11:15 AM', 
         missionName: 'Perimeter Inspection', 
         missionType: 'Mission', 
@@ -87,7 +87,7 @@ const failureData: ErrorCategory[] = [
         severity: 'critical' 
       },
       { 
-        id: 'Flight #1187', 
+        id: '1187', 
         date: 'Mar 16, 2:20 PM', 
         missionName: 'Equipment Check', 
         missionType: 'Manual', 
@@ -103,7 +103,7 @@ const failureData: ErrorCategory[] = [
     icon: Wind,
     flights: [
       { 
-        id: 'Flight #1201', 
+        id: '1201', 
         date: 'Mar 20, 10:45 AM', 
         missionName: 'Facility Inspection', 
         missionType: 'GTL', 
@@ -112,7 +112,7 @@ const failureData: ErrorCategory[] = [
         severity: 'warning' 
       },
       { 
-        id: 'Flight #1195', 
+        id: '1195', 
         date: 'Mar 17, 8:30 AM', 
         missionName: 'Site Survey', 
         missionType: 'Mission', 
@@ -121,7 +121,7 @@ const failureData: ErrorCategory[] = [
         severity: 'critical' 
       },
       { 
-        id: 'Flight #1183', 
+        id: '1183', 
         date: 'Mar 15, 4:10 PM', 
         missionName: 'Tower Inspection', 
         missionType: 'GTL', 
@@ -137,7 +137,7 @@ const failureData: ErrorCategory[] = [
     icon: Shield,
     flights: [
       { 
-        id: 'Flight #1192', 
+        id: '1192', 
         date: 'Mar 17, 1:25 PM', 
         missionName: 'Boundary Survey', 
         missionType: 'Manual', 
@@ -146,7 +146,7 @@ const failureData: ErrorCategory[] = [
         severity: 'critical' 
       },
       { 
-        id: 'Flight #1185', 
+        id: '1185', 
         date: 'Mar 16, 11:50 AM', 
         missionName: 'Perimeter Check', 
         missionType: 'Mission', 
@@ -155,7 +155,7 @@ const failureData: ErrorCategory[] = [
         severity: 'warning' 
       },
       { 
-        id: 'Flight #1176', 
+        id: '1176', 
         date: 'Mar 14, 9:20 AM', 
         missionName: 'Site Mapping', 
         missionType: 'GTL', 
@@ -171,7 +171,7 @@ const failureData: ErrorCategory[] = [
     icon: MapPin,
     flights: [
       { 
-        id: 'Flight #1178', 
+        id: '1178', 
         date: 'Mar 14, 3:35 PM', 
         missionName: 'Infrastructure Check', 
         missionType: 'Mission', 
@@ -180,7 +180,7 @@ const failureData: ErrorCategory[] = [
         severity: 'warning' 
       },
       { 
-        id: 'Flight #1177', 
+        id: '1177', 
         date: 'Mar 14, 10:15 AM', 
         missionName: 'Area Inspection', 
         missionType: 'GTL', 
@@ -196,7 +196,7 @@ const failureData: ErrorCategory[] = [
     icon: Battery,
     flights: [
       { 
-        id: 'Flight #1190', 
+        id: '1190', 
         date: 'Mar 16, 5:10 PM', 
         missionName: 'Emergency Assessment', 
         missionType: 'GTL', 
@@ -205,7 +205,7 @@ const failureData: ErrorCategory[] = [
         severity: 'critical' 
       },
       { 
-        id: 'Flight #1186', 
+        id: '1186', 
         date: 'Mar 15, 1:45 PM', 
         missionName: 'Site Survey', 
         missionType: 'Mission', 
@@ -221,7 +221,7 @@ const failureData: ErrorCategory[] = [
     icon: Cpu,
     flights: [
       { 
-        id: 'Flight #1188', 
+        id: '1188', 
         date: 'Mar 16, 8:30 AM', 
         missionName: 'Structure Inspection', 
         missionType: 'Mission', 
@@ -230,7 +230,7 @@ const failureData: ErrorCategory[] = [
         severity: 'critical' 
       },
       { 
-        id: 'Flight #1182', 
+        id: '1182', 
         date: 'Mar 15, 11:05 AM', 
         missionName: 'Equipment Test', 
         missionType: 'Manual', 
@@ -303,18 +303,16 @@ const FailedFlightsPopup = ({ open, onOpenChange, failedCount, totalCount }: Fai
 
   const handleFlightClick = (flightId: string) => {
     markFlightAsViewed(flightId);
-    console.log(`Navigating to flight detail: ${flightId}`);
     
     // Show toast notification
     toast({
       title: "Flight details",
-      description: `Viewing details for ${flightId}`,
+      description: `Viewing details for flight`,
     });
     
-    // Close the dialog after navigation
-    // Uncomment this when flight detail page is ready
-    // navigate(`/flights/${flightId.replace('Flight #', '')}`);
-    // onOpenChange(false);
+    // Navigate to flight details page
+    navigate(`/flight-details/${flightId}`);
+    onOpenChange(false);
   };
 
   const filteredCategories = failureData.map(category => ({
@@ -421,16 +419,13 @@ const FailedFlightsPopup = ({ open, onOpenChange, failedCount, totalCount }: Fai
                                     flight.severity === 'critical' ? "text-error-200" : "text-caution-200"
                                   )} />
                                   <div className="flex flex-col">
-                                    <div className="flex items-center">
-                                      <span className="text-xs font-medium text-text-icon-01">{flight.id}</span>
-                                      {isViewed && (
-                                        <div className="flex items-center gap-1 bg-background-level-4 px-1 py-0.5 rounded-sm ml-2">
-                                          <Eye className="h-3 w-3 text-text-icon-02 opacity-70" />
-                                          <span className="text-[10px] text-text-icon-02 opacity-70">Viewed</span>
-                                        </div>
-                                      )}
-                                    </div>
-                                    <span className="text-xs font-semibold text-text-icon-01">{flight.missionName}</span>
+                                    <span className="text-xs font-medium text-text-icon-01">{flight.missionName}</span>
+                                    {isViewed && (
+                                      <div className="flex items-center gap-1 bg-background-level-4 px-1 py-0.5 rounded-sm mt-1">
+                                        <Eye className="h-3 w-3 text-text-icon-02 opacity-70" />
+                                        <span className="text-[10px] text-text-icon-02 opacity-70">Viewed</span>
+                                      </div>
+                                    )}
                                     <div className="flex items-center">
                                       <span className="text-xs text-text-icon-02">{flight.missionType}</span>
                                       <span className="text-xs text-text-icon-02 ml-1">(Manual control: {flight.isManualControl ? 'Yes' : 'No'})</span>
