@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Activity, Clock } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -66,12 +66,43 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
         status: 'active',
         details: '7.22 MB/s'
       },
-      cellular: {
+      dockCellular: {
         status: 'poor',
+        details: '4G'
+      },
+      droneCellular: {
+        status: 'inactive',
         details: '4G'
       }
     }
   });
+  
+  // Function to update network connection statuses based on business rules
+  useEffect(() => {
+    // Make a copy of the current telemetry data
+    const updatedTelemetryData = { ...telemetryData };
+    const connections = updatedTelemetryData.connections;
+    
+    // Apply business rules:
+    // 1. When RF Link and Dock Ethernet are active, Dock 4G and Drone 4G are inactive
+    if (connections.rfLink.status === 'active' && connections.ethernet.status === 'active') {
+      connections.dockCellular.status = 'inactive';
+      connections.droneCellular.status = 'inactive';
+    }
+    
+    // 2. When Dock Ethernet is inactive, Dock 4G becomes active
+    if (connections.ethernet.status === 'inactive') {
+      connections.dockCellular.status = 'active';
+    }
+    
+    // 3. When RF Link is inactive, Drone 4G becomes active
+    if (connections.rfLink.status === 'inactive') {
+      connections.droneCellular.status = 'active';
+    }
+    
+    // Update state with the new connection statuses
+    setTelemetryData(updatedTelemetryData);
+  }, []);
   
   // Handle tab change
   const handleTabChange = (value: string) => {

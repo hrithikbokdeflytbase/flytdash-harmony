@@ -14,7 +14,11 @@ interface NetworkStatusSectionProps {
       status: 'active' | 'inactive' | 'poor';
       details: string;
     };
-    cellular: {
+    dockCellular: {
+      status: 'active' | 'inactive' | 'poor';
+      details: string;
+    };
+    droneCellular: {
       status: 'active' | 'inactive' | 'poor';
       details: string;
     };
@@ -31,7 +35,7 @@ const NetworkStatusSection: React.FC<NetworkStatusSectionProps> = ({
       <div className="px-4 py-2">
         <div className="bg-background-level-1 border border-outline-primary rounded overflow-hidden">
           <ConnectionStatusCard 
-            label="Dock Drone RF Link"
+            label="RF Link"
             status={connections.rfLink.status}
             details={connections.rfLink.details}
           />
@@ -44,8 +48,14 @@ const NetworkStatusSection: React.FC<NetworkStatusSectionProps> = ({
           
           <ConnectionStatusCard 
             label="Dock 4G"
-            status={connections.cellular.status}
-            details={connections.cellular.details}
+            status={connections.dockCellular.status}
+            details={connections.dockCellular.details}
+          />
+          
+          <ConnectionStatusCard 
+            label="Drone 4G"
+            status={connections.droneCellular.status}
+            details={connections.droneCellular.details}
           />
         </div>
       </div>

@@ -51,7 +51,11 @@ export interface TelemetryData {
       status: 'active' | 'inactive' | 'poor';
       details: string;
     };
-    cellular: {
+    dockCellular: {
+      status: 'active' | 'inactive' | 'poor';
+      details: string;
+    };
+    droneCellular: {
       status: 'active' | 'inactive' | 'poor';
       details: string;
     };
@@ -69,18 +73,18 @@ const TelemetryPanel: React.FC<TelemetryPanelProps> = ({
 }) => {
   return (
     <div className="flex flex-col h-full">
-      {/* Battery Section - Outside of ScrollArea */}
-      <div className="px-4 py-3">
-        <BatteryStatusCard 
-          percentage={telemetryData.battery.percentage}
-          estimatedRemaining={telemetryData.battery.estimatedRemaining}
-        />
-      </div>
-      
-      {/* Scrollable Content */}
+      {/* Make everything scrollable */}
       <div className="flex-1 relative overflow-hidden">
         <ScrollArea className="h-full pr-1" type="hover">
           <div className="space-y-0 pb-6 relative">
+            {/* Battery Section - Now inside ScrollArea */}
+            <div className="px-4 py-3">
+              <BatteryStatusCard 
+                percentage={telemetryData.battery.percentage}
+                estimatedRemaining={telemetryData.battery.estimatedRemaining}
+              />
+            </div>
+            
             {/* General Telemetry Section */}
             <SectionHeader title="Flight Metrics" icon={Activity}>
               <div className="flex items-center gap-1">

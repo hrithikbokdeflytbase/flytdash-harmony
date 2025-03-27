@@ -40,6 +40,27 @@ const ConnectionStatusCard: React.FC<ConnectionStatusCardProps> = ({
     }
   };
 
+  // NetworkBar style display for connection health
+  const renderNetworkBar = () => {
+    const barClasses = {
+      active: 'bg-success-200',
+      poor: 'bg-caution-200',
+      inactive: 'bg-text-icon-03'
+    };
+
+    // Generate bars with appropriate styling
+    return (
+      <div className="flex gap-0.5 h-[6px] items-end">
+        <div className={cn("w-[3px] h-full rounded-sm", barClasses[status])} />
+        <div className={cn("w-[3px] h-[60%] rounded-sm", 
+          status === 'inactive' ? 'bg-text-icon-03' : 
+          (status === 'poor' ? 'bg-caution-200' : 'bg-success-200'))} />
+        <div className={cn("w-[3px] h-[40%] rounded-sm", 
+          status === 'active' ? 'bg-success-200' : 'bg-text-icon-03')} />
+      </div>
+    );
+  };
+
   const renderStatusIndicator = () => (
     <div className={cn(
       'flex items-center text-[10px] px-200 py-[2px] rounded-full',
@@ -58,6 +79,7 @@ const ConnectionStatusCard: React.FC<ConnectionStatusCardProps> = ({
     <div className={cn("flex items-center justify-between p-2 border-b border-outline-primary last:border-b-0", className)}>
       <span className="text-xs text-text-icon-01">{label}</span>
       <div className="flex items-center gap-200">
+        {renderNetworkBar()}
         {renderStatusIndicator()}
         {details && <span className="text-[10px] text-text-icon-02 ml-2">{details}</span>}
       </div>
