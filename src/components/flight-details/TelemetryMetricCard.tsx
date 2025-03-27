@@ -48,7 +48,10 @@ const TelemetryMetricCard: React.FC<TelemetryMetricCardProps> = ({
   };
 
   return (
-    <div className={cn("bg-background-level-1 p-2 rounded-md border border-outline-primary hover:border-primary-100 transition-colors", className)}>
+    <div className={cn(
+      "bg-background-level-1 p-3 rounded-md border border-outline-primary hover:border-primary-100 transition-colors", 
+      className
+    )}>
       <div className="flex flex-col">
         <div className="mb-1">
           <span className="text-xs text-text-icon-02">{label}</span>
