@@ -38,7 +38,7 @@ export interface TelemetryData {
     latitude: number;
     longitude: number;
   };
-  gpsStatus: {
+  gpsStatus?: {
     count: number;
     signal: string;
   };

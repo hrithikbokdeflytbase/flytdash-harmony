@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Activity, Clock } from 'lucide-react';
@@ -51,6 +52,10 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
     coordinates: {
       latitude: 37.7749,
       longitude: -122.4194
+    },
+    gpsStatus: {
+      count: 12,
+      signal: "Good"
     },
     rtkStatus: {
       count: 32,
