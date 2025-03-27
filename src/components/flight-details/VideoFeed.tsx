@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Camera, Maximize2, Square, Loader2, AlertCircle, Video, Thermometer } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -32,14 +33,10 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
   const [cameraTransitioning, setCameraTransitioning] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   
-  // Demo controls state
-  const [demoVideoState, setDemoVideoState] = useState<VideoState>(videoState);
-  const [demoCameraType, setDemoCameraType] = useState<CameraType>(cameraType);
-
   // Log the current state for debugging
   useEffect(() => {
-    console.log("VideoFeed state:", { demoVideoState, demoCameraType, timelinePosition });
-  }, [demoVideoState, demoCameraType, timelinePosition]);
+    console.log("VideoFeed state:", { videoState, cameraType, timelinePosition });
+  }, [videoState, cameraType, timelinePosition]);
 
   // Handle camera type changes
   useEffect(() => {
@@ -92,13 +89,6 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
       }
     }
   }, [timelinePosition, prevTimelinePosition, videoSegments]);
-
-  // For demo controls - update video state
-  useEffect(() => {
-    if (demoVideoState !== videoState) {
-      setDemoVideoState(videoState);
-    }
-  }, [videoState]);
 
   // Find the appropriate video segment for a given timestamp
   const findVideoSegmentForTimestamp = (timestamp: string): VideoSegment | null => {
@@ -206,7 +196,7 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
 
   // Camera type icon
   const CameraIcon = () => {
-    switch (demoCameraType) {
+    switch (cameraType) {
       case 'wide':
         return <Camera className="w-4 h-4 mr-1" />;
       case 'zoom':
@@ -220,17 +210,6 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
     }
   };
 
-  // Handle demo mode camera type change
-  const handleCameraTypeChange = (type: CameraType) => {
-    if (type !== demoCameraType) {
-      setCameraTransitioning(true);
-      setTimeout(() => {
-        setDemoCameraType(type);
-        setCameraTransitioning(false);
-      }, 400);
-    }
-  };
-
   // Get nearest video information for empty state
   const nearestVideo = timelinePosition ? findNearestVideoSegment(timelinePosition.timestamp) : null;
 
@@ -240,64 +219,24 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
         <Badge 
           className={cn(
             "flex items-center gap-1 px-2 py-1 border transition-colors duration-300", 
-            getCameraBadgeColor(demoCameraType),
+            getCameraBadgeColor(cameraType),
             cameraTransitioning && "opacity-0"
           )} 
-          aria-label={`Camera type: ${demoCameraType}`}
+          aria-label={`Camera type: ${cameraType}`}
         >
-          {/* Camera Icon based on type */}
-          {demoCameraType === 'wide' && <Camera className="w-4 h-4 mr-1" />}
-          {demoCameraType === 'zoom' && <Maximize2 className="w-4 h-4 mr-1" />}
-          {demoCameraType === 'thermal' && <Thermometer className="w-4 h-4 mr-1" />}
-          {demoCameraType === 'ogi' && <Square className="w-4 h-4 mr-1" />}
-          <span className="capitalize">{demoCameraType}</span>
+          <CameraIcon />
+          <span className="capitalize">{cameraType}</span>
         </Badge>
-        
-        {/* Demo controls */}
-        <div className="flex space-x-2">
-          <Button 
-            size="sm" 
-            variant="outline" 
-            className={cn("text-xs", demoVideoState === 'playing' && "bg-primary/20")}
-            onClick={() => setDemoVideoState('playing')}
-          >
-            Playing
-          </Button>
-          <Button 
-            size="sm" 
-            variant="outline" 
-            className={cn("text-xs", demoVideoState === 'loading' && "bg-primary/20")}
-            onClick={() => setDemoVideoState('loading')}
-          >
-            Loading
-          </Button>
-          <Button 
-            size="sm" 
-            variant="outline" 
-            className={cn("text-xs", demoVideoState === 'error' && "bg-primary/20")}
-            onClick={() => setDemoVideoState('error')}
-          >
-            Error
-          </Button>
-          <Button 
-            size="sm" 
-            variant="outline" 
-            className={cn("text-xs", demoVideoState === 'empty' && "bg-primary/20")}
-            onClick={() => setDemoVideoState('empty')}
-          >
-            Empty
-          </Button>
-        </div>
       </div>
 
       <div className={cn(
         "relative flex-1 rounded-lg border overflow-hidden", 
-        getCameraBadgeColor(demoCameraType).replace('bg-', 'border-').replace('/70', '/30')
+        getCameraBorderColor(cameraType)
       )} 
-        aria-label={`Video feed showing ${demoCameraType} camera view`} 
+        aria-label={`Video feed showing ${cameraType} camera view`} 
         role="region"
       >
-        {demoVideoState === 'loading' && (
+        {videoState === 'loading' && (
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4 bg-gray-900">
             <Loader2 className="h-[60px] w-[60px] text-blue-400 mb-4 animate-spin" />
             <p className="text-white text-base font-medium mb-2">Loading video...</p>
@@ -305,7 +244,7 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
           </div>
         )}
 
-        {demoVideoState === 'error' && (
+        {videoState === 'error' && (
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4 bg-gray-900">
             <AlertCircle className="h-[60px] w-[60px] text-red-400 mb-4" />
             <p className="text-white text-base font-medium mb-2">Video unavailable</p>
@@ -314,15 +253,26 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
           </div>
         )}
 
-        {demoVideoState === 'empty' && (
+        {videoState === 'empty' && (
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4 bg-gray-900">
             <Video className="h-[60px] w-[60px] text-gray-400 mb-4" />
             <p className="text-white text-base font-medium mb-2">No video available at current position</p>
             <p className="text-gray-400 text-sm">Try a different position on the timeline</p>
+            
+            {nearestVideo && (
+              <div className="mt-4 text-gray-400 text-sm">
+                <p>Nearest video: {nearestVideo.direction === 'before' ? 'Before' : 'After'} current position</p>
+                <p className="mt-1">
+                  {nearestVideo.direction === 'before' 
+                    ? `Ends at ${nearestVideo.segment.endTime}` 
+                    : `Starts at ${nearestVideo.segment.startTime}`}
+                </p>
+              </div>
+            )}
           </div>
         )}
 
-        {demoVideoState === 'playing' && (
+        {videoState === 'playing' && (
           <>
             {/* Video Element */}
             <div className="absolute inset-0 bg-gray-900">
@@ -339,7 +289,7 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
                 autoPlay={true} 
                 playsInline 
                 controls
-                aria-label={`${demoCameraType} camera video feed`} 
+                aria-label={`${cameraType} camera video feed`} 
               />
             </div>
 
@@ -350,11 +300,10 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
                 <div className="flex space-x-2 pointer-events-auto">
                   <Badge 
                     className={cn(
-                      "flex items-center gap-1 px-2 py-1 border cursor-pointer transition-colors duration-300",
-                      demoCameraType === 'wide' ? 'bg-blue-600/70 border-blue-500' : 'bg-gray-800/70 border-gray-700',
+                      "flex items-center gap-1 px-2 py-1 border transition-colors duration-300",
+                      cameraType === 'wide' ? 'bg-blue-600/70 border-blue-500' : 'bg-gray-800/70 border-gray-700',
                       cameraTransitioning && "opacity-0"
                     )}
-                    onClick={() => handleCameraTypeChange('wide')}
                   >
                     <Camera className="w-4 h-4 mr-1" />
                     <span>Wide</span>
@@ -362,11 +311,10 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
 
                   <Badge 
                     className={cn(
-                      "flex items-center gap-1 px-2 py-1 border cursor-pointer transition-colors duration-300",
-                      demoCameraType === 'zoom' ? 'bg-purple-600/70 border-purple-500' : 'bg-gray-800/70 border-gray-700',
+                      "flex items-center gap-1 px-2 py-1 border transition-colors duration-300",
+                      cameraType === 'zoom' ? 'bg-purple-600/70 border-purple-500' : 'bg-gray-800/70 border-gray-700',
                       cameraTransitioning && "opacity-0"
                     )}
-                    onClick={() => handleCameraTypeChange('zoom')}
                   >
                     <Maximize2 className="w-4 h-4 mr-1" />
                     <span>Zoom</span>
@@ -374,11 +322,10 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
 
                   <Badge 
                     className={cn(
-                      "flex items-center gap-1 px-2 py-1 border cursor-pointer transition-colors duration-300",
-                      demoCameraType === 'thermal' ? 'bg-orange-600/70 border-orange-500' : 'bg-gray-800/70 border-gray-700',
+                      "flex items-center gap-1 px-2 py-1 border transition-colors duration-300",
+                      cameraType === 'thermal' ? 'bg-orange-600/70 border-orange-500' : 'bg-gray-800/70 border-gray-700',
                       cameraTransitioning && "opacity-0"
                     )}
-                    onClick={() => handleCameraTypeChange('thermal')}
                   >
                     <Thermometer className="w-4 h-4 mr-1" />
                     <span>Thermal</span>
@@ -386,11 +333,10 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
 
                   <Badge 
                     className={cn(
-                      "flex items-center gap-1 px-2 py-1 border cursor-pointer transition-colors duration-300",
-                      demoCameraType === 'ogi' ? 'bg-green-600/70 border-green-500' : 'bg-gray-800/70 border-gray-700',
+                      "flex items-center gap-1 px-2 py-1 border transition-colors duration-300",
+                      cameraType === 'ogi' ? 'bg-green-600/70 border-green-500' : 'bg-gray-800/70 border-gray-700',
                       cameraTransitioning && "opacity-0"
                     )}
-                    onClick={() => handleCameraTypeChange('ogi')}
                   >
                     <Square className="w-4 h-4 mr-1" />
                     <span>OGI</span>
@@ -401,7 +347,7 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
               {/* Camera transition effect */}
               {cameraTransitioning && (
                 <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                  <div className="text-white font-medium text-lg">Switching to {demoCameraType}</div>
+                  <div className="text-white font-medium text-lg">Switching to {cameraType}</div>
                 </div>
               )}
             </div>
