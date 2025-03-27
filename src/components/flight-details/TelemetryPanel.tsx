@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { Activity, Clock, Wifi } from 'lucide-react';
+import React, { useState } from 'react';
+import { Activity, Clock, Wifi, Thermometer, Wind, Compass, Home, Gauge, Signal, Video, Cpu, Eye } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 // Import our components
@@ -11,16 +11,24 @@ import SectionHeader from './SectionHeader';
 import TelemetryMetricsGrid from './TelemetryMetricsGrid';
 import NetworkStatusSection from './NetworkStatusSection';
 import PositionDataSection from './PositionDataSection';
+import EnvironmentalDataSection from './EnvironmentalDataSection';
+import SystemStatusSection from './SystemStatusSection';
+import CompassHeadingCard from './CompassHeadingCard';
+import DistanceToHomeCard from './DistanceToHomeCard';
 
 // Define interface for telemetry data
 export interface TelemetryData {
   battery: {
     percentage: number;
     estimatedRemaining: string;
+    temperature: number;
+    voltage: number;
+    dischargeRate?: number;
   };
   altitude: {
     value: number;
     unit: string;
+    mode: 'AGL' | 'ASL';
   };
   distance: {
     value: number;
@@ -38,13 +46,42 @@ export interface TelemetryData {
     latitude: number;
     longitude: number;
   };
+  heading: {
+    value: number;
+    direction: string; // N, NE, E, etc.
+  };
+  distanceToHome: {
+    value: number;
+    unit: string;
+    direction: string;
+  };
+  environment: {
+    wind: {
+      speed: number;
+      unit: string;
+      direction: string;
+    };
+    temperature: number;
+    pressure: number;
+    humidity: number;
+  };
   gpsStatus?: {
     count: number;
     signal: string;
+    quality: 'excellent' | 'good' | 'fair' | 'poor';
   };
   rtkStatus: {
     count: number;
     signal: string;
+    mode: 'Fixed' | 'Float' | 'None';
+  };
+  latency: {
+    video: number;
+    control: number;
+  };
+  visionSystem: {
+    status: 'active' | 'inactive' | 'limited';
+    details?: string;
   };
   connections: {
     rfLink: {
@@ -75,6 +112,12 @@ const TelemetryPanel: React.FC<TelemetryPanelProps> = ({
   telemetryData,
   className
 }) => {
+  const [altitudeMode, setAltitudeMode] = useState<'AGL' | 'ASL'>(telemetryData.altitude.mode);
+  
+  const toggleAltitudeMode = () => {
+    setAltitudeMode(prev => prev === 'AGL' ? 'ASL' : 'AGL');
+  };
+
   return (
     <div className="flex flex-col h-full">
       {/* Make everything scrollable */}
@@ -86,6 +129,9 @@ const TelemetryPanel: React.FC<TelemetryPanelProps> = ({
               <BatteryStatusCard 
                 percentage={telemetryData.battery.percentage}
                 estimatedRemaining={telemetryData.battery.estimatedRemaining}
+                temperature={telemetryData.battery.temperature}
+                voltage={telemetryData.battery.voltage}
+                dischargeRate={telemetryData.battery.dischargeRate}
               />
             </div>
             
@@ -99,15 +145,42 @@ const TelemetryPanel: React.FC<TelemetryPanelProps> = ({
             
             {/* Telemetry Metrics Grid */}
             <TelemetryMetricsGrid 
-              altitude={telemetryData.altitude}
+              altitude={{
+                ...telemetryData.altitude,
+                mode: altitudeMode
+              }}
               distance={telemetryData.distance}
               verticalSpeed={telemetryData.verticalSpeed}
               horizontalSpeed={telemetryData.horizontalSpeed}
+              onAltitudeModeToggle={toggleAltitudeMode}
             />
+            
+            {/* Heading and Distance to Home */}
+            <div className="px-4 py-2 grid grid-cols-2 gap-2">
+              <CompassHeadingCard 
+                heading={telemetryData.heading}
+              />
+              <DistanceToHomeCard 
+                distanceToHome={telemetryData.distanceToHome}
+              />
+            </div>
             
             {/* Position Data Section */}
             <PositionDataSection 
               coordinates={telemetryData.coordinates}
+            />
+            
+            {/* Environmental Data Section */}
+            <EnvironmentalDataSection 
+              environment={telemetryData.environment}
+            />
+            
+            {/* System Status Section */}
+            <SystemStatusSection 
+              gpsStatus={telemetryData.gpsStatus}
+              rtkStatus={telemetryData.rtkStatus}
+              latency={telemetryData.latency}
+              visionSystem={telemetryData.visionSystem}
             />
             
             {/* Network Section */}

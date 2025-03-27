@@ -33,11 +33,15 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
   const [telemetryData, setTelemetryData] = useState<TelemetryData>({
     battery: {
       percentage: 91,
-      estimatedRemaining: "27 minutes"
+      estimatedRemaining: "27 minutes",
+      temperature: 32,
+      voltage: 15.2,
+      dischargeRate: 4.7
     },
     altitude: {
       value: 42.5,
-      unit: "m"
+      unit: "m",
+      mode: 'AGL'
     },
     distance: {
       value: 168,
@@ -55,13 +59,42 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
       latitude: 37.7749,
       longitude: -122.4194
     },
+    heading: {
+      value: 180,
+      direction: "S"
+    },
+    distanceToHome: {
+      value: 320,
+      unit: "m",
+      direction: "NE"
+    },
+    environment: {
+      wind: {
+        speed: 5.2,
+        unit: "m/s",
+        direction: "SE"
+      },
+      temperature: 24,
+      pressure: 1013.2,
+      humidity: 65
+    },
     gpsStatus: {
       count: 12,
-      signal: "Good"
+      signal: "Good",
+      quality: 'good'
     },
     rtkStatus: {
       count: 32,
-      signal: "Strong"
+      signal: "Strong",
+      mode: 'Fixed'
+    },
+    latency: {
+      video: 120,
+      control: 85
+    },
+    visionSystem: {
+      status: 'active',
+      details: 'All sensors active'
     },
     connections: {
       rfLink: {

@@ -71,7 +71,7 @@ const FlightMap: React.FC<FlightMapProps> = ({
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const droneMarker = useRef<mapboxgl.Marker | null>(null);
-  const pathLines = useRef<{ [key: string]: mapboxgl.LineSource }>({}); // Store different path segments
+  const pathLines = useRef<{ [key: string]: mapboxgl.GeoJSONSource }>({}); // Changed from LineSource to GeoJSONSource
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const [mapInitialized, setMapInitialized] = useState(false);
   
@@ -227,7 +227,7 @@ const FlightMap: React.FC<FlightMapProps> = ({
       });
       
       // Store reference to update later if needed
-      pathLines.current[mode] = map.current?.getSource(sourceId) as mapboxgl.LineSource;
+      pathLines.current[mode] = map.current?.getSource(sourceId) as mapboxgl.GeoJSONSource; // Changed from LineSource to GeoJSONSource
     });
   };
   
