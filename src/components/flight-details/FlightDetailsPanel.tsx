@@ -16,13 +16,15 @@ interface FlightDetailsPanelProps {
   flightMode: string;
   timestamp: string;
   className?: string;
+  onEventSelect?: (eventId: string) => void;
 }
 
 const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
   flightId,
   flightMode,
   timestamp,
-  className
+  className,
+  onEventSelect
 }) => {
   // State for active tab (handled by Radix UI Tabs)
   const [activeTab, setActiveTab] = useState("telemetry");
@@ -114,7 +116,6 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
   };
 
   return (
-    
     <Card className={cn("flex flex-col h-full overflow-hidden", className)}>
       {/* Header Section */}
       <DetailsPanelHeader 
@@ -162,7 +163,7 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
             
             <TabsContent value="timeline" className="h-full p-0 m-0 data-[state=active]:flex data-[state=active]:flex-col">
               <div className="flex-1 overflow-hidden">
-                <TimelinePanel />
+                <TimelinePanel timelinePosition={timestamp} onEventSelect={onEventSelect} />
               </div>
             </TabsContent>
           </div>

@@ -8,7 +8,6 @@ import VideoFeed from '@/components/flight-details/VideoFeed';
 import FlightMap from '@/components/flight-details/FlightMap';
 import FlightTimeline from '@/components/flight-details/FlightTimeline';
 import FlightDetailsPanel from '@/components/flight-details/FlightDetailsPanel';
-import TimelinePanel from '@/components/flight-details/TimelinePanel';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from '@/components/ui/use-toast';
 import mapboxgl from 'mapbox-gl';
@@ -21,6 +20,7 @@ import {
   WarningEvent,
   MediaAction
 } from '@/components/flight-details/timeline/timelineTypes';
+import { timeToSeconds } from '@/components/flight-details/timeline/timelineUtils';
 
 // View mode type
 type ViewMode = 'map' | 'video' | 'split';
@@ -640,22 +640,15 @@ const FlightDetails = () => {
             </ScrollArea>
           </div>
           
-          {/* 3. Flight Details Panel with Tabs */}
-          <div className="col-span-3 overflow-hidden h-full grid grid-rows-2 gap-4">
-            <div className="overflow-hidden">
-              <FlightDetailsPanel 
-                flightId={flightId || 'unknown'} 
-                flightMode={currentFlightMode}
-                timestamp={timelinePosition.timestamp} 
-                className="h-full"
-              />
-            </div>
-            <div className="overflow-hidden">
-              <TimelinePanel
-                timelinePosition={timelinePosition.timestamp}
-                onEventSelect={handleEventSelect}
-              />
-            </div>
+          {/* 3. Flight Details Panel - UPDATED: Single panel, no grid rows */}
+          <div className="col-span-3 overflow-hidden h-full">
+            <FlightDetailsPanel 
+              flightId={flightId || 'unknown'} 
+              flightMode={currentFlightMode}
+              timestamp={timelinePosition.timestamp} 
+              className="h-full"
+              onEventSelect={handleEventSelect}
+            />
           </div>
         </div>
       </main>
