@@ -409,26 +409,36 @@ const FlightDetails = () => {
         </ToggleGroup>
       </header>
       
-      {/* Main Content Area - Four independent containers - Adjusted for proper scrolling behavior */}
-      <main className="flex-1 p-400 pb-0 overflow-hidden flex">
-        <ScrollArea className="w-full h-full" type="auto">
-          <div className="flex-1 grid grid-cols-12 gap-600 min-h-full">
-            {/* 1. Video Panel - Independent container */}
-            <div className={cn(
-              "bg-background-level-2 rounded-200 p-400 flex flex-col",
-              viewMode === 'map' ? 'hidden' : 'col-span-9',
-              viewMode === 'split' ? 'col-span-6' : ''
-            )}>
-              <VideoFeed cameraType={cameraType} videoState={videoState} timelinePosition={timelinePosition} videoSegments={videoSegments} onPositionUpdate={handleVideoPositionUpdate} />
-            </div>
-            
-            {/* 2. Map Panel - Independent container */}
-            <div className={cn(
-              "bg-background-level-2 rounded-200 p-400 flex flex-col",
-              viewMode === 'video' ? 'hidden' : 'col-span-9',
-              viewMode === 'split' ? 'col-span-3' : ''
-            )}>
-              <div className="flex-1 bg-background-level-3 rounded-200">
+      {/* Main Content Area - Now with proper containment and scrolling */}
+      <main className="flex-1 p-400 pb-0 overflow-hidden flex" style={{ height: 'calc(100vh - 132px - 160px)' }}>
+        <div className="flex-1 grid grid-cols-12 gap-600 h-full">
+          {/* 1. Video Panel - With internal scrolling */}
+          <div className={cn(
+            "bg-background-level-2 rounded-200 p-400 flex flex-col overflow-hidden",
+            viewMode === 'map' ? 'hidden' : 'col-span-9',
+            viewMode === 'split' ? 'col-span-6' : ''
+          )}>
+            <ScrollArea className="h-full w-full" type="auto">
+              <div className="h-full">
+                <VideoFeed 
+                  cameraType={cameraType} 
+                  videoState={videoState} 
+                  timelinePosition={timelinePosition} 
+                  videoSegments={videoSegments} 
+                  onPositionUpdate={handleVideoPositionUpdate} 
+                />
+              </div>
+            </ScrollArea>
+          </div>
+          
+          {/* 2. Map Panel - With internal scrolling */}
+          <div className={cn(
+            "bg-background-level-2 rounded-200 p-400 flex flex-col overflow-hidden",
+            viewMode === 'video' ? 'hidden' : 'col-span-9',
+            viewMode === 'split' ? 'col-span-3' : ''
+          )}>
+            <ScrollArea className="h-full w-full" type="auto">
+              <div className="flex-1 bg-background-level-3 rounded-200 h-full">
                 <FlightMap 
                   flightId={flightId || 'unknown'} 
                   flightPath={mockFlightPath} 
@@ -449,19 +459,19 @@ const FlightDetails = () => {
                   isLoading={mapLoading} 
                 />
               </div>
-            </div>
-            
-            {/* 3. Flight Details Panel - Independent container, always col-span-3 */}
-            <div className="col-span-3 h-full">
-              <FlightDetailsPanel 
-                flightId={flightId || 'unknown'} 
-                flightMode="MISSION"
-                timestamp={timelinePosition.timestamp} 
-                className="h-full"
-              />
-            </div>
+            </ScrollArea>
           </div>
-        </ScrollArea>
+          
+          {/* 3. Flight Details Panel - With internal scrolling */}
+          <div className="col-span-3 overflow-hidden h-full">
+            <FlightDetailsPanel 
+              flightId={flightId || 'unknown'} 
+              flightMode="MISSION"
+              timestamp={timelinePosition.timestamp} 
+              className="h-full"
+            />
+          </div>
+        </div>
       </main>
       
       {/* 4. Timeline Panel - Fixed at bottom with a top margin */}
