@@ -52,9 +52,6 @@ interface FlightMapProps {
   isLoading?: boolean;
 }
 
-// Temporary Mapbox token - in production, this should be managed through environment variables
-// This is just for demonstration purposes
-const MAPBOX_TOKEN = 'pk.eyJ1IjoiZmx5dGJhc2UiLCJhIjoiY2tlZ2QwbmUzMGR0cjJ6cGRtY3RpbGpraiJ9.I0gYgVZQc2pVv9XXGnVu5w';
 const FlightMap: React.FC<FlightMapProps> = ({
   flightId,
   flightPath = [],
@@ -79,56 +76,63 @@ const FlightMap: React.FC<FlightMapProps> = ({
   useEffect(() => {
     if (!mapContainer.current) return;
 
+    // Get token from window object or use fallback
+    const token = (window as any).MAPBOX_TOKEN || 'pk.eyJ1IjoiZmx5dGJhc2UiLCJhIjoiY2tlZ2QwbmUzMGR0cjJ6cGRtY3RpbGpraiJ9.I0gYgVZQc2pVv9XXGnVu5w';
+    
     // Set Mapbox token
-    mapboxgl.accessToken = MAPBOX_TOKEN;
+    mapboxgl.accessToken = token;
 
-    // Create the map instance
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/dark-v11',
-      center: takeoffPoint || [-74.5, 40],
-      // Default to a location if takeoff point not provided
-      zoom: 13,
-      pitch: 45,
-      bearing: 0,
-      antialias: true
-    });
-
-    // Add navigation controls
-    map.current.addControl(new mapboxgl.NavigationControl({
-      visualizePitch: true,
-      showCompass: true
-    }), 'top-right');
-
-    // Add scale control
-    map.current.addControl(new mapboxgl.ScaleControl({
-      maxWidth: 100,
-      unit: 'metric'
-    }), 'bottom-left');
-
-    // Handle map load event
-    map.current.on('load', () => {
-      setMapLoaded(true);
-      console.log(`Map for flight ${flightId} loaded successfully`);
-    });
-
-    // Track zoom level
-    map.current.on('zoom', () => {
-      if (map.current) {
-        setZoomLevel(Math.floor(map.current.getZoom()));
-      }
-    });
-
-    // Track mouse position for coordinates display
-    map.current.on('mousemove', e => {
-      setShowCoordinates({
-        lng: parseFloat(e.lngLat.lng.toFixed(4)),
-        lat: parseFloat(e.lngLat.lat.toFixed(4))
+    try {
+      // Create the map instance
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: 'mapbox://styles/mapbox/dark-v11',
+        center: takeoffPoint || [-74.5, 40], // Default to a location if takeoff point not provided
+        zoom: 13,
+        pitch: 45,
+        bearing: 0,
+        antialias: true
       });
-    });
-    map.current.on('mouseout', () => {
-      setShowCoordinates(null);
-    });
+
+      // Add navigation controls
+      map.current.addControl(new mapboxgl.NavigationControl({
+        visualizePitch: true,
+        showCompass: true
+      }), 'top-right');
+
+      // Add scale control
+      map.current.addControl(new mapboxgl.ScaleControl({
+        maxWidth: 100,
+        unit: 'metric'
+      }), 'bottom-left');
+
+      // Handle map load event
+      map.current.on('load', () => {
+        setMapLoaded(true);
+        console.log(`Map for flight ${flightId} loaded successfully`);
+      });
+
+      // Track zoom level
+      map.current.on('zoom', () => {
+        if (map.current) {
+          setZoomLevel(Math.floor(map.current.getZoom()));
+        }
+      });
+
+      // Track mouse position for coordinates display
+      map.current.on('mousemove', e => {
+        setShowCoordinates({
+          lng: parseFloat(e.lngLat.lng.toFixed(4)),
+          lat: parseFloat(e.lngLat.lat.toFixed(4))
+        });
+      });
+      
+      map.current.on('mouseout', () => {
+        setShowCoordinates(null);
+      });
+    } catch (error) {
+      console.error("Error initializing map:", error);
+    }
 
     // Cleanup on unmount
     return () => {
