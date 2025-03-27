@@ -1,124 +1,128 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Video, Map, Columns } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn } from '@/lib/utils';
 import VideoFeed from '@/components/flight-details/VideoFeed';
 import FlightMap from '@/components/flight-details/FlightMap';
 import FlightTimeline from '@/components/flight-details/FlightTimeline';
 import FlightDetailsPanel from '@/components/flight-details/FlightDetailsPanel';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import ViewControls, { ViewMode } from '@/components/flight-details/ViewControls';
+import { 
+  TimelinePosition, VideoSegment, MissionPhase, 
+  SystemEvent, WarningEvent, MediaAction,
+  FlightPathPoint, WaypointMarker
+} from '@/components/flight-details/timeline/timelineTypes';
 
 // View mode type
-type ViewMode = 'map' | 'video' | 'split';
+// type ViewMode = 'map' | 'video' | 'split';
 
 // Video state type
 type VideoState = 'loading' | 'error' | 'empty' | 'playing';
 
 // Timeline position type
-interface TimelinePosition {
-  timestamp: string; // Format: "HH:MM:SS"
-  hasVideo: boolean;
-}
+// interface TimelinePosition {
+//   timestamp: string; // Format: "HH:MM:SS"
+//   hasVideo: boolean;
+// }
 
 // Video segment type
-type VideoSegment = {
-  startTime: string; // Format: "HH:MM:SS"
-  endTime: string; // Format: "HH:MM:SS"
-  url: string;
-};
+// type VideoSegment = {
+//   startTime: string; // Format: "HH:MM:SS"
+//   endTime: string; // Format: "HH:MM:SS"
+//   url: string;
+// };
 
 // Mission phase type
-type MissionPhase = {
-  type: 'manual' | 'gtl' | 'mission' | 'rtds';
-  startTime: string; // Format: "HH:MM:SS"
-  endTime: string; // Format: "HH:MM:SS"
-  label: string;
-};
+// type MissionPhase = {
+//   type: 'manual' | 'gtl' | 'mission' | 'rtds';
+//   startTime: string; // Format: "HH:MM:SS"
+//   endTime: string; // Format: "HH:MM:SS"
+//   label: string;
+// };
 
 // System event type
-type SystemEvent = {
-  type: 'connection' | 'calibration' | 'modeChange' | 'command';
-  timestamp: string; // Format: "HH:MM:SS"
-  details: string;
-};
+// type SystemEvent = {
+//   type: 'connection' | 'calibration' | 'modeChange' | 'command';
+//   timestamp: string; // Format: "HH:MM:SS"
+//   details: string;
+// };
 
 // Warning event type
-type WarningEvent = {
-  type: 'warning' | 'error';
-  timestamp: string; // Format: "HH:MM:SS"
-  details: string;
-  severity: 'low' | 'medium' | 'high';
-};
+// type WarningEvent = {
+//   type: 'warning' | 'error';
+//   timestamp: string; // Format: "HH:MM:SS"
+//   details: string;
+//   severity: 'low' | 'medium' | 'high';
+// };
 
 // Media action type
-type MediaAction = {
-  type: 'photo' | 'videoStart' | 'videoEnd';
-  timestamp: string; // Format: "HH:MM:SS"
-  fileId?: string;
-};
+// type MediaAction = {
+//   type: 'photo' | 'videoStart' | 'videoEnd';
+//   timestamp: string; // Format: "HH:MM:SS"
+//   fileId?: string;
+// };
 
 // Mock flight path data
-const mockFlightPath = [{
-  lat: 37.7856,
-  lng: -122.4308,
-  altitude: 120,
-  timestamp: '00:05:00',
-  flightMode: 'mission' as const
-}, {
-  lat: 37.7845,
-  lng: -122.4318,
-  altitude: 125,
-  timestamp: '00:06:00',
-  flightMode: 'mission' as const
-}, {
-  lat: 37.7834,
-  lng: -122.4328,
-  altitude: 130,
-  timestamp: '00:07:00',
-  flightMode: 'gtl' as const
-}, {
-  lat: 37.7823,
-  lng: -122.4338,
-  altitude: 135,
-  timestamp: '00:08:00',
-  flightMode: 'gtl' as const
-}, {
-  lat: 37.7812,
-  lng: -122.4348,
-  altitude: 140,
-  timestamp: '00:09:00',
-  flightMode: 'manual' as const
-}, {
-  lat: 37.7801,
-  lng: -122.4358,
-  altitude: 145,
-  timestamp: '00:10:00',
-  flightMode: 'mission' as const
-}, {
-  lat: 37.7790,
-  lng: -122.4368,
-  altitude: 150,
-  timestamp: '00:11:00',
-  flightMode: 'mission' as const
-}];
+// const mockFlightPath = [{
+//   lat: 37.7856,
+//   lng: -122.4308,
+//   altitude: 120,
+//   timestamp: '00:05:00',
+//   flightMode: 'mission' as const
+// }, {
+//   lat: 37.7845,
+//   lng: -122.4318,
+//   altitude: 125,
+//   timestamp: '00:06:00',
+//   flightMode: 'mission' as const
+// }, {
+//   lat: 37.7834,
+//   lng: -122.4328,
+//   altitude: 130,
+//   timestamp: '00:07:00',
+//   flightMode: 'gtl' as const
+// }, {
+//   lat: 37.7823,
+//   lng: -122.4338,
+//   altitude: 135,
+//   timestamp: '00:08:00',
+//   flightMode: 'gtl' as const
+// }, {
+//   lat: 37.7812,
+//   lng: -122.4348,
+//   altitude: 140,
+//   timestamp: '00:09:00',
+//   flightMode: 'manual' as const
+// }, {
+//   lat: 37.7801,
+//   lng: -122.4358,
+//   altitude: 145,
+//   timestamp: '00:10:00',
+//   flightMode: 'mission' as const
+// }, {
+//   lat: 37.7790,
+//   lng: -122.4368,
+//   altitude: 150,
+//   timestamp: '00:11:00',
+//   flightMode: 'mission' as const
+// }];
 
 // Mock waypoints
-const mockWaypoints = [{
-  lat: 37.7845,
-  lng: -122.4318,
-  index: 1
-}, {
-  lat: 37.7823,
-  lng: -122.4338,
-  index: 2
-}, {
-  lat: 37.7790,
-  lng: -122.4368,
-  index: 3
-}];
+// const mockWaypoints = [{
+//   lat: 37.7845,
+//   lng: -122.4318,
+//   index: 1
+// }, {
+//   lat: 37.7823,
+//   lng: -122.4338,
+//   index: 2
+// }, {
+//   lat: 37.7790,
+//   lng: -122.4368,
+//   index: 3
+// }];
 
 const FlightDetails = () => {
   const { flightId } = useParams();
@@ -268,8 +272,8 @@ const FlightDetails = () => {
   // Map state
   const [mapLoading, setMapLoading] = useState(true);
   const [currentMapPosition, setCurrentMapPosition] = useState({
-    lat: mockFlightPath[0]?.lat || 37.7790,
-    lng: mockFlightPath[0]?.lng || -122.4368
+    lat: 37.7790,
+    lng: -122.4368
   });
 
   // Simulate loading state and transitions for demo purposes
@@ -345,6 +349,7 @@ const FlightDetails = () => {
       const endInSeconds = timeToSeconds(segment.endTime);
       return timeInSeconds >= startInSeconds && timeInSeconds <= endInSeconds;
     });
+    
     setTimelinePosition({
       timestamp: newPosition,
       hasVideo: positionHasVideo
@@ -364,14 +369,24 @@ const FlightDetails = () => {
     const timestampSeconds = timeToSeconds(newPosition);
     const totalFlightSeconds = timeToSeconds('00:25:00'); // End of flight time
     const positionRatio = Math.min(timestampSeconds / totalFlightSeconds, 1);
-    const pathIndex = Math.min(Math.floor(positionRatio * mockFlightPath.length), mockFlightPath.length - 1);
-    if (mockFlightPath[pathIndex]) {
+    const pathIndex = Math.min(Math.floor(positionRatio * flightPath.length), flightPath.length - 1);
+    
+    if (flightPath[pathIndex]) {
       setCurrentMapPosition({
-        lat: mockFlightPath[pathIndex].lat,
-        lng: mockFlightPath[pathIndex].lng
+        lat: flightPath[pathIndex].lat,
+        lng: flightPath[pathIndex].lng,
+        altitude: flightPath[pathIndex].altitude,
+        heading: 45 // Mocked heading for demo
       });
     }
+    
     console.log(`Timeline position updated to ${newPosition} (has video: ${positionHasVideo})`);
+  };
+
+  // Change view mode handler
+  const handleViewModeChange = (mode: ViewMode) => {
+    setViewMode(mode);
+    console.log(`View mode changed to: ${mode}`);
   };
 
   // Fetch flight details (placeholder)
@@ -383,8 +398,12 @@ const FlightDetails = () => {
   return (
     <div className="flex flex-col h-screen bg-[#111113]">
       {/* Top Bar - Map/Video Controls */}
-      <header className="bg-background-level-1 p-400 flex items-center justify-between z-10 shrink-0">
-        <Button variant="ghost" className="flex items-center gap-200 text-text-icon-01" onClick={() => navigate(-1)}>
+      <header className="bg-background-level-1 p-4 flex items-center justify-between z-10 shrink-0">
+        <Button 
+          variant="ghost" 
+          className="flex items-center gap-2 text-text-icon-01" 
+          onClick={() => navigate(-1)}
+        >
           <ArrowLeft className="w-5 h-5" />
           <span>Back to Dashboard</span>
         </Button>
@@ -393,28 +412,18 @@ const FlightDetails = () => {
           Flight Details: {flightId}
         </h1>
         
-        <ToggleGroup type="single" value={viewMode} onValueChange={value => value && setViewMode(value as ViewMode)}>
-          <ToggleGroupItem value="map" aria-label="Show map view">
-            <Map className="w-5 h-5 mr-2" />
-            Map
-          </ToggleGroupItem>
-          <ToggleGroupItem value="video" aria-label="Show video view">
-            <Video className="w-5 h-5 mr-2" />
-            Video
-          </ToggleGroupItem>
-          <ToggleGroupItem value="split" aria-label="Show split view">
-            <Columns className="w-5 h-5 mr-2" />
-            Split
-          </ToggleGroupItem>
-        </ToggleGroup>
+        <ViewControls 
+          viewMode={viewMode} 
+          onViewModeChange={handleViewModeChange}
+        />
       </header>
       
-      {/* Main Content Area - Now with flex-1 instead of fixed height */}
-      <main className="flex-1 p-400 pb-0 overflow-hidden flex">
-        <div className="flex-1 grid grid-cols-12 gap-600 h-full">
-          {/* 1. Video Panel - With internal scrolling */}
+      {/* Main Content Area */}
+      <main className="flex-1 p-4 pb-0 overflow-hidden flex">
+        <div className="flex-1 grid grid-cols-12 gap-6 h-full">
+          {/* 1. Video Panel */}
           <div className={cn(
-            "bg-background-level-2 rounded-200 p-400 flex flex-col overflow-hidden",
+            "bg-background-level-2 rounded-md p-4 flex flex-col overflow-hidden",
             viewMode === 'map' ? 'hidden' : 'col-span-9',
             viewMode === 'split' ? 'col-span-6' : ''
           )}>
@@ -431,30 +440,30 @@ const FlightDetails = () => {
             </ScrollArea>
           </div>
           
-          {/* 2. Map Panel - With internal scrolling */}
+          {/* 2. Map Panel */}
           <div className={cn(
-            "bg-background-level-2 rounded-200 p-400 flex flex-col overflow-hidden",
+            "bg-background-level-2 rounded-md p-4 flex flex-col overflow-hidden",
             viewMode === 'video' ? 'hidden' : 'col-span-9',
-            viewMode === 'split' ? 'col-span-3' : ''
+            viewMode === 'split' ? 'col-span-6' : ''
           )}>
             <ScrollArea className="h-full w-full" type="auto">
-              <div className="flex-1 bg-background-level-3 rounded-200 h-full">
+              <div className="flex-1 bg-background-level-3 rounded-md h-full">
                 <FlightMap 
                   flightId={flightId || 'unknown'} 
-                  flightPath={mockFlightPath} 
+                  flightPath={flightPath} 
                   takeoffPoint={{
-                    lat: mockFlightPath[0].lat,
-                    lng: mockFlightPath[0].lng
+                    lat: flightPath[0].lat,
+                    lng: flightPath[0].lng
                   }} 
                   landingPoint={{
-                    lat: mockFlightPath[mockFlightPath.length - 1].lat,
-                    lng: mockFlightPath[mockFlightPath.length - 1].lng
+                    lat: flightPath[flightPath.length - 1].lat,
+                    lng: flightPath[flightPath.length - 1].lng
                   }} 
                   dockLocation={{
                     lat: 37.7856,
                     lng: -122.4308
                   }} 
-                  waypoints={mockWaypoints} 
+                  waypoints={waypoints} 
                   currentPosition={currentMapPosition} 
                   isLoading={mapLoading} 
                 />
@@ -462,7 +471,7 @@ const FlightDetails = () => {
             </ScrollArea>
           </div>
           
-          {/* 3. Flight Details Panel - With internal scrolling */}
+          {/* 3. Flight Details Panel */}
           <div className="col-span-3 overflow-hidden h-full">
             <FlightDetailsPanel 
               flightId={flightId || 'unknown'} 
@@ -474,8 +483,8 @@ const FlightDetails = () => {
         </div>
       </main>
       
-      {/* 4. Timeline Panel - Fixed at bottom with a top margin */}
-      <footer className="bg-background-level-1 mt-300 shrink-0">
+      {/* 4. Timeline Panel */}
+      <footer className="bg-background-level-1 mt-3 shrink-0">
         <FlightTimeline 
           currentPosition={timelinePosition} 
           videoSegments={videoSegments} 
