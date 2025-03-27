@@ -50,33 +50,3 @@ export interface Cluster {
   events: Array<SystemEvent | WarningEvent | MediaAction>;
   position: number;
 }
-
-// Camera type for video feed
-export type CameraType = 'wide' | 'zoom' | 'thermal';
-
-// Video state type
-export type VideoState = 'loading' | 'error' | 'empty' | 'playing';
-
-// Flight path point interface
-export interface FlightPathPoint {
-  lat: number;
-  lng: number;
-  altitude: number;
-  timestamp: string;
-  flightMode: 'mission' | 'gtl' | 'manual';
-}
-
-// Map marker interfaces
-export interface MapMarker {
-  lat: number;
-  lng: number;
-}
-
-export interface WaypointMarker extends MapMarker {
-  index: number;
-}
-
-export interface DronePositionMarker extends MapMarker {
-  altitude?: number;
-  heading?: number;
-}
