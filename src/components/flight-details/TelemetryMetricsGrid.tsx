@@ -34,25 +34,21 @@ const TelemetryMetricsGrid: React.FC<TelemetryMetricsGridProps> = ({
           label="Altitude" 
           value={altitude.value} 
           unit={altitude.unit}
-          trend="up"
         />
         <TelemetryMetricCard 
           label="Distance" 
           value={distance.value} 
           unit={distance.unit}
-          trend="neutral"
         />
         <TelemetryMetricCard 
           label="Vertical Speed" 
           value={verticalSpeed.value} 
           unit={verticalSpeed.unit}
-          trend="down"
         />
         <TelemetryMetricCard 
           label="Horizontal Speed" 
           value={horizontalSpeed.value} 
           unit={horizontalSpeed.unit}
-          trend="up"
         />
       </div>
     </div>

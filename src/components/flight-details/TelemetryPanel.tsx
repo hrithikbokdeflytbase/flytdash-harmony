@@ -42,6 +42,10 @@ export interface TelemetryData {
     count: number;
     signal: string;
   };
+  rtkStatus: {
+    count: number;
+    signal: string;
+  };
   connections: {
     rfLink: {
       status: 'active' | 'inactive' | 'poor';
@@ -89,7 +93,7 @@ const TelemetryPanel: React.FC<TelemetryPanelProps> = ({
             <SectionHeader title="Flight Metrics" icon={Activity}>
               <div className="flex items-center gap-1">
                 <div className="w-2 h-2 rounded-full bg-success-200"></div>
-                <span className="text-xs text-text-icon-01">GPS {telemetryData.gpsStatus.count}</span>
+                <span className="text-xs text-text-icon-01">RTK {telemetryData.rtkStatus.count}</span>
               </div>
             </SectionHeader>
             

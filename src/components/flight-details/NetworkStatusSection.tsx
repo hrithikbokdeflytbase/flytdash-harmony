@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Wifi } from 'lucide-react';
 import SectionHeader from './SectionHeader';
