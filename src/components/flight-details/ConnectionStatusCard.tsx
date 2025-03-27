@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { Wifi } from 'lucide-react';
 
 type ConnectionStatus = 'active' | 'inactive' | 'poor';
 
@@ -21,20 +20,17 @@ const ConnectionStatusCard: React.FC<ConnectionStatusCardProps> = ({
   // Status styling configurations
   const statusConfig = {
     active: {
-      bg: 'bg-success-200 bg-opacity-10',
-      border: 'border-success-200',
+      bg: 'bg-success-200/10',
       text: 'text-success-200',
       dot: 'bg-success-200'
     },
     inactive: {
-      bg: 'bg-text-icon-02 bg-opacity-10',
-      border: 'border-text-icon-02 border-opacity-30',
-      text: 'text-text-icon-02',
-      dot: 'bg-text-icon-02'
+      bg: 'bg-text-icon-03/10',
+      text: 'text-text-icon-03',
+      dot: 'bg-text-icon-03'
     },
     poor: {
-      bg: 'bg-caution-200 bg-opacity-10',
-      border: 'border-caution-200',
+      bg: 'bg-caution-200/10',
       text: 'text-caution-200',
       dot: 'bg-caution-200'
     }
@@ -61,27 +57,18 @@ const ConnectionStatusCard: React.FC<ConnectionStatusCardProps> = ({
     );
   };
 
-  const renderStatusIndicator = () => (
-    <div className={cn(
-      'flex items-center text-[10px] px-200 py-[2px] rounded-full',
-      statusConfig[status].bg,
-      'border',
-      statusConfig[status].border
-    )}>
-      <div className={cn('w-[6px] h-[6px] rounded-full mr-[6px]', statusConfig[status].dot)} />
-      <span className={statusConfig[status].text}>
-        {status.charAt(0).toUpperCase() + status.slice(1)}
-      </span>
-    </div>
-  );
-
   return (
-    <div className={cn("flex items-center justify-between p-2 border-b border-outline-primary last:border-b-0", className)}>
-      <span className="text-xs text-text-icon-01">{label}</span>
-      <div className="flex items-center gap-200">
+    <div className={cn("flex items-center justify-between py-2.5 px-3 border-b border-outline-primary last:border-b-0", className)}>
+      <div className="flex items-center gap-2">
+        <div className={cn('h-2 w-2 rounded-full', statusConfig[status].dot)} />
+        <span className="text-xs text-text-icon-01 font-medium">{label}</span>
+      </div>
+      
+      <div className="flex items-center gap-3">
         {renderNetworkBar()}
-        {renderStatusIndicator()}
-        {details && <span className="text-[10px] text-text-icon-02 ml-2">{details}</span>}
+        {details && (
+          <span className="text-xs text-text-icon-02">{details}</span>
+        )}
       </div>
     </div>
   );

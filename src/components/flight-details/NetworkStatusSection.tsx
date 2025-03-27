@@ -33,7 +33,7 @@ const NetworkStatusSection: React.FC<NetworkStatusSectionProps> = ({
       <SectionHeader title="Network Status" icon={Wifi} />
       
       <div className="px-4 py-2">
-        <div className="bg-background-level-1 border border-outline-primary rounded overflow-hidden">
+        <div className="bg-background-level-1 border border-outline-primary rounded-md overflow-hidden">
           <ConnectionStatusCard 
             label="RF Link"
             status={connections.rfLink.status}
