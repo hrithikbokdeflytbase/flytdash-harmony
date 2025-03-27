@@ -45,7 +45,7 @@ const TimelineSlider = React.forwardRef<
     <SliderPrimitive.Thumb className="relative block h-5 w-5 rounded-full border-2 border-error-200 bg-background-level-1 ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 shadow-md hover:scale-110 cursor-pointer z-40">
       {/* Position indicator line as part of the thumb - removed hover scaling for the line */}
       <div 
-        className="absolute top-0 left-1/2 -translate-x-1/2 w-[2px] bg-error-200 shadow-[0_0_4px_rgba(248,71,58,0.6)]" 
+        className="absolute top-0 left-1/2 w-[2px] bg-error-200 shadow-[0_0_4px_rgba(248,71,58,0.6)]" 
         style={{ 
           height: `${indicatorHeight}px`,
           transform: 'translate(-50%, -100%)',
