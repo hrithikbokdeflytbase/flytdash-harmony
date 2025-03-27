@@ -1,14 +1,14 @@
 
 import React from 'react';
 import TelemetryMetricCard from './TelemetryMetricCard';
-import { Switch } from '@/components/ui/switch';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 
 interface TelemetryMetricsGridProps {
   altitude: {
     value: number;
     unit: string;
-    mode: 'AGL' | 'ASL';
+    mode: 'AGL' | 'ASL' | 'RLT';
   };
   distance: {
     value: number;
@@ -22,7 +22,7 @@ interface TelemetryMetricsGridProps {
     value: number;
     unit: string;
   };
-  onAltitudeModeToggle?: () => void;
+  onAltitudeModeToggle?: (mode: 'AGL' | 'ASL' | 'RLT') => void;
 }
 
 const TelemetryMetricsGrid: React.FC<TelemetryMetricsGridProps> = ({
@@ -42,19 +42,29 @@ const TelemetryMetricsGrid: React.FC<TelemetryMetricsGridProps> = ({
             unit={altitude.unit}
             className="mb-1"
           />
-          <div className="flex items-center justify-end text-xs space-x-1.5 mt-1">
-            <Label htmlFor="altitude-mode" className="text-text-icon-02">AGL</Label>
-            <Switch 
-              id="altitude-mode" 
-              checked={altitude.mode === 'ASL'}
-              onCheckedChange={onAltitudeModeToggle}
-              className="data-[state=checked]:bg-primary-100 h-4"
-            />
-            <Label htmlFor="altitude-mode" className="text-text-icon-02">ASL</Label>
+          <div className="flex items-center justify-center text-xs space-x-1.5 mt-1">
+            <RadioGroup 
+              value={altitude.mode} 
+              onValueChange={(value) => onAltitudeModeToggle?.(value as 'AGL' | 'ASL' | 'RLT')}
+              className="flex items-center space-x-4"
+            >
+              <div className="flex items-center space-x-1">
+                <RadioGroupItem value="AGL" id="altitude-agl" className="w-3 h-3" />
+                <Label htmlFor="altitude-agl" className="text-text-icon-02 text-xs">AGL</Label>
+              </div>
+              <div className="flex items-center space-x-1">
+                <RadioGroupItem value="ASL" id="altitude-asl" className="w-3 h-3" />
+                <Label htmlFor="altitude-asl" className="text-text-icon-02 text-xs">ASL</Label>
+              </div>
+              <div className="flex items-center space-x-1">
+                <RadioGroupItem value="RLT" id="altitude-rlt" className="w-3 h-3" />
+                <Label htmlFor="altitude-rlt" className="text-text-icon-02 text-xs">RLT</Label>
+              </div>
+            </RadioGroup>
           </div>
         </div>
         <TelemetryMetricCard 
-          label="Distance" 
+          label="Distance from Home" 
           value={distance.value} 
           unit={distance.unit}
         />

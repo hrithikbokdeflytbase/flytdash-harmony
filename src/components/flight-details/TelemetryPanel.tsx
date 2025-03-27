@@ -28,7 +28,7 @@ export interface TelemetryData {
   altitude: {
     value: number;
     unit: string;
-    mode: 'AGL' | 'ASL';
+    mode: 'AGL' | 'ASL' | 'RLT';
   };
   distance: {
     value: number;
@@ -112,10 +112,10 @@ const TelemetryPanel: React.FC<TelemetryPanelProps> = ({
   telemetryData,
   className
 }) => {
-  const [altitudeMode, setAltitudeMode] = useState<'AGL' | 'ASL'>(telemetryData.altitude.mode);
+  const [altitudeMode, setAltitudeMode] = useState<'AGL' | 'ASL' | 'RLT'>(telemetryData.altitude.mode);
   
-  const toggleAltitudeMode = () => {
-    setAltitudeMode(prev => prev === 'AGL' ? 'ASL' : 'AGL');
+  const handleAltitudeModeToggle = (mode: 'AGL' | 'ASL' | 'RLT') => {
+    setAltitudeMode(mode);
   };
 
   return (
@@ -152,7 +152,7 @@ const TelemetryPanel: React.FC<TelemetryPanelProps> = ({
               distance={telemetryData.distance}
               verticalSpeed={telemetryData.verticalSpeed}
               horizontalSpeed={telemetryData.horizontalSpeed}
-              onAltitudeModeToggle={toggleAltitudeMode}
+              onAltitudeModeToggle={handleAltitudeModeToggle}
             />
             
             {/* Heading and Distance to Home */}
