@@ -117,10 +117,9 @@ const mockWaypoints = [{
   lng: -122.4368,
   index: 3
 }];
+
 const FlightDetails = () => {
-  const {
-    flightId
-  } = useParams();
+  const { flightId } = useParams();
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<ViewMode>('split');
 
@@ -379,7 +378,8 @@ const FlightDetails = () => {
     // This would be replaced with actual API call
   }, [flightId]);
 
-  return <div className="flex flex-col h-screen bg-[#111113]">
+  return (
+    <div className="flex flex-col h-screen bg-[#111113]">
       {/* Top Bar - Map/Video Controls */}
       <header className="bg-background-level-1 p-400 flex items-center justify-between z-10">
         <Button variant="ghost" className="flex items-center gap-200 text-text-icon-01" onClick={() => navigate(-1)}>
@@ -407,52 +407,60 @@ const FlightDetails = () => {
         </ToggleGroup>
       </header>
       
-      {/* Main Content Area - Reduced height with bottom margin for spacing */}
+      {/* Main Content Area - Four independent containers */}
       <main className="flex-1 p-400 pb-0 overflow-hidden flex" style={{ height: 'calc(100vh - 280px)' }}>
-        <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-600 h-full">
-          {/* Video Panel - Only hide when in map mode */}
+        <div className="flex-1 grid grid-cols-12 gap-600 h-full">
+          {/* 1. Video Panel - Independent container */}
           <div className={cn(
             "bg-background-level-2 rounded-200 p-400 flex flex-col",
-            viewMode === 'map' ? 'hidden' : 'lg:col-span-9',
-            viewMode === 'video' ? 'lg:col-span-9' : '',
-            viewMode === 'split' ? 'lg:col-span-6' : ''
+            viewMode === 'map' ? 'hidden' : 'col-span-9',
+            viewMode === 'split' ? 'col-span-6' : ''
           )}>
             <VideoFeed cameraType={cameraType} videoState={videoState} timelinePosition={timelinePosition} videoSegments={videoSegments} onPositionUpdate={handleVideoPositionUpdate} />
           </div>
           
-          {/* Map Panel - Only hide when in video mode */}
+          {/* 2. Map Panel - Independent container */}
           <div className={cn(
             "bg-background-level-2 rounded-200 p-400 flex flex-col",
-            viewMode === 'video' ? 'hidden' : 'lg:col-span-9',
-            viewMode === 'map' ? 'lg:col-span-9' : '',
-            viewMode === 'split' ? 'lg:col-span-3' : ''
+            viewMode === 'video' ? 'hidden' : 'col-span-9',
+            viewMode === 'split' ? 'col-span-3' : ''
           )}>
             <div className="flex-1 bg-background-level-3 rounded-200">
-              <FlightMap flightId={flightId || 'unknown'} flightPath={mockFlightPath} takeoffPoint={{
-              lat: mockFlightPath[0].lat,
-              lng: mockFlightPath[0].lng
-            }} landingPoint={{
-              lat: mockFlightPath[mockFlightPath.length - 1].lat,
-              lng: mockFlightPath[mockFlightPath.length - 1].lng
-            }} dockLocation={{
-              lat: 37.7856,
-              lng: -122.4308
-            }} waypoints={mockWaypoints} currentPosition={currentMapPosition} isLoading={mapLoading} />
+              <FlightMap 
+                flightId={flightId || 'unknown'} 
+                flightPath={mockFlightPath} 
+                takeoffPoint={{
+                  lat: mockFlightPath[0].lat,
+                  lng: mockFlightPath[0].lng
+                }} 
+                landingPoint={{
+                  lat: mockFlightPath[mockFlightPath.length - 1].lat,
+                  lng: mockFlightPath[mockFlightPath.length - 1].lng
+                }} 
+                dockLocation={{
+                  lat: 37.7856,
+                  lng: -122.4308
+                }} 
+                waypoints={mockWaypoints} 
+                currentPosition={currentMapPosition} 
+                isLoading={mapLoading} 
+              />
             </div>
           </div>
           
-          {/* Flight Details Panel - Always lg:col-span-3 regardless of view mode */}
-          <div className="lg:col-span-3 h-full">
+          {/* 3. Flight Details Panel - Independent container, always col-span-3 */}
+          <div className="col-span-3 h-full">
             <FlightDetailsPanel 
               flightId={flightId || 'unknown'} 
               flightMode="MISSION"
               timestamp={timelinePosition.timestamp} 
+              className="h-full"
             />
           </div>
         </div>
       </main>
       
-      {/* Bottom Section - Timeline with added top margin for spacing */}
+      {/* 4. Timeline Panel - Independent container */}
       <footer className="bg-background-level-1 mt-600">
         <FlightTimeline 
           currentPosition={timelinePosition} 
@@ -465,7 +473,8 @@ const FlightDetails = () => {
           mediaActions={mediaActions} 
         />
       </footer>
-    </div>;
+    </div>
+  );
 };
 
 export default FlightDetails;
