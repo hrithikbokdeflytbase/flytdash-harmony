@@ -66,41 +66,51 @@ const TelemetryMetricsGrid: React.FC<TelemetryMetricsGridProps> = ({
       </h2>
       
       <div className="grid grid-cols-2 gap-3">
-        <div className="relative">
-          <TelemetryMetricCard 
-            label={`Altitude (${altitude.mode})`} 
-            value={altitude.value} 
-            unit={altitude.unit}
-            className="h-full"
-          />
-          <div className="absolute left-2 top-1/2 -translate-y-1/2">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-6 w-6 text-text-icon-02 hover:text-text-icon-01" 
-              onClick={navigatePrevMode}
-            >
-              <ArrowLeft className="h-3.5 w-3.5" />
-            </Button>
-          </div>
-          <div className="absolute right-2 top-1/2 -translate-y-1/2">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-6 w-6 text-text-icon-02 hover:text-text-icon-01" 
-              onClick={navigateNextMode}
-            >
-              <ArrowRight className="h-3.5 w-3.5" />
-            </Button>
+        {/* Full-width altitude card with all three modes */}
+        <div className="col-span-2 relative">
+          <div className="bg-background-level-1 p-3 rounded-md border border-outline-primary hover:border-primary-100 transition-colors h-full">
+            <div className="flex flex-col">
+              <div className="mb-1">
+                <span className="text-xs text-text-icon-02">Altitude ({altitude.mode})</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-baseline">
+                  <span className="text-lg text-text-icon-01 font-medium">{altitude.value}</span>
+                  <span className="text-sm ml-1 text-text-icon-02">{altitude.unit}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-6 w-6 text-text-icon-02 hover:text-text-icon-01 p-0" 
+                    onClick={navigatePrevMode}
+                  >
+                    <ArrowLeft className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-6 w-6 text-text-icon-02 hover:text-text-icon-01 p-0" 
+                    onClick={navigateNextMode}
+                  >
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
+              <div className="mt-2 grid grid-cols-3 gap-2 text-xs text-text-icon-02">
+                <div className={`py-1 px-2 rounded ${altitude.mode === 'AGL' ? 'bg-primary/10 text-primary-200' : 'bg-background-level-2'}`}>
+                  AGL: Above Ground
+                </div>
+                <div className={`py-1 px-2 rounded ${altitude.mode === 'ASL' ? 'bg-primary/10 text-primary-200' : 'bg-background-level-2'}`}>
+                  ASL: Sea Level
+                </div>
+                <div className={`py-1 px-2 rounded ${altitude.mode === 'RLT' ? 'bg-primary/10 text-primary-200' : 'bg-background-level-2'}`}>
+                  RLT: Relative
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-        
-        <TelemetryMetricCard 
-          label="Distance from Home" 
-          value={distance.value} 
-          unit={distance.unit}
-          className="h-full"
-        />
         
         <TelemetryMetricCard 
           label="Vertical Speed" 

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Activity, Clock, Wifi, Thermometer, Wind, Compass, Home, Gauge, Signal, Video, Cpu, Eye } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -155,13 +154,10 @@ const TelemetryPanel: React.FC<TelemetryPanelProps> = ({
               onAltitudeModeToggle={handleAltitudeModeToggle}
             />
             
-            {/* Heading and Distance to Home */}
-            <div className="px-4 py-2 grid grid-cols-2 gap-2">
+            {/* Heading (removed Distance to Home) */}
+            <div className="px-4 py-2">
               <CompassHeadingCard 
                 heading={telemetryData.heading}
-              />
-              <DistanceToHomeCard 
-                distanceToHome={telemetryData.distanceToHome}
               />
             </div>
             
