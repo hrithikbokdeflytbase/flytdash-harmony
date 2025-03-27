@@ -15,114 +15,8 @@ import {
   FlightPathPoint, WaypointMarker
 } from '@/components/flight-details/timeline/timelineTypes';
 
-// View mode type
-// type ViewMode = 'map' | 'video' | 'split';
-
 // Video state type
 type VideoState = 'loading' | 'error' | 'empty' | 'playing';
-
-// Timeline position type
-// interface TimelinePosition {
-//   timestamp: string; // Format: "HH:MM:SS"
-//   hasVideo: boolean;
-// }
-
-// Video segment type
-// type VideoSegment = {
-//   startTime: string; // Format: "HH:MM:SS"
-//   endTime: string; // Format: "HH:MM:SS"
-//   url: string;
-// };
-
-// Mission phase type
-// type MissionPhase = {
-//   type: 'manual' | 'gtl' | 'mission' | 'rtds';
-//   startTime: string; // Format: "HH:MM:SS"
-//   endTime: string; // Format: "HH:MM:SS"
-//   label: string;
-// };
-
-// System event type
-// type SystemEvent = {
-//   type: 'connection' | 'calibration' | 'modeChange' | 'command';
-//   timestamp: string; // Format: "HH:MM:SS"
-//   details: string;
-// };
-
-// Warning event type
-// type WarningEvent = {
-//   type: 'warning' | 'error';
-//   timestamp: string; // Format: "HH:MM:SS"
-//   details: string;
-//   severity: 'low' | 'medium' | 'high';
-// };
-
-// Media action type
-// type MediaAction = {
-//   type: 'photo' | 'videoStart' | 'videoEnd';
-//   timestamp: string; // Format: "HH:MM:SS"
-//   fileId?: string;
-// };
-
-// Mock flight path data
-// const mockFlightPath = [{
-//   lat: 37.7856,
-//   lng: -122.4308,
-//   altitude: 120,
-//   timestamp: '00:05:00',
-//   flightMode: 'mission' as const
-// }, {
-//   lat: 37.7845,
-//   lng: -122.4318,
-//   altitude: 125,
-//   timestamp: '00:06:00',
-//   flightMode: 'mission' as const
-// }, {
-//   lat: 37.7834,
-//   lng: -122.4328,
-//   altitude: 130,
-//   timestamp: '00:07:00',
-//   flightMode: 'gtl' as const
-// }, {
-//   lat: 37.7823,
-//   lng: -122.4338,
-//   altitude: 135,
-//   timestamp: '00:08:00',
-//   flightMode: 'gtl' as const
-// }, {
-//   lat: 37.7812,
-//   lng: -122.4348,
-//   altitude: 140,
-//   timestamp: '00:09:00',
-//   flightMode: 'manual' as const
-// }, {
-//   lat: 37.7801,
-//   lng: -122.4358,
-//   altitude: 145,
-//   timestamp: '00:10:00',
-//   flightMode: 'mission' as const
-// }, {
-//   lat: 37.7790,
-//   lng: -122.4368,
-//   altitude: 150,
-//   timestamp: '00:11:00',
-//   flightMode: 'mission' as const
-// }];
-
-// Mock waypoints
-// const mockWaypoints = [{
-//   lat: 37.7845,
-//   lng: -122.4318,
-//   index: 1
-// }, {
-//   lat: 37.7823,
-//   lng: -122.4338,
-//   index: 2
-// }, {
-//   lat: 37.7790,
-//   lng: -122.4368,
-//   index: 3
-// }];
 
 const FlightDetails = () => {
   const { flightId } = useParams();
@@ -141,6 +35,78 @@ const FlightDetails = () => {
     timestamp: '00:15:32',
     hasVideo: false
   });
+
+  // Define mock flight path data
+  const [flightPath, setFlightPath] = useState<FlightPathPoint[]>([
+    {
+      lat: 37.7856,
+      lng: -122.4308,
+      altitude: 120,
+      timestamp: '00:05:00',
+      flightMode: 'mission'
+    }, 
+    {
+      lat: 37.7845,
+      lng: -122.4318,
+      altitude: 125,
+      timestamp: '00:06:00',
+      flightMode: 'mission'
+    }, 
+    {
+      lat: 37.7834,
+      lng: -122.4328,
+      altitude: 130,
+      timestamp: '00:07:00',
+      flightMode: 'gtl'
+    }, 
+    {
+      lat: 37.7823,
+      lng: -122.4338,
+      altitude: 135,
+      timestamp: '00:08:00',
+      flightMode: 'gtl'
+    }, 
+    {
+      lat: 37.7812,
+      lng: -122.4348,
+      altitude: 140,
+      timestamp: '00:09:00',
+      flightMode: 'manual'
+    }, 
+    {
+      lat: 37.7801,
+      lng: -122.4358,
+      altitude: 145,
+      timestamp: '00:10:00',
+      flightMode: 'mission'
+    }, 
+    {
+      lat: 37.7790,
+      lng: -122.4368,
+      altitude: 150,
+      timestamp: '00:11:00',
+      flightMode: 'mission'
+    }
+  ]);
+
+  // Define mock waypoints
+  const [waypoints, setWaypoints] = useState<WaypointMarker[]>([
+    {
+      lat: 37.7845,
+      lng: -122.4318,
+      index: 1
+    }, 
+    {
+      lat: 37.7823,
+      lng: -122.4338,
+      index: 2
+    }, 
+    {
+      lat: 37.7790,
+      lng: -122.4368,
+      index: 3
+    }
+  ]);
 
   // Mock video segments (would come from API in real app)
   const [videoSegments, setVideoSegments] = useState<VideoSegment[]>([{
@@ -374,9 +340,7 @@ const FlightDetails = () => {
     if (flightPath[pathIndex]) {
       setCurrentMapPosition({
         lat: flightPath[pathIndex].lat,
-        lng: flightPath[pathIndex].lng,
-        altitude: flightPath[pathIndex].altitude,
-        heading: 45 // Mocked heading for demo
+        lng: flightPath[pathIndex].lng
       });
     }
     
