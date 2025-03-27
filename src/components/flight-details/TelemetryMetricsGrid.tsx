@@ -1,8 +1,8 @@
 
 import React from 'react';
 import TelemetryMetricCard from './TelemetryMetricCard';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface TelemetryMetricsGridProps {
   altitude: {
@@ -32,35 +32,61 @@ const TelemetryMetricsGrid: React.FC<TelemetryMetricsGridProps> = ({
   horizontalSpeed,
   onAltitudeModeToggle
 }) => {
+  // Array of available altitude modes for cycling
+  const altitudeModes: ('AGL' | 'ASL' | 'RLT')[] = ['AGL', 'ASL', 'RLT'];
+  
+  // Find current mode index
+  const currentModeIndex = altitudeModes.indexOf(altitude.mode);
+  
+  // Navigate to previous mode
+  const navigatePrevMode = () => {
+    const newIndex = (currentModeIndex - 1 + altitudeModes.length) % altitudeModes.length;
+    onAltitudeModeToggle?.(altitudeModes[newIndex]);
+  };
+  
+  // Navigate to next mode
+  const navigateNextMode = () => {
+    const newIndex = (currentModeIndex + 1) % altitudeModes.length;
+    onAltitudeModeToggle?.(altitudeModes[newIndex]);
+  };
+
   return (
     <div className="px-4 py-2">
       <div className="grid grid-cols-2 gap-2">
         <div className="relative">
-          <TelemetryMetricCard 
-            label={`Altitude (${altitude.mode})`}
-            value={altitude.value} 
-            unit={altitude.unit}
-            className="mb-1"
-          />
-          <div className="flex items-center justify-center text-xs space-x-1.5 mt-1">
-            <RadioGroup 
-              value={altitude.mode} 
-              onValueChange={(value) => onAltitudeModeToggle?.(value as 'AGL' | 'ASL' | 'RLT')}
-              className="flex items-center space-x-4"
-            >
-              <div className="flex items-center space-x-1">
-                <RadioGroupItem value="AGL" id="altitude-agl" className="w-3 h-3" />
-                <Label htmlFor="altitude-agl" className="text-text-icon-02 text-xs">AGL</Label>
-              </div>
-              <div className="flex items-center space-x-1">
-                <RadioGroupItem value="ASL" id="altitude-asl" className="w-3 h-3" />
-                <Label htmlFor="altitude-asl" className="text-text-icon-02 text-xs">ASL</Label>
-              </div>
-              <div className="flex items-center space-x-1">
-                <RadioGroupItem value="RLT" id="altitude-rlt" className="w-3 h-3" />
-                <Label htmlFor="altitude-rlt" className="text-text-icon-02 text-xs">RLT</Label>
-              </div>
-            </RadioGroup>
+          <div className="relative">
+            <TelemetryMetricCard 
+              label={`Altitude (${altitude.mode})`}
+              value={altitude.value} 
+              unit={altitude.unit}
+            />
+            <div className="absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-6 w-6" 
+                onClick={navigatePrevMode}
+              >
+                <ArrowLeft className="h-3.5 w-3.5 text-text-icon-02" />
+              </Button>
+            </div>
+            <div className="absolute top-1/2 right-0 transform -translate-y-1/2 translate-x-1">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-6 w-6" 
+                onClick={navigateNextMode}
+              >
+                <ArrowRight className="h-3.5 w-3.5 text-text-icon-02" />
+              </Button>
+            </div>
+          </div>
+          <div className="flex items-center justify-center text-xs mt-1">
+            <span className="text-xs text-text-icon-01 font-medium">
+              {altitude.mode === 'AGL' ? 'Above Ground Level' : 
+               altitude.mode === 'ASL' ? 'Above Sea Level' : 
+               'Relative Altitude'}
+            </span>
           </div>
         </div>
         <TelemetryMetricCard 
