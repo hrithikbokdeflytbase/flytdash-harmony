@@ -383,7 +383,7 @@ const FlightDetails = () => {
   return (
     <div className="flex flex-col h-screen bg-[#111113]">
       {/* Top Bar - Map/Video Controls */}
-      <header className="bg-background-level-1 p-400 flex items-center justify-between z-10">
+      <header className="bg-background-level-1 p-400 flex items-center justify-between z-10 shrink-0">
         <Button variant="ghost" className="flex items-center gap-200 text-text-icon-01" onClick={() => navigate(-1)}>
           <ArrowLeft className="w-5 h-5" />
           <span>Back to Dashboard</span>
@@ -409,8 +409,8 @@ const FlightDetails = () => {
         </ToggleGroup>
       </header>
       
-      {/* Main Content Area - Now with proper containment and scrolling */}
-      <main className="flex-1 p-400 pb-0 overflow-hidden flex" style={{ height: 'calc(100vh - 132px - 160px)' }}>
+      {/* Main Content Area - Now with flex-1 instead of fixed height */}
+      <main className="flex-1 p-400 pb-0 overflow-hidden flex">
         <div className="flex-1 grid grid-cols-12 gap-600 h-full">
           {/* 1. Video Panel - With internal scrolling */}
           <div className={cn(
@@ -475,7 +475,7 @@ const FlightDetails = () => {
       </main>
       
       {/* 4. Timeline Panel - Fixed at bottom with a top margin */}
-      <footer className="bg-background-level-1 mt-300">
+      <footer className="bg-background-level-1 mt-300 shrink-0">
         <FlightTimeline 
           currentPosition={timelinePosition} 
           videoSegments={videoSegments} 

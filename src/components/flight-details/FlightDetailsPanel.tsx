@@ -88,14 +88,14 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
       />
 
       {/* Tab Navigation */}
-      <div className="border-b border-outline-primary">
+      <div className="flex flex-col flex-1 overflow-hidden">
         <Tabs 
           defaultValue="telemetry" 
-          className="w-full h-[calc(100%-40px)]" 
+          className="flex flex-col w-full h-full" 
           onValueChange={handleTabChange}
           value={activeTab}
         >
-          <TabsList className="flex w-full h-[40px] bg-transparent">
+          <TabsList className="flex w-full h-[40px] bg-transparent shrink-0 border-b border-outline-primary">
             <TabsTrigger 
               value="telemetry" 
               className="flex-1 h-full rounded-none data-[state=active]:bg-transparent data-[state=active]:text-text-icon-01 data-[state=inactive]:text-text-icon-02 relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-primary-200 after:transform after:scale-x-0 data-[state=active]:after:scale-x-100 after:transition-transform"
@@ -117,17 +117,17 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
           </TabsList>
 
           {/* Tab Contents with proper height calculation and ScrollArea for content */}
-          <div className="flex-1 overflow-hidden" style={{ height: 'calc(100% - 41px)' }}>
+          <div className="flex-1 overflow-hidden">
             <TabsContent value="telemetry" className="h-full p-0 m-0 data-[state=active]:flex data-[state=active]:flex-col">
-              <ScrollArea className="h-full w-full" type="auto">
+              <div className="flex-1 overflow-hidden">
                 <TelemetryPanel telemetryData={telemetryData} />
-              </ScrollArea>
+              </div>
             </TabsContent>
             
             <TabsContent value="timeline" className="h-full p-0 m-0 data-[state=active]:flex data-[state=active]:flex-col">
-              <ScrollArea className="h-full w-full" type="auto">
+              <div className="flex-1 overflow-hidden">
                 <TimelinePanel />
-              </ScrollArea>
+              </div>
             </TabsContent>
           </div>
         </Tabs>
