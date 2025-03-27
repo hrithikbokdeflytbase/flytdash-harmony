@@ -407,8 +407,8 @@ const FlightDetails = () => {
         </ToggleGroup>
       </header>
       
-      {/* Main Content Area - Four independent containers */}
-      <main className="flex-1 p-400 pb-0 overflow-hidden flex" style={{ height: 'calc(100vh - 280px)' }}>
+      {/* Main Content Area - Four independent containers - Adjusted height with 12px bottom margin */}
+      <main className="flex-1 p-400 pb-0 overflow-hidden flex" style={{ height: 'calc(100vh - 292px)' }}>
         <div className="flex-1 grid grid-cols-12 gap-600 h-full">
           {/* 1. Video Panel - Independent container */}
           <div className={cn(
@@ -460,8 +460,8 @@ const FlightDetails = () => {
         </div>
       </main>
       
-      {/* 4. Timeline Panel - Independent container */}
-      <footer className="bg-background-level-1 mt-600">
+      {/* 4. Timeline Panel - Independent container with 12px top margin */}
+      <footer className="bg-background-level-1 mt-300">
         <FlightTimeline 
           currentPosition={timelinePosition} 
           videoSegments={videoSegments} 
