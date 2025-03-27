@@ -1,52 +1,58 @@
 
-// Type definitions for timeline components
-
-// Timeline position type
+// Timeline position interface
 export interface TimelinePosition {
-  timestamp: string; // Format: "HH:MM:SS"
+  timestamp: string;
   hasVideo: boolean;
 }
 
-// Video segment type
-export type VideoSegment = {
-  startTime: string; // Format: "HH:MM:SS"
-  endTime: string;   // Format: "HH:MM:SS"
+// Video segment interface
+export interface VideoSegment {
+  startTime: string;
+  endTime: string;
   url: string;
-};
+}
 
-// Mission phase type
-export type MissionPhase = {
-  type: 'manual' | 'gtl' | 'mission' | 'rtds';
-  startTime: string; // Format: "HH:MM:SS"
-  endTime: string;   // Format: "HH:MM:SS"
+// Mission phase type alias
+type MissionPhaseType = 'mission' | 'gtl' | 'manual' | 'rtds';
+
+// Mission phase interface
+export interface MissionPhase {
+  type: MissionPhaseType;
+  startTime: string;
+  endTime: string;
   label: string;
-};
+}
 
-// System event type
-export type SystemEvent = {
-  type: 'connection' | 'calibration' | 'modeChange' | 'command';
-  timestamp: string; // Format: "HH:MM:SS"
+// System event type alias
+type SystemEventType = 'connection' | 'calibration' | 'modeChange' | 'command';
+
+// System event interface
+export interface SystemEvent {
+  type: SystemEventType;
+  timestamp: string;
   details: string;
-};
+}
 
-// Warning event type
-export type WarningEvent = {
-  type: 'warning' | 'error';
-  timestamp: string; // Format: "HH:MM:SS"
+// Warning severity type
+type WarningSeverity = 'low' | 'medium' | 'high';
+
+// Warning event type alias
+type WarningEventType = 'warning' | 'error';
+
+// Warning event interface
+export interface WarningEvent {
+  type: WarningEventType;
+  timestamp: string;
   details: string;
-  severity: 'low' | 'medium' | 'high';
-};
+  severity: WarningSeverity;
+}
 
-// Media action type
-export type MediaAction = {
-  type: 'photo' | 'videoStart' | 'videoEnd';
-  timestamp: string; // Format: "HH:MM:SS"
-  fileId?: string;
-};
+// Media action type alias
+type MediaActionType = 'photo' | 'videoStart' | 'videoEnd';
 
-// Cluster type
-export interface Cluster {
-  isCluster: boolean;
-  events: Array<SystemEvent | WarningEvent | MediaAction>;
-  position: number;
+// Media action interface
+export interface MediaAction {
+  type: MediaActionType;
+  timestamp: string;
+  fileId: string;
 }

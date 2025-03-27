@@ -4,7 +4,6 @@ import { Camera, Maximize2, Square, Loader2, AlertCircle, Video, Thermometer } f
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { VideoSegment, TimelinePosition } from './timeline/timelineTypes';
-import { Button } from '@/components/ui/button';
 
 type CameraType = 'wide' | 'zoom' | 'thermal' | 'ogi';
 type VideoState = 'loading' | 'error' | 'empty' | 'playing';
@@ -16,6 +15,8 @@ type VideoFeedProps = {
   videoSegments?: VideoSegment[];
   onPositionUpdate?: (position: string) => void;
   className?: string;
+  isPlaying?: boolean;
+  playbackSpeed?: number;
 };
 
 const VideoFeed: React.FC<VideoFeedProps> = ({
@@ -24,7 +25,9 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
   timelinePosition,
   videoSegments = [],
   onPositionUpdate,
-  className
+  className,
+  isPlaying = false,
+  playbackSpeed = 1
 }) => {
   const [activeSegment, setActiveSegment] = useState<VideoSegment | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -35,8 +38,8 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
   
   // Log the current state for debugging
   useEffect(() => {
-    console.log("VideoFeed state:", { videoState, cameraType, timelinePosition });
-  }, [videoState, cameraType, timelinePosition]);
+    console.log("VideoFeed state:", { videoState, cameraType, timelinePosition, isPlaying, playbackSpeed });
+  }, [videoState, cameraType, timelinePosition, isPlaying, playbackSpeed]);
 
   // Handle camera type changes
   useEffect(() => {
@@ -74,9 +77,23 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
 
             // If video element exists, seek to the correct position
             if (videoRef.current) {
-              const segmentDurationInSeconds = timeToSeconds(segment.endTime) - timeToSeconds(segment.startTime);
-              const positionInSegment = timeToSeconds(timelinePosition.timestamp) - timeToSeconds(segment.startTime);
-              videoRef.current.currentTime = positionInSegment;
+              const segmentStart = timeToSeconds(segment.startTime);
+              const positionInSeconds = timeToSeconds(timelinePosition.timestamp);
+              const seekTime = positionInSeconds - segmentStart;
+              
+              videoRef.current.currentTime = Math.max(0, seekTime);
+              
+              // Play or pause based on isPlaying prop
+              if (isPlaying) {
+                videoRef.current.play().catch(err => {
+                  console.error("Could not play video:", err);
+                });
+              } else {
+                videoRef.current.pause();
+              }
+              
+              // Set playback rate based on the playbackSpeed prop
+              videoRef.current.playbackRate = playbackSpeed;
             }
           }, 500);
         } else {
@@ -89,6 +106,66 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
       }
     }
   }, [timelinePosition, prevTimelinePosition, videoSegments]);
+
+  // Sync video playback with isPlaying prop
+  useEffect(() => {
+    if (!videoRef.current || !activeSegment) return;
+    
+    if (isPlaying) {
+      videoRef.current.play().catch(err => {
+        console.error("Could not play video:", err);
+      });
+    } else {
+      videoRef.current.pause();
+    }
+  }, [isPlaying, activeSegment]);
+  
+  // Sync video playback speed with playbackSpeed prop
+  useEffect(() => {
+    if (!videoRef.current) return;
+    videoRef.current.playbackRate = playbackSpeed;
+  }, [playbackSpeed]);
+
+  // Sync current video time with timelinePosition when playing
+  useEffect(() => {
+    if (!videoRef.current || !activeSegment || !timelinePosition || !isPlaying) return;
+    
+    const updateVideoPosition = () => {
+      if (!videoRef.current || !activeSegment) return;
+      
+      // Get current video time and convert to timeline time
+      const videoTime = videoRef.current.currentTime;
+      const segmentStart = timeToSeconds(activeSegment.startTime);
+      const timelineTime = secondsToTime(segmentStart + videoTime);
+      
+      // Only update if the time has changed significantly (to avoid loops)
+      if (Math.abs(timeToSeconds(timelinePosition.timestamp) - timeToSeconds(timelineTime)) > 1) {
+        if (onPositionUpdate) {
+          onPositionUpdate(timelineTime);
+        }
+      }
+    };
+    
+    // Update every 250ms during playback
+    const interval = setInterval(updateVideoPosition, 250);
+    
+    return () => clearInterval(interval);
+  }, [videoRef.current, activeSegment, timelinePosition, isPlaying, onPositionUpdate]);
+
+  // Event listener for video time updates
+  const handleTimeUpdate = () => {
+    if (!videoRef.current || !activeSegment || !onPositionUpdate || isPlaying) return;
+    
+    // When manually seeking in the video, update the timeline position
+    const videoTime = videoRef.current.currentTime;
+    const segmentStart = timeToSeconds(activeSegment.startTime);
+    const timelineTime = secondsToTime(segmentStart + videoTime);
+    
+    // Only update if not playing (playing is handled by the effect above)
+    if (!isPlaying) {
+      onPositionUpdate(timelineTime);
+    }
+  };
 
   // Find the appropriate video segment for a given timestamp
   const findVideoSegmentForTimestamp = (timestamp: string): VideoSegment | null => {
@@ -108,6 +185,14 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
   const timeToSeconds = (timeString: string): number => {
     const [hours, minutes, seconds] = timeString.split(':').map(Number);
     return hours * 3600 + minutes * 60 + seconds;
+  };
+
+  // Convert seconds to "HH:MM:SS" format
+  const secondsToTime = (seconds: number): string => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   // Find nearest available video segment
@@ -152,14 +237,6 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
     }
     
     return null;
-  };
-  
-  // Format seconds to "HH:MM:SS"
-  const formatTime = (seconds: number): string => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   // Camera type badge background color
@@ -249,7 +326,6 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
             <AlertCircle className="h-[60px] w-[60px] text-red-400 mb-4" />
             <p className="text-white text-base font-medium mb-2">Video unavailable</p>
             <p className="text-gray-400 text-sm mb-4">There was a problem loading this video</p>
-            <Button variant="outline" size="sm">Try Again</Button>
           </div>
         )}
 
@@ -286,9 +362,10 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
                 )} 
                 src={activeSegment?.url || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} 
                 muted={true} 
-                autoPlay={true} 
+                autoPlay={false}
                 playsInline 
-                controls
+                controls={false}
+                onTimeUpdate={handleTimeUpdate}
                 aria-label={`${cameraType} camera video feed`} 
               />
             </div>

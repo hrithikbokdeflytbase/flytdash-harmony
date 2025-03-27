@@ -2,18 +2,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { Loader2, Plus, Minus, Layers, Map as MapIcon, PlaneTakeoff, Anchor, Maximize, Compass, Info, AlertTriangle, AlertCircle, RefreshCw } from 'lucide-react';
+import { Loader2, Plus, Minus, AlertTriangle, AlertCircle, RefreshCw } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import MapLegend from './MapLegend';
 import { cn } from '@/lib/utils';
-
-// Convert "HH:MM:SS" format to seconds for comparison
-const timeToSeconds = (timeString: string): number => {
-  const [hours, minutes, seconds] = timeString.split(':').map(Number);
-  return hours * 3600 + minutes * 60 + seconds;
-};
+import { SystemEvent, WarningEvent, TimelinePosition } from './timeline/timelineTypes';
+import { timeToSeconds } from './timeline/timelineUtils';
 
 // Flight path point interface
 interface FlightPathPoint {
@@ -51,9 +46,14 @@ interface FlightMapProps {
     altitude?: number;
     heading?: number;
   };
+  currentFlightMode?: string;
   isLoading?: boolean;
   error?: string | null;
   onRetry?: () => void;
+  onPathClick?: (timestamp: string) => void;
+  timelinePosition?: TimelinePosition;
+  systemEvents?: SystemEvent[];
+  warningEvents?: WarningEvent[];
 }
 
 const FlightMap: React.FC<FlightMapProps> = ({
@@ -64,9 +64,14 @@ const FlightMap: React.FC<FlightMapProps> = ({
   dockLocation,
   waypoints = [],
   currentPosition,
+  currentFlightMode = 'mission',
   isLoading = true,
   error = null,
-  onRetry
+  onRetry,
+  onPathClick,
+  timelinePosition,
+  systemEvents = [],
+  warningEvents = []
 }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
@@ -81,8 +86,11 @@ const FlightMap: React.FC<FlightMapProps> = ({
   const [showAllMarkers, setShowAllMarkers] = useState(true);
   const [showPastPath, setShowPastPath] = useState(true);
   const [showFuturePath, setShowFuturePath] = useState(true);
+  const markerRefs = useRef<{[key: string]: mapboxgl.Marker}>({});
+  const popupRefs = useRef<{[key: string]: mapboxgl.Popup}>({});
+  const pathLayersAdded = useRef<boolean>(false);
 
-  // Initialize map - this is the critical part for display
+  // Initialize map
   useEffect(() => {
     if (!mapContainer.current || error) return;
     
@@ -175,34 +183,55 @@ const FlightMap: React.FC<FlightMapProps> = ({
 
     // Check if source already exists and remove it
     if (map.current.getSource('flight-path')) {
-      map.current.removeLayer('flight-path-mission');
-      map.current.removeLayer('flight-path-gtl');
-      map.current.removeLayer('flight-path-manual');
-      map.current.removeLayer('flight-path-rtds');
+      if (pathLayersAdded.current) {
+        // Remove all existing layers before re-adding
+        map.current.removeLayer('flight-path-past-mission');
+        map.current.removeLayer('flight-path-future-mission');
+        map.current.removeLayer('flight-path-past-gtl');
+        map.current.removeLayer('flight-path-future-gtl');
+        map.current.removeLayer('flight-path-past-manual');
+        map.current.removeLayer('flight-path-future-manual');
+        map.current.removeLayer('flight-path-past-rtds');
+        map.current.removeLayer('flight-path-future-rtds');
+      }
       map.current.removeSource('flight-path');
+      pathLayersAdded.current = false;
     }
 
-    // Create coordinate arrays for each flight mode
-    const missionCoordinates: Array<[number, number]> = [];
-    const gtlCoordinates: Array<[number, number]> = [];
-    const manualCoordinates: Array<[number, number]> = [];
-    const rtdsCoordinates: Array<[number, number]> = [];
-
-    // Group coordinates by flight mode
-    let prevMode: string | null = null;
-    let currentArray: Array<[number, number]> = [];
-    flightPath.forEach((point) => {
+    // Split flight path into past and future based on current timestamp
+    const currentTime = timelinePosition?.timestamp || "00:00:00";
+    const currentTimeSeconds = timeToSeconds(currentTime);
+    
+    // Prepare coordinates arrays for each mode and past/future
+    const pastMissionCoords: Array<[number, number]> = [];
+    const futureMissionCoords: Array<[number, number]> = [];
+    const pastGtlCoords: Array<[number, number]> = [];
+    const futureGtlCoords: Array<[number, number]> = [];
+    const pastManualCoords: Array<[number, number]> = [];
+    const futureManualCoords: Array<[number, number]> = [];
+    const pastRtdsCoords: Array<[number, number]> = [];
+    const futureRtdsCoords: Array<[number, number]> = [];
+    
+    // Sort flight path by timestamp before processing
+    const sortedPath = [...flightPath].sort((a, b) => 
+      timeToSeconds(a.timestamp) - timeToSeconds(b.timestamp)
+    );
+    
+    // Process flight path points
+    sortedPath.forEach(point => {
+      const pointTime = timeToSeconds(point.timestamp);
+      const isPast = pointTime <= currentTimeSeconds;
       const coord: [number, number] = [point.lng, point.lat];
       
-      // Determine which array to add to based on flight mode
+      // Add to appropriate array based on mode and time
       if (point.flightMode === 'mission') {
-        missionCoordinates.push(coord);
+        isPast ? pastMissionCoords.push(coord) : futureMissionCoords.push(coord);
       } else if (point.flightMode === 'gtl') {
-        gtlCoordinates.push(coord);
+        isPast ? pastGtlCoords.push(coord) : futureGtlCoords.push(coord);
       } else if (point.flightMode === 'manual') {
-        manualCoordinates.push(coord);
+        isPast ? pastManualCoords.push(coord) : futureManualCoords.push(coord);
       } else if (point.flightMode === 'rtds') {
-        rtdsCoordinates.push(coord);
+        isPast ? pastRtdsCoords.push(coord) : futureRtdsCoords.push(coord);
       }
     });
 
@@ -212,112 +241,249 @@ const FlightMap: React.FC<FlightMapProps> = ({
       data: {
         type: 'FeatureCollection',
         features: [
+          // Past paths
           {
             type: 'Feature',
-            properties: { mode: 'mission' },
+            properties: { mode: 'mission', timing: 'past' },
             geometry: {
               type: 'LineString',
-              coordinates: missionCoordinates
+              coordinates: pastMissionCoords
             }
           },
           {
             type: 'Feature',
-            properties: { mode: 'gtl' },
+            properties: { mode: 'gtl', timing: 'past' },
             geometry: {
               type: 'LineString',
-              coordinates: gtlCoordinates
+              coordinates: pastGtlCoords
             }
           },
           {
             type: 'Feature',
-            properties: { mode: 'manual' },
+            properties: { mode: 'manual', timing: 'past' },
             geometry: {
               type: 'LineString',
-              coordinates: manualCoordinates
+              coordinates: pastManualCoords
             }
           },
           {
             type: 'Feature',
-            properties: { mode: 'rtds' },
+            properties: { mode: 'rtds', timing: 'past' },
             geometry: {
               type: 'LineString',
-              coordinates: rtdsCoordinates
+              coordinates: pastRtdsCoords
+            }
+          },
+          // Future paths
+          {
+            type: 'Feature',
+            properties: { mode: 'mission', timing: 'future' },
+            geometry: {
+              type: 'LineString',
+              coordinates: futureMissionCoords
+            }
+          },
+          {
+            type: 'Feature',
+            properties: { mode: 'gtl', timing: 'future' },
+            geometry: {
+              type: 'LineString',
+              coordinates: futureGtlCoords
+            }
+          },
+          {
+            type: 'Feature',
+            properties: { mode: 'manual', timing: 'future' },
+            geometry: {
+              type: 'LineString',
+              coordinates: futureManualCoords
+            }
+          },
+          {
+            type: 'Feature',
+            properties: { mode: 'rtds', timing: 'future' },
+            geometry: {
+              type: 'LineString',
+              coordinates: futureRtdsCoords
             }
           }
         ]
       }
     });
 
-    // Add mission mode layer
+    // Add path layers with click handlers for timeline sync
+    // Past mission path
     map.current.addLayer({
-      id: 'flight-path-mission',
+      id: 'flight-path-past-mission',
       type: 'line',
       source: 'flight-path',
-      filter: ['==', ['get', 'mode'], 'mission'],
+      filter: ['all', ['==', ['get', 'mode'], 'mission'], ['==', ['get', 'timing'], 'past']],
       layout: {
         'line-join': 'round',
         'line-cap': 'round'
+      },
+      paint: {
+        'line-color': '#496DC8', // Mission: Blue 
+        'line-width': 5,
+        'line-opacity': 0.9
+      }
+    });
+
+    // Future mission path
+    map.current.addLayer({
+      id: 'flight-path-future-mission',
+      type: 'line',
+      source: 'flight-path',
+      filter: ['all', ['==', ['get', 'mode'], 'mission'], ['==', ['get', 'timing'], 'future']],
+      layout: {
+        'line-join': 'round',
+        'line-cap': 'round',
+        'line-dasharray': [2, 2]
       },
       paint: {
         'line-color': '#496DC8', // Mission: Blue
         'line-width': 3,
-        'line-opacity': 0.8,
-        'line-blur': 1
+        'line-opacity': 0.5
       }
     });
 
-    // Add GTL mode layer
+    // Past GTL path
     map.current.addLayer({
-      id: 'flight-path-gtl',
+      id: 'flight-path-past-gtl',
       type: 'line',
       source: 'flight-path',
-      filter: ['==', ['get', 'mode'], 'gtl'],
+      filter: ['all', ['==', ['get', 'mode'], 'gtl'], ['==', ['get', 'timing'], 'past']],
       layout: {
         'line-join': 'round',
         'line-cap': 'round'
       },
       paint: {
-        'line-color': '#8B5CF6', // Purple
-        'line-width': 3,
-        'line-opacity': 0.8,
-        'line-blur': 1
+        'line-color': '#8B5CF6', // GTL: Purple
+        'line-width': 5,
+        'line-opacity': 0.9
       }
     });
 
-    // Add manual mode layer
+    // Future GTL path
     map.current.addLayer({
-      id: 'flight-path-manual',
+      id: 'flight-path-future-gtl',
       type: 'line',
       source: 'flight-path',
-      filter: ['==', ['get', 'mode'], 'manual'],
+      filter: ['all', ['==', ['get', 'mode'], 'gtl'], ['==', ['get', 'timing'], 'future']],
+      layout: {
+        'line-join': 'round',
+        'line-cap': 'round',
+        'line-dasharray': [2, 2]
+      },
+      paint: {
+        'line-color': '#8B5CF6', // GTL: Purple
+        'line-width': 3,
+        'line-opacity': 0.5
+      }
+    });
+
+    // Past manual path
+    map.current.addLayer({
+      id: 'flight-path-past-manual',
+      type: 'line',
+      source: 'flight-path',
+      filter: ['all', ['==', ['get', 'mode'], 'manual'], ['==', ['get', 'timing'], 'past']],
       layout: {
         'line-join': 'round',
         'line-cap': 'round'
       },
       paint: {
-        'line-color': '#F97316', // Orange
-        'line-width': 3,
-        'line-opacity': 0.8,
-        'line-blur': 1
+        'line-color': '#F97316', // Manual: Orange
+        'line-width': 5,
+        'line-opacity': 0.9
       }
     });
 
-    // Add RTDS (Return to Dock) mode layer
+    // Future manual path
     map.current.addLayer({
-      id: 'flight-path-rtds',
+      id: 'flight-path-future-manual',
       type: 'line',
       source: 'flight-path',
-      filter: ['==', ['get', 'mode'], 'rtds'],
+      filter: ['all', ['==', ['get', 'mode'], 'manual'], ['==', ['get', 'timing'], 'future']],
+      layout: {
+        'line-join': 'round',
+        'line-cap': 'round',
+        'line-dasharray': [2, 2]
+      },
+      paint: {
+        'line-color': '#F97316', // Manual: Orange
+        'line-width': 3,
+        'line-opacity': 0.5
+      }
+    });
+
+    // Past RTDS path
+    map.current.addLayer({
+      id: 'flight-path-past-rtds',
+      type: 'line',
+      source: 'flight-path',
+      filter: ['all', ['==', ['get', 'mode'], 'rtds'], ['==', ['get', 'timing'], 'past']],
       layout: {
         'line-join': 'round',
         'line-cap': 'round'
       },
       paint: {
-        'line-color': '#14B8A6', // Teal
-        'line-width': 3,
-        'line-opacity': 0.8,
-        'line-blur': 1
+        'line-color': '#14B8A6', // RTDS: Teal
+        'line-width': 5,
+        'line-opacity': 0.9
       }
+    });
+
+    // Future RTDS path
+    map.current.addLayer({
+      id: 'flight-path-future-rtds',
+      type: 'line',
+      source: 'flight-path',
+      filter: ['all', ['==', ['get', 'mode'], 'rtds'], ['==', ['get', 'timing'], 'future']],
+      layout: {
+        'line-join': 'round',
+        'line-cap': 'round',
+        'line-dasharray': [2, 2]
+      },
+      paint: {
+        'line-color': '#14B8A6', // RTDS: Teal
+        'line-width': 3,
+        'line-opacity': 0.5
+      }
+    });
+
+    pathLayersAdded.current = true;
+
+    // Add click handlers for timeline sync
+    const handlePathClick = (e: mapboxgl.MapMouseEvent) => {
+      if (!onPathClick || !map.current) return;
+      
+      // Find nearest flight path point
+      const clickedLngLat = e.lngLat;
+      let nearestPoint = null;
+      let minDistance = Infinity;
+      
+      for (const point of flightPath) {
+        const pointLngLat = new mapboxgl.LngLat(point.lng, point.lat);
+        const distance = clickedLngLat.distanceTo(pointLngLat);
+        
+        if (distance < minDistance) {
+          minDistance = distance;
+          nearestPoint = point;
+        }
+      }
+      
+      if (nearestPoint && minDistance < 500) { // 500m threshold
+        onPathClick(nearestPoint.timestamp);
+      }
+    };
+    
+    // Add click handlers to all path layers
+    ['flight-path-past-mission', 'flight-path-future-mission', 
+     'flight-path-past-gtl', 'flight-path-future-gtl',
+     'flight-path-past-manual', 'flight-path-future-manual',
+     'flight-path-past-rtds', 'flight-path-future-rtds'].forEach(layerId => {
+      map.current?.on('click', layerId, handlePathClick);
     });
 
     // Fit the map to the flight path bounds
@@ -337,7 +503,134 @@ const FlightMap: React.FC<FlightMapProps> = ({
         duration: 2000
       });
     }
-  }, [mapLoaded, flightPath]);
+  }, [mapLoaded, flightPath, timelinePosition, onPathClick]);
+
+  // Add event markers (warnings and system events)
+  useEffect(() => {
+    if (!mapLoaded || !map.current || !showAllMarkers || flightPath.length === 0) return;
+    
+    // Clear existing event markers
+    Object.values(markerRefs.current).forEach(marker => marker.remove());
+    markerRefs.current = {};
+    
+    // Create a mapping of timestamps to positions for placing event markers
+    const timestampToPosition: {[key: string]: {lat: number, lng: number}} = {};
+    flightPath.forEach(point => {
+      timestampToPosition[point.timestamp] = { lat: point.lat, lng: point.lng };
+    });
+    
+    // Add warning event markers
+    warningEvents.forEach(event => {
+      // Find position for this event (nearest flight path point)
+      const nearestPoint = findNearestFlightPathPoint(event.timestamp, flightPath);
+      if (!nearestPoint) return;
+      
+      // Create marker element based on warning severity and type
+      const markerEl = document.createElement('div');
+      markerEl.className = 'flex items-center justify-center w-8 h-8';
+      
+      if (event.type === 'error') {
+        // Error marker (red octagon)
+        markerEl.innerHTML = `
+          <div class="absolute w-5 h-5 bg-red-500/80 rounded-full flex items-center justify-center shadow-lg shadow-red-500/30 z-10">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+          </div>
+        `;
+      } else {
+        // Warning marker (yellow triangle)
+        markerEl.innerHTML = `
+          <div class="absolute w-5 h-5 bg-amber-500/80 rounded-full flex items-center justify-center shadow-lg shadow-amber-500/30 z-10">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+          </div>
+        `;
+      }
+      
+      // Create popup
+      const popup = new mapboxgl.Popup({ offset: 25 })
+        .setHTML(`
+          <div class="p-2">
+            <p class="font-semibold text-sm">${event.type === 'error' ? 'Error' : 'Warning'}: ${event.details}</p>
+            <p class="text-xs text-gray-500">Time: ${event.timestamp}</p>
+            <button 
+              class="mt-2 text-xs bg-primary-200 text-white px-2 py-1 rounded hover:bg-primary-300 jump-button"
+              data-timestamp="${event.timestamp}"
+            >
+              Jump to time
+            </button>
+          </div>
+        `);
+      
+      // Create and add marker
+      const marker = new mapboxgl.Marker(markerEl)
+        .setLngLat([nearestPoint.lng, nearestPoint.lat])
+        .setPopup(popup)
+        .addTo(map.current!);
+      
+      // Store marker reference
+      markerRefs.current[`event-${event.timestamp}`] = marker;
+      popupRefs.current[`event-${event.timestamp}`] = popup;
+    });
+    
+    // Add system event markers
+    systemEvents.forEach(event => {
+      // Find position for this event
+      const nearestPoint = findNearestFlightPathPoint(event.timestamp, flightPath);
+      if (!nearestPoint) return;
+      
+      // Only add markers for significant system events
+      if (event.type === 'modeChange' || event.type === 'command') {
+        const markerEl = document.createElement('div');
+        markerEl.className = 'flex items-center justify-center w-8 h-8';
+        
+        markerEl.innerHTML = `
+          <div class="absolute w-5 h-5 bg-blue-500/80 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/30 z-10">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
+          </div>
+        `;
+        
+        // Create popup
+        const popup = new mapboxgl.Popup({ offset: 25 })
+          .setHTML(`
+            <div class="p-2">
+              <p class="font-semibold text-sm">System Event: ${event.details}</p>
+              <p class="text-xs text-gray-500">Time: ${event.timestamp}</p>
+              <button 
+                class="mt-2 text-xs bg-primary-200 text-white px-2 py-1 rounded hover:bg-primary-300 jump-button"
+                data-timestamp="${event.timestamp}"
+              >
+                Jump to time
+              </button>
+            </div>
+          `);
+        
+        // Create and add marker
+        const marker = new mapboxgl.Marker(markerEl)
+          .setLngLat([nearestPoint.lng, nearestPoint.lat])
+          .setPopup(popup)
+          .addTo(map.current!);
+        
+        // Store marker reference
+        markerRefs.current[`system-${event.timestamp}`] = marker;
+        popupRefs.current[`system-${event.timestamp}`] = popup;
+      }
+    });
+    
+    // Add popup click event listeners
+    document.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      if (target.classList.contains('jump-button') && onPathClick) {
+        const timestamp = target.getAttribute('data-timestamp');
+        if (timestamp) {
+          onPathClick(timestamp);
+        }
+      }
+    });
+    
+    return () => {
+      // Remove event listeners
+      document.removeEventListener('click', () => {});
+    };
+  }, [mapLoaded, showAllMarkers, flightPath, systemEvents, warningEvents, onPathClick]);
 
   // Add markers when map is loaded and marker data is available
   useEffect(() => {
@@ -345,7 +638,12 @@ const FlightMap: React.FC<FlightMapProps> = ({
 
     // Clear existing markers
     const markers = document.querySelectorAll('.mapboxgl-marker');
-    markers.forEach(marker => marker.remove());
+    markers.forEach(marker => {
+      // Only remove markers not related to events
+      if (!marker.classList.contains('event-marker')) {
+        marker.remove();
+      }
+    });
 
     // Add takeoff marker
     if (takeoffPoint) {
@@ -399,38 +697,6 @@ const FlightMap: React.FC<FlightMapProps> = ({
         offset: 25
       }).setText(`Waypoint ${waypoint.index}`)).addTo(map.current);
     });
-
-    // Add warning event markers (example)
-    const warningMarkerEl = document.createElement('div');
-    warningMarkerEl.className = 'flex items-center justify-center w-8 h-8';
-    warningMarkerEl.innerHTML = `
-      <div class="absolute w-5 h-5 bg-amber-500/80 rounded-full flex items-center justify-center shadow-lg shadow-amber-500/30 z-10">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
-      </div>
-    `;
-    if (flightPath.length > 2) {
-      const warningPoint = flightPath[Math.floor(flightPath.length / 2)]; // Midpoint of flight
-      new mapboxgl.Marker(warningMarkerEl)
-        .setLngLat([warningPoint.lng, warningPoint.lat])
-        .setPopup(new mapboxgl.Popup({ offset: 25 }).setText('Strong Wind Warning'))
-        .addTo(map.current);
-    }
-
-    // Add error event marker (example)
-    const errorMarkerEl = document.createElement('div');
-    errorMarkerEl.className = 'flex items-center justify-center w-8 h-8';
-    errorMarkerEl.innerHTML = `
-      <div class="absolute w-5 h-5 bg-red-500/80 rounded-full flex items-center justify-center shadow-lg shadow-red-500/30 z-10">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-      </div>
-    `;
-    if (flightPath.length > 3) {
-      const errorPoint = flightPath[Math.floor(flightPath.length * 0.75)]; // 3/4 through the flight
-      new mapboxgl.Marker(errorMarkerEl)
-        .setLngLat([errorPoint.lng, errorPoint.lat])
-        .setPopup(new mapboxgl.Popup({ offset: 25 }).setText('Sensor Error'))
-        .addTo(map.current);
-    }
   }, [mapLoaded, takeoffPoint, landingPoint, dockLocation, waypoints, showAllMarkers]);
 
   // Add current position marker if available
@@ -445,9 +711,16 @@ const FlightMap: React.FC<FlightMapProps> = ({
     const altitude = currentPosition.altitude || 0;
     const currentPosMarkerEl = document.createElement('div');
     currentPosMarkerEl.className = 'flex items-center justify-center w-10 h-10 relative drone-position-marker';
+    
+    // Adjust color based on current flight mode
+    let modeColor = '#496DC8'; // Default blue (mission)
+    if (currentFlightMode === 'gtl') modeColor = '#8B5CF6'; // Purple
+    if (currentFlightMode === 'manual') modeColor = '#F97316'; // Orange
+    if (currentFlightMode === 'rtds') modeColor = '#14B8A6'; // Teal
+    
     currentPosMarkerEl.innerHTML = `
-      <div class="absolute w-15 h-15 bg-primary-200/10 rounded-full animate-ping"></div>
-      <div class="absolute w-4 h-4 bg-primary-200 rounded-full shadow-lg shadow-primary-200/50 z-10"></div>
+      <div class="absolute w-15 h-15 bg-${modeColor}/10 rounded-full animate-ping"></div>
+      <div class="absolute w-4 h-4 bg-${modeColor} rounded-full shadow-lg shadow-${modeColor}/50 z-10"></div>
       <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-background-level-3 px-2 py-0.5 rounded text-xs whitespace-nowrap">
         ${altitude.toFixed(0)}m
       </div>
@@ -458,26 +731,47 @@ const FlightMap: React.FC<FlightMapProps> = ({
       rotation: heading,
       rotationAlignment: 'map'
     }).setLngLat([currentPosition.lng, currentPosition.lat]).addTo(map.current);
+  }, [mapLoaded, currentPosition, currentFlightMode]);
+
+  // Focus map on current drone position when timeline changes significantly
+  useEffect(() => {
+    if (!map.current || !currentPosition || !timelinePosition) return;
     
-    // Don't automatically move the map to the current position to avoid jarring movements
-    // Instead, let users control this with the focus button
-  }, [mapLoaded, currentPosition]);
+    // Focus on drone with a smooth transition
+    map.current.flyTo({
+      center: [currentPosition.lng, currentPosition.lat],
+      zoom: 15, 
+      duration: 1000,
+      essential: true // Ensures animation is smooth
+    });
+  }, [timelinePosition?.timestamp]);
+
+  // Helper function to find nearest flight path point for an event timestamp
+  const findNearestFlightPathPoint = (timestamp: string, path: FlightPathPoint[]): FlightPathPoint | null => {
+    if (!path.length) return null;
+    
+    const targetSeconds = timeToSeconds(timestamp);
+    let nearestPoint = path[0];
+    let smallestDiff = Infinity;
+    
+    path.forEach(point => {
+      const pointSeconds = timeToSeconds(point.timestamp);
+      const diff = Math.abs(pointSeconds - targetSeconds);
+      
+      if (diff < smallestDiff) {
+        smallestDiff = diff;
+        nearestPoint = point;
+      }
+    });
+    
+    return nearestPoint;
+  };
 
   // Focus map on drone
   const focusOnDrone = () => {
     if (!map.current || !currentPosition) return;
     map.current.flyTo({
       center: [currentPosition.lng, currentPosition.lat],
-      zoom: 16,
-      duration: 1000
-    });
-  };
-
-  // Focus map on dock
-  const focusOnDock = () => {
-    if (!map.current || !dockLocation) return;
-    map.current.flyTo({
-      center: [dockLocation.lng, dockLocation.lat],
       zoom: 16,
       duration: 1000
     });
@@ -525,212 +819,89 @@ const FlightMap: React.FC<FlightMapProps> = ({
 
   return (
     <div className="relative w-full h-full rounded-lg overflow-hidden border border-[rgba(255,255,255,0.08)]">
-      {/* Map container - ensure this has proper height and width */}
+      {/* Map container */}
       <div ref={mapContainer} className="absolute inset-0 bg-background-level-3"></div>
       
       {/* Map Legend */}
-      <MapLegend />
+      <MapLegend currentMode={currentFlightMode} />
       
-      {/* Focus controls (top-right) */}
-      <div className="absolute top-2 right-12 flex flex-col items-end space-y-1 z-10">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button 
-                onClick={focusOnDrone} 
-                variant="outline" 
-                size="icon" 
-                className="h-8 w-8 rounded-md bg-background-level-3/70 backdrop-blur-sm hover:bg-background-level-3/90" 
-                disabled={!currentPosition || isLoading || !!error}
-              >
-                <PlaneTakeoff className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="left">
-              <p>Focus on drone</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-        
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button 
-                onClick={focusOnDock} 
-                variant="outline" 
-                size="icon" 
-                className="h-8 w-8 rounded-md bg-background-level-3/70 backdrop-blur-sm hover:bg-background-level-3/90" 
-                disabled={!dockLocation || isLoading || !!error}
-              >
-                <Anchor className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="left">
-              <p>Focus on dock</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-        
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button 
-                onClick={showEntirePath} 
-                variant="outline" 
-                size="icon" 
-                className="h-8 w-8 rounded-md bg-background-level-3/70 backdrop-blur-sm hover:bg-background-level-3/90" 
-                disabled={flightPath.length === 0 || isLoading || !!error}
-              >
-                <Maximize className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="left">
-              <p>View entire path</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
-      
-      {/* Main controls (bottom-right) */}
-      <div className="absolute bottom-2 right-2 flex flex-col items-end space-y-1 z-10">
-        <div className="flex flex-col items-center bg-background-level-3/80 rounded-md overflow-hidden">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="h-7 w-7 rounded-none p-0" 
-            onClick={zoomIn}
-            disabled={isLoading || !!error}
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
-          <div className="text-xs text-text-icon-02 py-0.5">
-            {zoomLevel}x
-          </div>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="h-7 w-7 rounded-none p-0" 
-            onClick={zoomOut}
-            disabled={isLoading || !!error}
-          >
-            <Minus className="h-4 w-4" />
-          </Button>
-        </div>
-        
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button 
-                onClick={toggleMapStyle} 
-                variant="outline" 
-                size="icon" 
-                className="h-7 w-7 rounded-md bg-background-level-3/80 p-0"
-                disabled={isLoading || !!error}
-              >
-                <MapIcon className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="left">
-              <p>Toggle map style ({mapStyle === 'dark' ? 'Dark' : 'Satellite'} view)</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-        
-        <DropdownMenu>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    size="icon" 
-                    className="h-7 w-7 rounded-md bg-background-level-3/80 p-0"
-                    disabled={isLoading || !!error}
-                  >
-                    <Layers className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-              </TooltipTrigger>
-              <TooltipContent side="left">
-                <p>Map layers</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem onSelect={toggleMarkers}>
-              {showAllMarkers ? 'Hide all markers' : 'Show all markers'}
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => setShowPastPath(!showPastPath)}>
-              {showPastPath ? 'Hide completed path' : 'Show completed path'}
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => setShowFuturePath(!showFuturePath)}>
-              {showFuturePath ? 'Hide planned path' : 'Show planned path'}
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={toggleMapStyle}>
-              Switch to {mapStyle === 'dark' ? 'satellite' : 'dark'} mode
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-      
-      {/* North arrow (top-left) */}
-      <div className="absolute top-2 left-2 z-10">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className="h-6 w-6 flex items-center justify-center bg-background-level-3/70 backdrop-blur-sm rounded-md">
-                <Compass className="h-4 w-4 text-text-icon-01" />
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>North</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
-      
-      {/* Coordinates display (bottom) */}
-      {showCoordinates && !isLoading && !error && (
-        <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-background-level-3/80 backdrop-blur-sm px-2 py-0.5 rounded-md text-xs text-text-icon-02 z-10">
-          Lng: {showCoordinates.lng} | Lat: {showCoordinates.lat}
-        </div>
-      )}
-      
-      {/* Empty state */}
-      {isFlightPathEmpty && !isLoading && !error && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background-level-2 bg-opacity-80 z-20">
-          <div className="flex flex-col items-center space-y-3 p-6 rounded-lg bg-background-level-3/90 max-w-md text-center">
-            <MapIcon className="h-12 w-12 text-text-icon-02 mb-2" />
-            <h3 className="text-lg font-medium text-text-icon-01">No Flight Path Available</h3>
-            <p className="text-text-icon-02 text-sm">There is no flight path data available for this flight.</p>
-          </div>
+      {/* Loading state */}
+      {isLoading && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-background-level-3/80 backdrop-blur-sm z-50">
+          <Loader2 className="h-12 w-12 text-primary-100 animate-spin mb-4" />
+          <p className="text-text-icon-01 font-medium">Loading map data...</p>
         </div>
       )}
       
       {/* Error state */}
       {error && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background-level-2 bg-opacity-80 z-20">
-          <div className="flex flex-col items-center space-y-3 p-6 rounded-lg bg-background-level-3/90 max-w-md text-center">
-            <AlertCircle className="h-12 w-12 text-red-500 mb-2" />
-            <h3 className="text-lg font-medium text-text-icon-01">Map Error</h3>
-            <p className="text-text-icon-02 text-sm mb-3">{error}</p>
-            {onRetry && (
-              <Button variant="outline" size="sm" onClick={onRetry} className="gap-2">
-                <RefreshCw className="h-4 w-4" />
-                Retry
-              </Button>
-            )}
-          </div>
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-background-level-3/80 backdrop-blur-sm z-50">
+          <AlertCircle className="h-12 w-12 text-error-200 mb-4" />
+          <p className="text-text-icon-01 font-medium mb-2">{error}</p>
+          {onRetry && (
+            <Button 
+              onClick={onRetry} 
+              variant="outline" 
+              className="mt-4 gap-2"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Try Again
+            </Button>
+          )}
         </div>
       )}
       
-      {/* Loading indicator */}
-      {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background-level-2 bg-opacity-80 z-20">
-          <div className="flex flex-col items-center space-y-3">
-            <Loader2 className="h-8 w-8 text-primary-200 animate-spin" />
-            <span className="text-text-icon-01">Loading flight path...</span>
-          </div>
+      {/* Empty state */}
+      {!isLoading && !error && isFlightPathEmpty && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-background-level-3/80 backdrop-blur-sm z-50">
+          <Map className="h-12 w-12 text-text-icon-02 mb-4" />
+          <p className="text-text-icon-01 font-medium mb-2">No flight path data available</p>
+        </div>
+      )}
+      
+      {/* Map controls */}
+      <div className="absolute bottom-4 left-4 flex flex-col space-y-2 z-10">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                onClick={zoomIn} 
+                variant="outline" 
+                size="icon" 
+                className="h-8 w-8 rounded-md bg-background-level-3/70 backdrop-blur-sm hover:bg-background-level-3/90"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              <p>Zoom in</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                onClick={zoomOut} 
+                variant="outline" 
+                size="icon" 
+                className="h-8 w-8 rounded-md bg-background-level-3/70 backdrop-blur-sm hover:bg-background-level-3/90"
+              >
+                <Minus className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              <p>Zoom out</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+      
+      {/* Coordinate display */}
+      {showCoordinates && (
+        <div className="absolute bottom-4 right-4 bg-background-level-3/70 backdrop-blur-sm text-xs p-2 rounded-md text-text-icon-02 z-10">
+          {showCoordinates.lat.toFixed(4)}, {showCoordinates.lng.toFixed(4)}
         </div>
       )}
     </div>

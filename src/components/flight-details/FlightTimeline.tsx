@@ -30,6 +30,10 @@ interface FlightTimelineProps {
   systemEvents?: SystemEvent[];
   warningEvents?: WarningEvent[];
   mediaActions?: MediaAction[];
+  isPlaying?: boolean;
+  onPlaybackToggle?: (isPlaying: boolean) => void;
+  playbackSpeed?: number;
+  onSpeedChange?: (speed: number) => void;
 }
 
 const FlightTimeline: React.FC<FlightTimelineProps> = ({
@@ -41,16 +45,35 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
   systemEvents = [],
   warningEvents = [],
   mediaActions = [],
+  isPlaying: externalIsPlaying,
+  onPlaybackToggle,
+  playbackSpeed = 1,
+  onSpeedChange,
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [sliderValue, setSliderValue] = useState(0);
   const [hoveredEvent, setHoveredEvent] = useState<null | {type: string, details: string, timestamp: string}>(null);
   const tracksContainerRef = useRef<HTMLDivElement>(null);
   const tracksHeightRef = useRef<number>(0);
+  const [internalPlaybackSpeed, setInternalPlaybackSpeed] = useState(1);
   
   const flightDurationSeconds = timeToSeconds(flightDuration);
   const currentSeconds = timeToSeconds(currentPosition.timestamp);
   const currentPercentage = (currentSeconds / flightDurationSeconds) * 100;
+  
+  // Sync with external playing state if provided
+  useEffect(() => {
+    if (externalIsPlaying !== undefined) {
+      setIsPlaying(externalIsPlaying);
+    }
+  }, [externalIsPlaying]);
+
+  // Sync with external playback speed if provided
+  useEffect(() => {
+    if (playbackSpeed !== undefined) {
+      setInternalPlaybackSpeed(playbackSpeed);
+    }
+  }, [playbackSpeed]);
   
   // Calculate tracks container height for the position indicator
   useEffect(() => {
@@ -77,9 +100,11 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
     
     if (isPlaying) {
       intervalId = setInterval(() => {
-        const newSeconds = Math.min(currentSeconds + 0.5, flightDurationSeconds);
+        const speedMultiplier = internalPlaybackSpeed;
+        const newSeconds = Math.min(currentSeconds + (0.5 * speedMultiplier), flightDurationSeconds);
         if (newSeconds >= flightDurationSeconds) {
           setIsPlaying(false);
+          if (onPlaybackToggle) onPlaybackToggle(false);
         } else {
           onPositionChange(secondsToTime(newSeconds));
         }
@@ -89,7 +114,12 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
     return () => {
       if (intervalId) clearInterval(intervalId);
     };
-  }, [isPlaying, currentSeconds, flightDurationSeconds, onPositionChange]);
+  }, [isPlaying, currentSeconds, flightDurationSeconds, onPositionChange, internalPlaybackSpeed]);
+  
+  // Update slider value when current position changes
+  useEffect(() => {
+    setSliderValue((timeToSeconds(currentPosition.timestamp) / flightDurationSeconds) * 100);
+  }, [currentPosition, flightDurationSeconds]);
   
   // Handle slider change
   const handleSliderChange = (value: number[]) => {
@@ -100,7 +130,11 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
   
   // Toggle play/pause
   const togglePlayback = () => {
-    setIsPlaying(!isPlaying);
+    const newPlayingState = !isPlaying;
+    setIsPlaying(newPlayingState);
+    if (onPlaybackToggle) {
+      onPlaybackToggle(newPlayingState);
+    }
   };
   
   // Skip forward/backward
@@ -112,6 +146,14 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
   const skipBackward = () => {
     const newPosition = Math.max(currentSeconds - 30, 0);
     onPositionChange(secondsToTime(newPosition));
+  };
+
+  // Change playback speed
+  const handleSpeedChange = (speed: number) => {
+    setInternalPlaybackSpeed(speed);
+    if (onSpeedChange) {
+      onSpeedChange(speed);
+    }
   };
 
   return (
@@ -182,6 +224,8 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({
               togglePlayback={togglePlayback}
               skipBackward={skipBackward}
               skipForward={skipForward}
+              playbackSpeed={internalPlaybackSpeed}
+              onSpeedChange={handleSpeedChange}
             />
             
             <div className="text-xs text-text-icon-02 w-16 text-right">

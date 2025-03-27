@@ -8,6 +8,7 @@ import VideoFeed from '@/components/flight-details/VideoFeed';
 import FlightMap from '@/components/flight-details/FlightMap';
 import FlightTimeline from '@/components/flight-details/FlightTimeline';
 import FlightDetailsPanel from '@/components/flight-details/FlightDetailsPanel';
+import TimelinePanel from '@/components/flight-details/TimelinePanel';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from '@/components/ui/use-toast';
 import mapboxgl from 'mapbox-gl';
@@ -133,6 +134,10 @@ const FlightDetails = () => {
     hasVideo: false
   });
 
+  // Playback state
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+
   // Add state for flight path and waypoints
   const [flightPath, setFlightPath] = useState<FlightPathPoint[]>(mockFlightPath);
   const [waypoints, setWaypoints] = useState<Waypoint[]>(mockWaypoints);
@@ -156,7 +161,7 @@ const FlightDetails = () => {
     }
   ]);
 
-  // Mock mission phases - Updated to use only the allowed phase types
+  // Mock mission phases
   const [missionPhases, setMissionPhases] = useState<MissionPhase[]>([{
     type: 'mission',
     startTime: '00:00:00',
@@ -277,8 +282,25 @@ const FlightDetails = () => {
     heading: 45 // Default heading in degrees
   });
 
+  // Current flight mode from timeline
+  const [currentFlightMode, setCurrentFlightMode] = useState<string>('mission');
+
   // Map error state
   const [mapError, setMapError] = useState<string | null>(null);
+
+  // Function to find flight mode at timestamp
+  const findFlightModeAtTimestamp = (timestamp: string): string => {
+    // Find the active mission phase at this timestamp
+    const timeInSeconds = timeToSeconds(timestamp);
+    const activePhase = missionPhases.find(phase => {
+      const startSeconds = timeToSeconds(phase.startTime);
+      const endSeconds = timeToSeconds(phase.endTime);
+      return timeInSeconds >= startSeconds && timeInSeconds <= endSeconds;
+    });
+    
+    // Return the flight mode or default to 'mission'
+    return activePhase?.type || 'mission';
+  };
 
   // Public Mapbox token for demo purposes - in production, use environment variables
   useEffect(() => {
@@ -355,24 +377,59 @@ const FlightDetails = () => {
     };
   }, []);
 
+  // Determine flight mode whenever timestamp changes
+  useEffect(() => {
+    const flightMode = findFlightModeAtTimestamp(timelinePosition.timestamp);
+    setCurrentFlightMode(flightMode);
+    console.log(`Current flight mode: ${flightMode} at ${timelinePosition.timestamp}`);
+  }, [timelinePosition.timestamp, missionPhases]);
+
+  // Simulate camera type switching based on timeline position
+  useEffect(() => {
+    // Find appropriate camera type based on timestamp
+    const timeInSeconds = timeToSeconds(timelinePosition.timestamp);
+    
+    // Simple logic to switch camera at specific times for demo
+    if (timeInSeconds < 500) {
+      setCameraType('wide');
+    } else if (timeInSeconds < 900) {
+      setCameraType('zoom');
+    } else if (timeInSeconds < 1300) {
+      setCameraType('thermal');
+    } else {
+      setCameraType('ogi');
+    }
+    
+  }, [timelinePosition.timestamp]);
+
   // Convert "HH:MM:SS" format to seconds for comparison
   const timeToSeconds = (timeString: string): number => {
     const [hours, minutes, seconds] = timeString.split(':').map(Number);
     return hours * 3600 + minutes * 60 + seconds;
   };
 
-  // Simulate camera type switching for demo purposes
-  useEffect(() => {
-    const cameras: Array<'wide' | 'zoom' | 'thermal' | 'ogi'> = ['wide', 'zoom', 'thermal', 'ogi'];
-    let currentIndex = 0;
-    const cameraTimer = setInterval(() => {
-      currentIndex = (currentIndex + 1) % cameras.length;
-      setCameraType(cameras[currentIndex]);
-    }, 15000);
-    return () => clearInterval(cameraTimer);
-  }, []);
+  // Find the nearest flight path point at a given timestamp
+  const findNearestFlightPathPoint = (timestamp: string): FlightPathPoint | null => {
+    if (!flightPath.length) return null;
+    
+    const targetSeconds = timeToSeconds(timestamp);
+    let nearestPoint = flightPath[0];
+    let smallestDiff = Infinity;
+    
+    flightPath.forEach(point => {
+      const pointSeconds = timeToSeconds(point.timestamp);
+      const diff = Math.abs(pointSeconds - targetSeconds);
+      
+      if (diff < smallestDiff) {
+        smallestDiff = diff;
+        nearestPoint = point;
+      }
+    });
+    
+    return nearestPoint;
+  };
 
-  // Handle timeline position updates (would be triggered by timeline interactions)
+  // Handle video feed position updates
   const handleVideoPositionUpdate = (position: string) => {
     // Update the timestamp but don't change the hasVideo property
     setTimelinePosition(prev => ({
@@ -406,42 +463,65 @@ const FlightDetails = () => {
       setHasVideo(false);
     }
 
+    // Find nearest flight path point to this timestamp
+    const nearestPoint = findNearestFlightPathPoint(newPosition);
+    
     // Update map position based on timeline position
-    // This is a simplified approach - in a real app, you'd interpolate position based on timestamps
-    const timestampSeconds = timeToSeconds(newPosition);
-    
-    // Find the closest flight path point to this timestamp
-    let closestPoint = flightPath[0];
-    let minDiff = Infinity;
-    
-    for (const point of flightPath) {
-      const pointSeconds = timeToSeconds(point.timestamp);
-      const diff = Math.abs(pointSeconds - timestampSeconds);
-      
-      if (diff < minDiff) {
-        minDiff = diff;
-        closestPoint = point;
-      }
-    }
-    
-    // Update current position using the closest point
-    if (closestPoint) {
+    if (nearestPoint) {
       setCurrentMapPosition({
-        lat: closestPoint.lat,
-        lng: closestPoint.lng,
-        altitude: closestPoint.altitude,
-        heading: 45 + (Math.random() * 90 - 45) // Random heading between 0-90 degrees for demo
+        lat: nearestPoint.lat,
+        lng: nearestPoint.lng,
+        altitude: nearestPoint.altitude,
+        heading: calculateHeading(nearestPoint, newPosition)
       });
     }
     
     console.log(`Timeline position updated to ${newPosition} (has video: ${positionHasVideo})`);
   };
 
-  // Fetch flight details (placeholder)
-  useEffect(() => {
-    console.log(`Fetching flight details for flight: ${flightId}`);
-    // This would be replaced with actual API call
-  }, [flightId]);
+  // Calculate heading based on nearest points
+  const calculateHeading = (point: FlightPathPoint, timestamp: string): number => {
+    // Find next point in flight path to determine direction
+    const currentIndex = flightPath.findIndex(p => p === point);
+    if (currentIndex < 0 || currentIndex >= flightPath.length - 1) {
+      return 45; // Default heading
+    }
+    
+    const nextPoint = flightPath[currentIndex + 1];
+    
+    // Calculate heading
+    const deltaLng = nextPoint.lng - point.lng;
+    const deltaLat = nextPoint.lat - point.lat;
+    const heading = (Math.atan2(deltaLng, deltaLat) * 180 / Math.PI);
+    
+    return heading;
+  };
+
+  // Handle playback toggle
+  const handlePlaybackToggle = (playing: boolean) => {
+    setIsPlaying(playing);
+  };
+
+  // Handle playback speed change
+  const handleSpeedChange = (speed: number) => {
+    setPlaybackSpeed(speed);
+  };
+
+  // Handle event selection from timeline events panel
+  const handleEventSelect = (eventId: string) => {
+    // Find the event timestamp and update timeline position
+    const event = [...systemEvents, ...warningEvents].find(e => e.timestamp === eventId);
+    if (event) {
+      handleTimelinePositionChange(event.timestamp);
+    }
+  };
+
+  // Handle map click to update timeline position
+  const handleMapPositionSelect = (timestamp: string) => {
+    if (timestamp) {
+      handleTimelinePositionChange(timestamp);
+    }
+  };
 
   // Handle view mode change with smooth transition
   const handleViewModeChange = (value: string) => {
@@ -514,7 +594,9 @@ const FlightDetails = () => {
                   videoState={videoState} 
                   timelinePosition={timelinePosition} 
                   videoSegments={videoSegments} 
-                  onPositionUpdate={handleVideoPositionUpdate} 
+                  onPositionUpdate={handleVideoPositionUpdate}
+                  isPlaying={isPlaying}
+                  playbackSpeed={playbackSpeed}
                 />
               </div>
             </ScrollArea>
@@ -544,23 +626,36 @@ const FlightDetails = () => {
                     lng: -122.4308
                   }} 
                   waypoints={waypoints} 
-                  currentPosition={currentMapPosition} 
+                  currentPosition={currentMapPosition}
+                  currentFlightMode={currentFlightMode}
                   isLoading={mapLoading}
                   error={mapError}
                   onRetry={handleMapRetry}
+                  onPathClick={handleMapPositionSelect}
+                  timelinePosition={timelinePosition}
+                  systemEvents={systemEvents}
+                  warningEvents={warningEvents}
                 />
               </div>
             </ScrollArea>
           </div>
           
-          {/* 3. Flight Details Panel */}
-          <div className="col-span-3 overflow-hidden h-full">
-            <FlightDetailsPanel 
-              flightId={flightId || 'unknown'} 
-              flightMode="MISSION"
-              timestamp={timelinePosition.timestamp} 
-              className="h-full"
-            />
+          {/* 3. Flight Details Panel with Tabs */}
+          <div className="col-span-3 overflow-hidden h-full grid grid-rows-2 gap-4">
+            <div className="overflow-hidden">
+              <FlightDetailsPanel 
+                flightId={flightId || 'unknown'} 
+                flightMode={currentFlightMode}
+                timestamp={timelinePosition.timestamp} 
+                className="h-full"
+              />
+            </div>
+            <div className="overflow-hidden">
+              <TimelinePanel
+                timelinePosition={timelinePosition.timestamp}
+                onEventSelect={handleEventSelect}
+              />
+            </div>
           </div>
         </div>
       </main>
@@ -575,7 +670,11 @@ const FlightDetails = () => {
           missionPhases={missionPhases} 
           systemEvents={systemEvents} 
           warningEvents={warningEvents} 
-          mediaActions={mediaActions} 
+          mediaActions={mediaActions}
+          isPlaying={isPlaying}
+          onPlaybackToggle={handlePlaybackToggle}
+          playbackSpeed={playbackSpeed}
+          onSpeedChange={handleSpeedChange}
         />
       </footer>
     </div>
