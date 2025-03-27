@@ -66,9 +66,9 @@ const TelemetryMetricsGrid: React.FC<TelemetryMetricsGridProps> = ({
       </h2>
       
       <div className="grid grid-cols-2 gap-3">
-        {/* Full-width altitude card with all three modes */}
+        {/* Full-width altitude card with minimal design */}
         <div className="col-span-2 relative">
-          <div className="bg-background-level-1 p-3 rounded-md border border-outline-primary hover:border-primary-100 transition-colors h-full">
+          <div className="bg-background-level-2 p-3 rounded-md border border-outline-primary h-full">
             <div className="flex flex-col">
               <div className="mb-1">
                 <span className="text-xs text-text-icon-02">Altitude ({altitude.mode})</span>
@@ -78,7 +78,7 @@ const TelemetryMetricsGrid: React.FC<TelemetryMetricsGridProps> = ({
                   <span className="text-lg text-text-icon-01 font-medium">{altitude.value}</span>
                   <span className="text-sm ml-1 text-text-icon-02">{altitude.unit}</span>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
                   <Button 
                     variant="ghost" 
                     size="icon" 
@@ -97,14 +97,14 @@ const TelemetryMetricsGrid: React.FC<TelemetryMetricsGridProps> = ({
                   </Button>
                 </div>
               </div>
-              <div className="mt-2 grid grid-cols-3 gap-2 text-xs text-text-icon-02">
-                <div className={`py-1 px-2 rounded ${altitude.mode === 'AGL' ? 'bg-primary/10 text-primary-200' : 'bg-background-level-2'}`}>
+              <div className="mt-2 flex gap-3 text-xs">
+                <div className={`${altitude.mode === 'AGL' ? 'text-blue-400' : 'text-text-icon-03'}`}>
                   AGL: Above Ground
                 </div>
-                <div className={`py-1 px-2 rounded ${altitude.mode === 'ASL' ? 'bg-primary/10 text-primary-200' : 'bg-background-level-2'}`}>
+                <div className={`${altitude.mode === 'ASL' ? 'text-blue-400' : 'text-text-icon-03'}`}>
                   ASL: Sea Level
                 </div>
-                <div className={`py-1 px-2 rounded ${altitude.mode === 'RLT' ? 'bg-primary/10 text-primary-200' : 'bg-background-level-2'}`}>
+                <div className={`${altitude.mode === 'RLT' ? 'text-blue-400' : 'text-text-icon-03'}`}>
                   RLT: Relative
                 </div>
               </div>
