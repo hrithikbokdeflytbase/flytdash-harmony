@@ -98,15 +98,15 @@ const TelemetryMetricsGrid: React.FC<TelemetryMetricsGridProps> = ({
                 </div>
               </div>
               <div className="mt-2 flex gap-3 text-xs">
-                <div className={`${altitude.mode === 'AGL' ? 'text-blue-400' : 'text-text-icon-03'}`}>
-                  AGL: Above Ground
-                </div>
-                <div className={`${altitude.mode === 'ASL' ? 'text-blue-400' : 'text-text-icon-03'}`}>
-                  ASL: Sea Level
-                </div>
-                <div className={`${altitude.mode === 'RLT' ? 'text-blue-400' : 'text-text-icon-03'}`}>
-                  RLT: Relative
-                </div>
+                <span className={`${altitude.mode === 'AGL' ? 'text-blue-400' : 'text-text-icon-03'}`}>
+                  AGL
+                </span>
+                <span className={`${altitude.mode === 'ASL' ? 'text-blue-400' : 'text-text-icon-03'}`}>
+                  ASL
+                </span>
+                <span className={`${altitude.mode === 'RLT' ? 'text-blue-400' : 'text-text-icon-03'}`}>
+                  RLT
+                </span>
               </div>
             </div>
           </div>
