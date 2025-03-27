@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Video, Map, Columns } from 'lucide-react';
@@ -11,6 +10,8 @@ import FlightTimeline from '@/components/flight-details/FlightTimeline';
 import FlightDetailsPanel from '@/components/flight-details/FlightDetailsPanel';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from '@/components/ui/use-toast';
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 import { 
   TimelinePosition, 
   VideoSegment, 
@@ -281,8 +282,15 @@ const FlightDetails = () => {
 
   // Public Mapbox token for demo purposes - in production, use environment variables
   useEffect(() => {
+    console.log("Setting up Mapbox token and initial states");
+    
     // Set a global Mapbox token for the map component to use
-    (window as any).MAPBOX_TOKEN = 'pk.eyJ1IjoiZmx5dGJhc2UiLCJhIjoiY2tlZ2QwbmUzMGR0cjJ6cGRtY3RpbGpraiJ9.I0gYgVZQc2pVv9XXGnVu5w';
+    (window as any).MAPBOX_TOKEN = 'pk.eyJ1IjoiZmx5dGJhc2UiLCJhIjoiY2tlZ2QwbmUzMDR0cjJ6cGRtY3RpbGpraiJ9.I0gYgVZQc2pVv9XXGnVu5w';
+    
+    // Force mapboxgl to use the token
+    if (typeof mapboxgl !== 'undefined') {
+      mapboxgl.accessToken = (window as any).MAPBOX_TOKEN;
+    }
     
     // Notify user about demo mode
     toast({
@@ -290,6 +298,16 @@ const FlightDetails = () => {
       description: "This is a demonstration with sample data and videos.",
       duration: 5000,
     });
+    
+    // Initialize video state after a brief delay
+    setTimeout(() => {
+      setVideoState('playing');
+      setHasVideo(true);
+      setTimelinePosition(prev => ({
+        ...prev,
+        hasVideo: true
+      }));
+    }, 1500);
   }, []);
 
   // Simulate loading state and transitions for demo purposes
@@ -509,7 +527,7 @@ const FlightDetails = () => {
             viewMode === 'split' ? 'col-span-3' : ''
           )}>
             <ScrollArea className="h-full w-full" type="auto">
-              <div className="flex-1 bg-background-level-3 rounded-lg h-full">
+              <div className="flex-1 h-full">
                 <FlightMap 
                   flightId={flightId || 'unknown'} 
                   flightPath={flightPath} 

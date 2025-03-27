@@ -82,22 +82,26 @@ const FlightMap: React.FC<FlightMapProps> = ({
   const [showPastPath, setShowPastPath] = useState(true);
   const [showFuturePath, setShowFuturePath] = useState(true);
 
-  // Initialize map
+  // Initialize map - this is the critical part for display
   useEffect(() => {
     if (!mapContainer.current || error) return;
+    
+    console.log("Initializing map...");
 
     // Get token from window object or use fallback
     const token = (window as any).MAPBOX_TOKEN || 'pk.eyJ1IjoiZmx5dGJhc2UiLCJhIjoiY2tlZ2QwbmUzMGR0cjJ6cGRtY3RpbGpraiJ9.I0gYgVZQc2pVv9XXGnVu5w';
     
     // Set Mapbox token
-    mapboxgl.accessToken = token;
+    if (!mapboxgl.accessToken) {
+      mapboxgl.accessToken = token;
+    }
 
     try {
       // Create the map instance
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
         style: 'mapbox://styles/mapbox/dark-v11',
-        center: takeoffPoint || [-74.5, 40], // Default to a location if takeoff point not provided
+        center: takeoffPoint ? [takeoffPoint.lng, takeoffPoint.lat] : [-74.5, 40], // Default to a location if takeoff point not provided
         zoom: 13,
         pitch: 45,
         bearing: 0,
@@ -520,11 +524,11 @@ const FlightMap: React.FC<FlightMapProps> = ({
   };
 
   return (
-    <div className="relative w-full h-full rounded-200 overflow-hidden border border-[rgba(255,255,255,0.08)]">
-      {/* Map container */}
-      <div ref={mapContainer} className="absolute inset-0 bg-background-level-2"></div>
+    <div className="relative w-full h-full rounded-lg overflow-hidden border border-[rgba(255,255,255,0.08)]">
+      {/* Map container - ensure this has proper height and width */}
+      <div ref={mapContainer} className="absolute inset-0 bg-background-level-3"></div>
       
-      {/* Add the Map Legend component */}
+      {/* Map Legend */}
       <MapLegend />
       
       {/* Focus controls (top-right) */}

@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Camera, Maximize2, Square, Loader2, AlertCircle, Video, Thermometer } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -36,6 +35,11 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
   // Demo controls state
   const [demoVideoState, setDemoVideoState] = useState<VideoState>(videoState);
   const [demoCameraType, setDemoCameraType] = useState<CameraType>(cameraType);
+
+  // Log the current state for debugging
+  useEffect(() => {
+    console.log("VideoFeed state:", { demoVideoState, demoCameraType, timelinePosition });
+  }, [demoVideoState, demoCameraType, timelinePosition]);
 
   // Handle camera type changes
   useEffect(() => {
@@ -241,7 +245,11 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
           )} 
           aria-label={`Camera type: ${demoCameraType}`}
         >
-          <CameraIcon />
+          {/* Camera Icon based on type */}
+          {demoCameraType === 'wide' && <Camera className="w-4 h-4 mr-1" />}
+          {demoCameraType === 'zoom' && <Maximize2 className="w-4 h-4 mr-1" />}
+          {demoCameraType === 'thermal' && <Thermometer className="w-4 h-4 mr-1" />}
+          {demoCameraType === 'ogi' && <Square className="w-4 h-4 mr-1" />}
           <span className="capitalize">{demoCameraType}</span>
         </Badge>
         
@@ -250,7 +258,7 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
           <Button 
             size="sm" 
             variant="outline" 
-            className={cn("text-xs", demoVideoState === 'playing' && "bg-primary-200/20")}
+            className={cn("text-xs", demoVideoState === 'playing' && "bg-primary/20")}
             onClick={() => setDemoVideoState('playing')}
           >
             Playing
@@ -258,7 +266,7 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
           <Button 
             size="sm" 
             variant="outline" 
-            className={cn("text-xs", demoVideoState === 'loading' && "bg-primary-200/20")}
+            className={cn("text-xs", demoVideoState === 'loading' && "bg-primary/20")}
             onClick={() => setDemoVideoState('loading')}
           >
             Loading
@@ -266,7 +274,7 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
           <Button 
             size="sm" 
             variant="outline" 
-            className={cn("text-xs", demoVideoState === 'error' && "bg-primary-200/20")}
+            className={cn("text-xs", demoVideoState === 'error' && "bg-primary/20")}
             onClick={() => setDemoVideoState('error')}
           >
             Error
@@ -274,7 +282,7 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
           <Button 
             size="sm" 
             variant="outline" 
-            className={cn("text-xs", demoVideoState === 'empty' && "bg-primary-200/20")}
+            className={cn("text-xs", demoVideoState === 'empty' && "bg-primary/20")}
             onClick={() => setDemoVideoState('empty')}
           >
             Empty
@@ -284,11 +292,10 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
 
       <div className={cn(
         "relative flex-1 rounded-lg border overflow-hidden", 
-        getCameraBorderColor(demoCameraType)
+        getCameraBadgeColor(demoCameraType).replace('bg-', 'border-').replace('/70', '/30')
       )} 
         aria-label={`Video feed showing ${demoCameraType} camera view`} 
         role="region"
-        style={{ maxHeight: 'calc(100% - 36px)' }}
       >
         {demoVideoState === 'loading' && (
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4 bg-gray-900">
@@ -311,11 +318,7 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4 bg-gray-900">
             <Video className="h-[60px] w-[60px] text-gray-400 mb-4" />
             <p className="text-white text-base font-medium mb-2">No video available at current position</p>
-            {nearestVideo && (
-              <p className="text-gray-400 text-sm">
-                Nearest footage {nearestVideo.direction === 'before' ? 'ends' : 'starts'} at {nearestVideo.direction === 'before' ? nearestVideo.segment.endTime : nearestVideo.segment.startTime}
-              </p>
-            )}
+            <p className="text-gray-400 text-sm">Try a different position on the timeline</p>
           </div>
         )}
 
