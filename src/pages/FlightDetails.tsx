@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Video, Map, Columns } from 'lucide-react';
@@ -408,8 +409,8 @@ const FlightDetails = () => {
         </ToggleGroup>
       </header>
       
-      {/* Main Content Area - Four independent containers - Adjusted height with 12px bottom margin */}
-      <main className="flex-1 p-400 pb-0 overflow-hidden flex" style={{ height: 'calc(100vh - 292px)' }}>
+      {/* Main Content Area - Four independent containers - Adjusted for proper scrolling behavior */}
+      <main className="flex-1 p-400 pb-0 overflow-hidden flex">
         <ScrollArea className="w-full h-full" type="auto">
           <div className="flex-1 grid grid-cols-12 gap-600 min-h-full">
             {/* 1. Video Panel - Independent container */}
@@ -463,7 +464,7 @@ const FlightDetails = () => {
         </ScrollArea>
       </main>
       
-      {/* 4. Timeline Panel - Independent container with 12px top margin */}
+      {/* 4. Timeline Panel - Fixed at bottom with a top margin */}
       <footer className="bg-background-level-1 mt-300">
         <FlightTimeline 
           currentPosition={timelinePosition} 
