@@ -1,9 +1,10 @@
+
 import React, { useState } from 'react';
 import { BarChart, XAxis, YAxis, Bar, Tooltip, CartesianGrid, Legend } from 'recharts';
 import { Loader, ChevronLeft, ChevronRight } from 'lucide-react';
 import { DateRangeType } from './DateRangeFilter';
 import { Button } from '@/components/ui/button';
-import { format, addDays, addWeeks, addMonths, subDays, subWeeks, subMonths, startOfDay, startOfWeek, startOfMonth, endOfMonth, endOfWeek, isSameDay, isSameWeek, isSameMonth, isAfter } from 'date-fns';
+import { format, addDays, addWeeks, addMonths, subDays, subWeeks, subMonths, startOfDay, startOfWeek, startOfMonth, endOfMonth, endOfWeek, isSameDay, isSameWeek, isSameMonth, isAfter, getDay, setDay } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -58,9 +59,12 @@ const generateMockData = (dateRange: DateRangeType, viewType: ViewType, currentD
           };
         });
       case 'daily':
-        // Daily data - showing 7 days
+        // Daily data - always starting with Sunday (0) through Saturday (6)
+        // Get the start of the week (Sunday) for the current date
+        const weekStartSunday = startOfWeek(currentDate, { weekStartsOn: 0 });
+        
         return Array.from({ length: 7 }, (_, i) => {
-          const date = addDays(currentDate, i - 3);
+          const date = addDays(weekStartSunday, i);
           const isCurrentDay = isSameDay(date, now);
           const isFutureDay = isAfter(date, now);
           
@@ -109,8 +113,11 @@ const generateMockData = (dateRange: DateRangeType, viewType: ViewType, currentD
           };
         });
       case 'daily':
+        // Daily data with status breakdown - always starting with Sunday (0) through Saturday (6)
+        const weekStartSunday = startOfWeek(currentDate, { weekStartsOn: 0 });
+        
         return Array.from({ length: 7 }, (_, i) => {
-          const date = addDays(currentDate, i - 3);
+          const date = addDays(weekStartSunday, i);
           const isCurrentDay = isSameDay(date, now);
           const isFutureDay = isAfter(date, now);
           
@@ -383,7 +390,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
   const data = React.useMemo(() => generateMockData(dateRange, viewType, currentDate), [dateRange, viewType, currentDate]);
   const navigate = useNavigate();
   
-  // Navigation functions
+  // Navigation functions - updated for weekly navigation in daily view
   const navigateToPrevious = () => {
     setCurrentDate(prevDate => {
       switch (dateRange) {
@@ -392,7 +399,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
         case 'weekly':
           return subWeeks(prevDate, 1);
         case 'daily':
-          return subDays(prevDate, 1);
+          return subWeeks(prevDate, 1); // Navigate back a whole week instead of just one day
         default:
           return prevDate;
       }
@@ -413,8 +420,8 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
           return isAfter(nextWeek, now) ? prevDate : nextWeek;
         }
         case 'daily': {
-          const nextDay = addDays(prevDate, 1);
-          return isAfter(nextDay, now) ? prevDate : nextDay;
+          const nextWeek = addWeeks(prevDate, 1); // Navigate forward a whole week instead of just one day
+          return isAfter(nextWeek, now) ? prevDate : nextWeek;
         }
         default:
           return prevDate;
@@ -423,7 +430,15 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
   };
 
   const resetToToday = () => {
-    setCurrentDate(new Date());
+    // When resetting to today in daily view, ensure we use the current week's Sunday-Saturday
+    if (dateRange === 'daily') {
+      // Find the Sunday of the current week
+      const today = new Date();
+      const sunday = startOfWeek(today, { weekStartsOn: 0 });
+      setCurrentDate(sunday);
+    } else {
+      setCurrentDate(new Date());
+    }
   };
 
   // Format the date range for display
@@ -436,7 +451,10 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
         const weekEnd = endOfWeek(currentDate);
         return `${format(weekStart, 'MMM d')} - ${format(weekEnd, 'MMM d, yyyy')}`;
       case 'daily':
-        return format(currentDate, 'MMMM yyyy');
+        // For daily view, show the week range (Sunday - Saturday)
+        const weekStartSunday = startOfWeek(currentDate, { weekStartsOn: 0 });
+        const weekEndSaturday = addDays(weekStartSunday, 6);
+        return `${format(weekStartSunday, 'MMM d')} - ${format(weekEndSaturday, 'MMM d, yyyy')}`;
       default:
         return '';
     }
