@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -19,7 +18,7 @@ const DetailsPanelHeader: React.FC<DetailsPanelHeaderProps> = ({
         <Badge variant="flight" className="bg-primary-200 text-text-icon-01 rounded-[10px] py-1 px-3 text-xs font-medium">
           {flightMode}
         </Badge>
-        <span className="text-text-icon-01 text-sm">{flightId}</span>
+        
       </div>
       <div className="bg-background-level-3 px-3 py-1 rounded-md">
         <span className="text-text-icon-01 fb-body2-regular">{timestamp}</span>
