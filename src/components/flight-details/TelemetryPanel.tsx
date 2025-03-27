@@ -79,7 +79,7 @@ const TelemetryPanel: React.FC<TelemetryPanelProps> = ({
       
       {/* Scrollable Content */}
       <div className="flex-1 relative overflow-hidden">
-        <ScrollArea className="h-full pr-1" type="always">
+        <ScrollArea className="h-full pr-1" type="hover">
           <div className="space-y-0 pb-6 relative">
             {/* General Telemetry Section */}
             <SectionHeader title="Flight Metrics" icon={Activity}>

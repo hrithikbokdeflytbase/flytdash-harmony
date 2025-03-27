@@ -116,7 +116,7 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
             </TabsTrigger>
           </TabsList>
 
-          {/* Tab Contents with proper height calculation and ScrollArea for content */}
+          {/* Tab Contents */}
           <div className="flex-1 overflow-hidden">
             <TabsContent value="telemetry" className="h-full p-0 m-0 data-[state=active]:flex data-[state=active]:flex-col">
               <div className="flex-1 overflow-hidden">
