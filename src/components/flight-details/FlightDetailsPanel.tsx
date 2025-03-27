@@ -4,6 +4,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Activity, Clock } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 // Import our components
 import DetailsPanelHeader from './DetailsPanelHeader';
@@ -90,7 +91,7 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
       <div className="border-b border-outline-primary">
         <Tabs 
           defaultValue="telemetry" 
-          className="w-full" 
+          className="w-full h-[calc(100%-40px)]" 
           onValueChange={handleTabChange}
           value={activeTab}
         >
@@ -115,14 +116,18 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
             </TabsTrigger>
           </TabsList>
 
-          {/* Tab Contents - Using flex-1 and overflow-auto to maintain contained scrolling */}
-          <div className="flex-1 overflow-hidden h-[calc(100%-90px)]">
-            <TabsContent value="telemetry" className="h-full p-0 m-0 overflow-auto">
-              <TelemetryPanel telemetryData={telemetryData} />
+          {/* Tab Contents with proper height calculation and ScrollArea for content */}
+          <div className="flex-1 overflow-hidden" style={{ height: 'calc(100% - 41px)' }}>
+            <TabsContent value="telemetry" className="h-full p-0 m-0 data-[state=active]:flex data-[state=active]:flex-col">
+              <ScrollArea className="h-full w-full" type="auto">
+                <TelemetryPanel telemetryData={telemetryData} />
+              </ScrollArea>
             </TabsContent>
             
-            <TabsContent value="timeline" className="h-full p-0 m-0 overflow-auto">
-              <TimelinePanel />
+            <TabsContent value="timeline" className="h-full p-0 m-0 data-[state=active]:flex data-[state=active]:flex-col">
+              <ScrollArea className="h-full w-full" type="auto">
+                <TimelinePanel />
+              </ScrollArea>
             </TabsContent>
           </div>
         </Tabs>
