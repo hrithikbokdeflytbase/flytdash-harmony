@@ -10,55 +10,20 @@ import FlightMap from '@/components/flight-details/FlightMap';
 import FlightTimeline from '@/components/flight-details/FlightTimeline';
 import FlightDetailsPanel from '@/components/flight-details/FlightDetailsPanel';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { 
+  TimelinePosition, 
+  VideoSegment, 
+  MissionPhase,
+  SystemEvent,
+  WarningEvent,
+  MediaAction
+} from '@/components/flight-details/timeline/timelineTypes';
 
 // View mode type
 type ViewMode = 'map' | 'video' | 'split';
 
 // Video state type
 type VideoState = 'loading' | 'error' | 'empty' | 'playing';
-
-// Timeline position type
-interface TimelinePosition {
-  timestamp: string; // Format: "HH:MM:SS"
-  hasVideo: boolean;
-}
-
-// Video segment type
-type VideoSegment = {
-  startTime: string; // Format: "HH:MM:SS"
-  endTime: string; // Format: "HH:MM:SS"
-  url: string;
-};
-
-// Mission phase type
-type MissionPhase = {
-  type: 'manual' | 'gtl' | 'mission' | 'rtds';
-  startTime: string; // Format: "HH:MM:SS"
-  endTime: string; // Format: "HH:MM:SS"
-  label: string;
-};
-
-// System event type
-type SystemEvent = {
-  type: 'connection' | 'calibration' | 'modeChange' | 'command';
-  timestamp: string; // Format: "HH:MM:SS"
-  details: string;
-};
-
-// Warning event type
-type WarningEvent = {
-  type: 'warning' | 'error';
-  timestamp: string; // Format: "HH:MM:SS"
-  details: string;
-  severity: 'low' | 'medium' | 'high';
-};
-
-// Media action type
-type MediaAction = {
-  type: 'photo' | 'videoStart' | 'videoEnd';
-  timestamp: string; // Format: "HH:MM:SS"
-  fileId?: string;
-};
 
 // Mock flight path data
 const mockFlightPath = [{
@@ -137,6 +102,10 @@ const FlightDetails = () => {
     timestamp: '00:15:32',
     hasVideo: false
   });
+
+  // Add state for flight path and waypoints
+  const [flightPath, setFlightPath] = useState(mockFlightPath);
+  const [waypoints, setWaypoints] = useState(mockWaypoints);
 
   // Mock video segments (would come from API in real app)
   const [videoSegments, setVideoSegments] = useState<VideoSegment[]>([{
@@ -364,11 +333,11 @@ const FlightDetails = () => {
     const timestampSeconds = timeToSeconds(newPosition);
     const totalFlightSeconds = timeToSeconds('00:25:00'); // End of flight time
     const positionRatio = Math.min(timestampSeconds / totalFlightSeconds, 1);
-    const pathIndex = Math.min(Math.floor(positionRatio * mockFlightPath.length), mockFlightPath.length - 1);
-    if (mockFlightPath[pathIndex]) {
+    const pathIndex = Math.min(Math.floor(positionRatio * flightPath.length), flightPath.length - 1);
+    if (flightPath[pathIndex]) {
       setCurrentMapPosition({
-        lat: mockFlightPath[pathIndex].lat,
-        lng: mockFlightPath[pathIndex].lng
+        lat: flightPath[pathIndex].lat,
+        lng: flightPath[pathIndex].lng
       });
     }
     console.log(`Timeline position updated to ${newPosition} (has video: ${positionHasVideo})`);
@@ -441,20 +410,20 @@ const FlightDetails = () => {
               <div className="flex-1 bg-background-level-3 rounded-200 h-full">
                 <FlightMap 
                   flightId={flightId || 'unknown'} 
-                  flightPath={mockFlightPath} 
+                  flightPath={flightPath} 
                   takeoffPoint={{
-                    lat: mockFlightPath[0].lat,
-                    lng: mockFlightPath[0].lng
+                    lat: flightPath[0].lat,
+                    lng: flightPath[0].lng
                   }} 
                   landingPoint={{
-                    lat: mockFlightPath[mockFlightPath.length - 1].lat,
-                    lng: mockFlightPath[mockFlightPath.length - 1].lng
+                    lat: flightPath[flightPath.length - 1].lat,
+                    lng: flightPath[flightPath.length - 1].lng
                   }} 
                   dockLocation={{
                     lat: 37.7856,
                     lng: -122.4308
                   }} 
-                  waypoints={mockWaypoints} 
+                  waypoints={waypoints} 
                   currentPosition={currentMapPosition} 
                   isLoading={mapLoading} 
                 />
