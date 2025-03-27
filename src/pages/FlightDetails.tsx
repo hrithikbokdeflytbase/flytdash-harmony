@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Video, Map, Columns } from 'lucide-react';
@@ -9,6 +10,7 @@ import FlightMap from '@/components/flight-details/FlightMap';
 import FlightTimeline from '@/components/flight-details/FlightTimeline';
 import FlightDetailsPanel from '@/components/flight-details/FlightDetailsPanel';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { toast } from '@/components/ui/use-toast';
 import { 
   TimelinePosition, 
   VideoSegment, 
@@ -24,53 +26,81 @@ type ViewMode = 'map' | 'video' | 'split';
 // Video state type
 type VideoState = 'loading' | 'error' | 'empty' | 'playing';
 
+// Flight path point interface
+interface FlightPathPoint {
+  lat: number;
+  lng: number;
+  altitude: number;
+  timestamp: string;
+  flightMode: 'mission' | 'gtl' | 'manual' | 'rtds';
+}
+
+// Waypoint interface
+interface Waypoint {
+  lat: number;
+  lng: number;
+  index: number;
+}
+
 // Mock flight path data
-const mockFlightPath = [{
+const mockFlightPath: FlightPathPoint[] = [{
   lat: 37.7856,
   lng: -122.4308,
   altitude: 120,
   timestamp: '00:05:00',
-  flightMode: 'mission' as const
+  flightMode: 'mission'
 }, {
   lat: 37.7845,
   lng: -122.4318,
   altitude: 125,
   timestamp: '00:06:00',
-  flightMode: 'mission' as const
+  flightMode: 'mission'
 }, {
   lat: 37.7834,
   lng: -122.4328,
   altitude: 130,
   timestamp: '00:07:00',
-  flightMode: 'gtl' as const
+  flightMode: 'gtl'
 }, {
   lat: 37.7823,
   lng: -122.4338,
   altitude: 135,
   timestamp: '00:08:00',
-  flightMode: 'gtl' as const
+  flightMode: 'gtl'
 }, {
   lat: 37.7812,
   lng: -122.4348,
   altitude: 140,
   timestamp: '00:09:00',
-  flightMode: 'manual' as const
+  flightMode: 'manual'
 }, {
   lat: 37.7801,
   lng: -122.4358,
   altitude: 145,
   timestamp: '00:10:00',
-  flightMode: 'mission' as const
+  flightMode: 'mission'
 }, {
   lat: 37.7790,
   lng: -122.4368,
   altitude: 150,
   timestamp: '00:11:00',
-  flightMode: 'mission' as const
+  flightMode: 'mission'
+}, {
+  lat: 37.7780,
+  lng: -122.4378,
+  altitude: 140,
+  timestamp: '00:15:00',
+  flightMode: 'rtds'
+}, {
+  lat: 37.7770,
+  lng: -122.4388,
+  altitude: 130,
+  timestamp: '00:20:00',
+  flightMode: 'rtds'
 }];
 
 // Mock waypoints
-const mockWaypoints = [{
+const mockWaypoints: Waypoint[] = [{
   lat: 37.7845,
   lng: -122.4318,
   index: 1
@@ -93,7 +123,7 @@ const FlightDetails = () => {
   const [videoState, setVideoState] = useState<VideoState>('loading');
   const [hasVideo, setHasVideo] = useState(false);
   const [timestamp, setTimestamp] = useState('00:15:32');
-  const [cameraType, setCameraType] = useState<'wide' | 'zoom' | 'thermal'>('wide');
+  const [cameraType, setCameraType] = useState<'wide' | 'zoom' | 'thermal' | 'ogi'>('wide');
   const [recordingDuration, setRecordingDuration] = useState('00:03:45');
 
   // Timeline synchronization state
@@ -103,8 +133,8 @@ const FlightDetails = () => {
   });
 
   // Add state for flight path and waypoints
-  const [flightPath, setFlightPath] = useState(mockFlightPath);
-  const [waypoints, setWaypoints] = useState(mockWaypoints);
+  const [flightPath, setFlightPath] = useState<FlightPathPoint[]>(mockFlightPath);
+  const [waypoints, setWaypoints] = useState<Waypoint[]>(mockWaypoints);
 
   // Updated mock video segments with public URLs that actually exist
   const [videoSegments, setVideoSegments] = useState<VideoSegment[]>([
@@ -241,13 +271,25 @@ const FlightDetails = () => {
   const [mapLoading, setMapLoading] = useState(true);
   const [currentMapPosition, setCurrentMapPosition] = useState({
     lat: mockFlightPath[0]?.lat || 37.7790,
-    lng: mockFlightPath[0]?.lng || -122.4368
+    lng: mockFlightPath[0]?.lng || -122.4368,
+    altitude: mockFlightPath[0]?.altitude || 0,
+    heading: 45 // Default heading in degrees
   });
+
+  // Map error state
+  const [mapError, setMapError] = useState<string | null>(null);
 
   // Public Mapbox token for demo purposes - in production, use environment variables
   useEffect(() => {
     // Set a global Mapbox token for the map component to use
     (window as any).MAPBOX_TOKEN = 'pk.eyJ1IjoiZmx5dGJhc2UiLCJhIjoiY2tlZ2QwbmUzMGR0cjJ6cGRtY3RpbGpraiJ9.I0gYgVZQc2pVv9XXGnVu5w';
+    
+    // Notify user about demo mode
+    toast({
+      title: "Demo Mode Active",
+      description: "This is a demonstration with sample data and videos.",
+      duration: 5000,
+    });
   }, []);
 
   // Simulate loading state and transitions for demo purposes
@@ -282,6 +324,11 @@ const FlightDetails = () => {
     // Simulate map loading
     const mapTimer = setTimeout(() => {
       setMapLoading(false);
+      
+      // Randomly simulate map error (10% chance) for demo
+      if (Math.random() < 0.1) {
+        setMapError("Unable to load map data. Please try again.");
+      }
     }, 3000);
 
     return () => {
@@ -298,12 +345,12 @@ const FlightDetails = () => {
 
   // Simulate camera type switching for demo purposes
   useEffect(() => {
-    const cameras: Array<'wide' | 'zoom' | 'thermal'> = ['wide', 'zoom', 'thermal'];
+    const cameras: Array<'wide' | 'zoom' | 'thermal' | 'ogi'> = ['wide', 'zoom', 'thermal', 'ogi'];
     let currentIndex = 0;
     const cameraTimer = setInterval(() => {
       currentIndex = (currentIndex + 1) % cameras.length;
       setCameraType(cameras[currentIndex]);
-    }, 10000);
+    }, 15000);
     return () => clearInterval(cameraTimer);
   }, []);
 
@@ -344,15 +391,31 @@ const FlightDetails = () => {
     // Update map position based on timeline position
     // This is a simplified approach - in a real app, you'd interpolate position based on timestamps
     const timestampSeconds = timeToSeconds(newPosition);
-    const totalFlightSeconds = timeToSeconds('00:25:00'); // End of flight time
-    const positionRatio = Math.min(timestampSeconds / totalFlightSeconds, 1);
-    const pathIndex = Math.min(Math.floor(positionRatio * flightPath.length), flightPath.length - 1);
-    if (flightPath[pathIndex]) {
+    
+    // Find the closest flight path point to this timestamp
+    let closestPoint = flightPath[0];
+    let minDiff = Infinity;
+    
+    for (const point of flightPath) {
+      const pointSeconds = timeToSeconds(point.timestamp);
+      const diff = Math.abs(pointSeconds - timestampSeconds);
+      
+      if (diff < minDiff) {
+        minDiff = diff;
+        closestPoint = point;
+      }
+    }
+    
+    // Update current position using the closest point
+    if (closestPoint) {
       setCurrentMapPosition({
-        lat: flightPath[pathIndex].lat,
-        lng: flightPath[pathIndex].lng
+        lat: closestPoint.lat,
+        lng: closestPoint.lng,
+        altitude: closestPoint.altitude,
+        heading: 45 + (Math.random() * 90 - 45) // Random heading between 0-90 degrees for demo
       });
     }
+    
     console.log(`Timeline position updated to ${newPosition} (has video: ${positionHasVideo})`);
   };
 
@@ -361,6 +424,27 @@ const FlightDetails = () => {
     console.log(`Fetching flight details for flight: ${flightId}`);
     // This would be replaced with actual API call
   }, [flightId]);
+
+  // Handle view mode change with smooth transition
+  const handleViewModeChange = (value: string) => {
+    if (value && (value === 'map' || value === 'video' || value === 'split')) {
+      // Add a slight transition delay for smoother UI
+      setTimeout(() => {
+        setViewMode(value as ViewMode);
+      }, 50);
+    }
+  };
+
+  // Try again function for map error
+  const handleMapRetry = () => {
+    setMapLoading(true);
+    setMapError(null);
+    
+    // Simulate loading again
+    setTimeout(() => {
+      setMapLoading(false);
+    }, 2000);
+  };
 
   return (
     <div className="flex flex-col h-screen bg-[#111113]">
@@ -375,7 +459,12 @@ const FlightDetails = () => {
           Flight Details: {flightId}
         </h1>
         
-        <ToggleGroup type="single" value={viewMode} onValueChange={value => value && setViewMode(value as ViewMode)}>
+        <ToggleGroup 
+          type="single" 
+          value={viewMode} 
+          onValueChange={handleViewModeChange}
+          className="transition-all duration-300"
+        >
           <ToggleGroupItem value="map" aria-label="Show map view">
             <Map className="w-5 h-5 mr-2" />
             Map
@@ -396,7 +485,7 @@ const FlightDetails = () => {
         <div className="flex-1 grid grid-cols-12 gap-6 h-full">
           {/* 1. Video Panel */}
           <div className={cn(
-            "bg-background-level-2 rounded-lg p-4 flex flex-col overflow-hidden",
+            "bg-background-level-2 rounded-lg p-4 flex flex-col overflow-hidden transition-all duration-300",
             viewMode === 'map' ? 'hidden' : 'col-span-9',
             viewMode === 'split' ? 'col-span-6' : ''
           )}>
@@ -415,7 +504,7 @@ const FlightDetails = () => {
           
           {/* 2. Map Panel */}
           <div className={cn(
-            "bg-background-level-2 rounded-lg p-4 flex flex-col overflow-hidden",
+            "bg-background-level-2 rounded-lg p-4 flex flex-col overflow-hidden transition-all duration-300",
             viewMode === 'video' ? 'hidden' : 'col-span-9',
             viewMode === 'split' ? 'col-span-3' : ''
           )}>
@@ -438,7 +527,9 @@ const FlightDetails = () => {
                   }} 
                   waypoints={waypoints} 
                   currentPosition={currentMapPosition} 
-                  isLoading={mapLoading} 
+                  isLoading={mapLoading}
+                  error={mapError}
+                  onRetry={handleMapRetry}
                 />
               </div>
             </ScrollArea>
