@@ -4,12 +4,13 @@ import { ArrowLeft, Video, Map, Columns } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn } from '@/lib/utils';
-import { toast } from '@/components/ui/use-toast';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import VideoFeed from '@/components/flight-details/VideoFeed';
-import SimulatedMap from '@/components/flight-details/SimulatedMap';
+import FlightMap from '@/components/flight-details/FlightMap';
 import FlightTimeline from '@/components/flight-details/FlightTimeline';
 import FlightDetailsPanel from '@/components/flight-details/FlightDetailsPanel';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { toast } from '@/components/ui/use-toast';
+import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { 
   TimelinePosition, 
@@ -269,24 +270,32 @@ const FlightDetails = () => {
 
   // Map state
   const [mapLoading, setMapLoading] = useState(true);
-  const [mapError, setMapError] = useState<string | null>(null);
-  
-  // Current map position state
   const [currentMapPosition, setCurrentMapPosition] = useState({
-    x: 70, 
-    y: 50,
-    altitude: 120,
-    heading: 45
+    lat: mockFlightPath[0]?.lat || 37.7790,
+    lng: mockFlightPath[0]?.lng || -122.4368,
+    altitude: mockFlightPath[0]?.altitude || 0,
+    heading: 45 // Default heading in degrees
   });
 
-  // Set up initial states
+  // Map error state
+  const [mapError, setMapError] = useState<string | null>(null);
+
+  // Public Mapbox token for demo purposes - in production, use environment variables
   useEffect(() => {
-    console.log("Setting up initial states");
+    console.log("Setting up Mapbox token and initial states");
+    
+    // Set a global Mapbox token for the map component to use
+    (window as any).MAPBOX_TOKEN = 'pk.eyJ1IjoiZmx5dGJhc2UiLCJhIjoiY2tlZ2QwbmUzMDR0cjJ6cGRtY3RpbGpraiJ9.I0gYgVZQc2pVv9XXGnVu5w';
+    
+    // Force mapboxgl to use the token
+    if (typeof mapboxgl !== 'undefined') {
+      mapboxgl.accessToken = (window as any).MAPBOX_TOKEN;
+    }
     
     // Notify user about demo mode
     toast({
       title: "Demo Mode Active",
-      description: "This is a demonstration with sample data and simulated map.",
+      description: "This is a demonstration with sample data and videos.",
       duration: 5000,
     });
     
@@ -299,9 +308,39 @@ const FlightDetails = () => {
         hasVideo: true
       }));
     }, 1500);
-    
+  }, []);
+
+  // Simulate loading state and transitions for demo purposes
+  useEffect(() => {
+    // First show loading state
+    setVideoState('loading');
+
+    // Then transition to either empty or playing after 2 seconds
+    const loadTimer = setTimeout(() => {
+      // Check if current timeline position is within a video segment
+      const currentPositionHasVideo = videoSegments.some(segment => {
+        const timeInSeconds = timeToSeconds(timelinePosition.timestamp);
+        const startInSeconds = timeToSeconds(segment.startTime);
+        const endInSeconds = timeToSeconds(segment.endTime);
+        return timeInSeconds >= startInSeconds && timeInSeconds <= endInSeconds;
+      });
+      
+      setTimelinePosition(prev => ({
+        ...prev,
+        hasVideo: currentPositionHasVideo
+      }));
+      
+      if (currentPositionHasVideo) {
+        setVideoState('playing');
+        setHasVideo(true);
+      } else {
+        setVideoState('empty');
+        setHasVideo(false);
+      }
+    }, 2000);
+
     // Simulate map loading
-    setTimeout(() => {
+    const mapTimer = setTimeout(() => {
       setMapLoading(false);
       
       // Randomly simulate map error (10% chance) for demo
@@ -309,6 +348,11 @@ const FlightDetails = () => {
         setMapError("Unable to load map data. Please try again.");
       }
     }, 3000);
+
+    return () => {
+      clearTimeout(loadTimer);
+      clearTimeout(mapTimer);
+    };
   }, []);
 
   // Convert "HH:MM:SS" format to seconds for comparison
@@ -338,7 +382,7 @@ const FlightDetails = () => {
     setTimestamp(position);
   };
 
-  // Enhanced version of handleTimelinePositionChange to update simulated map
+  // Enhanced version of handleTimelinePositionChange
   const handleTimelinePositionChange = (newPosition: string) => {
     // Check if the new position has video content
     const positionHasVideo = videoSegments.some(segment => {
@@ -361,25 +405,36 @@ const FlightDetails = () => {
       setVideoState('empty');
       setHasVideo(false);
     }
-    
+
     // Update map position based on timeline position
-    // For the simulated map we'll use a simplified approach
+    // This is a simplified approach - in a real app, you'd interpolate position based on timestamps
     const timestampSeconds = timeToSeconds(newPosition);
-    const totalDuration = timeToSeconds(flightDuration);
     
-    // Calculate progress percentage (0-1)
-    const progress = Math.min(1, Math.max(0, timestampSeconds / totalDuration));
+    // Find the closest flight path point to this timestamp
+    let closestPoint = flightPath[0];
+    let minDiff = Infinity;
     
-    // Map to the simulated map coordinates (naive approach for demo)
-    // This assumes our flight path starts at around x:20, y:20 and ends at x:90, y:30
-    setCurrentMapPosition({
-      x: 20 + progress * 70, // Map from 20 to 90 based on progress
-      y: 20 + Math.sin(progress * Math.PI) * 35, // Create an arc
-      altitude: 120 - Math.abs(progress - 0.5) * 240, // Peak altitude in the middle
-      heading: 45 + progress * 180 // Gradually change heading
-    });
+    for (const point of flightPath) {
+      const pointSeconds = timeToSeconds(point.timestamp);
+      const diff = Math.abs(pointSeconds - timestampSeconds);
+      
+      if (diff < minDiff) {
+        minDiff = diff;
+        closestPoint = point;
+      }
+    }
     
-    console.log(`Timeline position updated to ${newPosition}`);
+    // Update current position using the closest point
+    if (closestPoint) {
+      setCurrentMapPosition({
+        lat: closestPoint.lat,
+        lng: closestPoint.lng,
+        altitude: closestPoint.altitude,
+        heading: 45 + (Math.random() * 90 - 45) // Random heading between 0-90 degrees for demo
+      });
+    }
+    
+    console.log(`Timeline position updated to ${newPosition} (has video: ${positionHasVideo})`);
   };
 
   // Fetch flight details (placeholder)
@@ -465,21 +520,34 @@ const FlightDetails = () => {
             </ScrollArea>
           </div>
           
-          {/* 2. Map Panel - Now using SimulatedMap */}
+          {/* 2. Map Panel */}
           <div className={cn(
             "bg-background-level-2 rounded-lg p-4 flex flex-col overflow-hidden transition-all duration-300",
             viewMode === 'video' ? 'hidden' : 'col-span-9',
-            viewMode === 'split' ? 'col-span-6' : ''
+            viewMode === 'split' ? 'col-span-3' : ''
           )}>
             <ScrollArea className="h-full w-full" type="auto">
               <div className="flex-1 h-full">
-                <SimulatedMap 
+                <FlightMap 
                   flightId={flightId || 'unknown'} 
-                  currentPosition={currentMapPosition}
+                  flightPath={flightPath} 
+                  takeoffPoint={{
+                    lat: flightPath[0].lat,
+                    lng: flightPath[0].lng
+                  }} 
+                  landingPoint={{
+                    lat: flightPath[flightPath.length - 1].lat,
+                    lng: flightPath[flightPath.length - 1].lng
+                  }} 
+                  dockLocation={{
+                    lat: 37.7856,
+                    lng: -122.4308
+                  }} 
+                  waypoints={waypoints} 
+                  currentPosition={currentMapPosition} 
                   isLoading={mapLoading}
                   error={mapError}
                   onRetry={handleMapRetry}
-                  onTimelinePositionChange={handleTimelinePositionChange}
                 />
               </div>
             </ScrollArea>
