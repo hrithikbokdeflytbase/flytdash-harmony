@@ -1,15 +1,13 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, Maximize2, Square, Loader2, AlertCircle, Video, Thermometer } from 'lucide-react';
+import { Video, Loader2, AlertCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { VideoSegment, TimelinePosition } from './timeline/timelineTypes';
 
-type CameraType = 'wide' | 'zoom' | 'thermal' | 'ogi';
 type VideoState = 'loading' | 'error' | 'empty' | 'playing';
 
 type VideoFeedProps = {
-  cameraType?: CameraType;
   videoState?: VideoState;
   timelinePosition?: TimelinePosition;
   videoSegments?: VideoSegment[];
@@ -20,7 +18,6 @@ type VideoFeedProps = {
 };
 
 const VideoFeed: React.FC<VideoFeedProps> = ({
-  cameraType = 'wide',
   videoState = 'empty',
   timelinePosition,
   videoSegments = [],
@@ -32,27 +29,12 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
   const [activeSegment, setActiveSegment] = useState<VideoSegment | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [prevTimelinePosition, setPrevTimelinePosition] = useState<string | undefined>(timelinePosition?.timestamp);
-  const [prevCameraType, setPrevCameraType] = useState<CameraType>(cameraType);
-  const [cameraTransitioning, setCameraTransitioning] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   
   // Log the current state for debugging
   useEffect(() => {
-    console.log("VideoFeed state:", { videoState, cameraType, timelinePosition, isPlaying, playbackSpeed });
-  }, [videoState, cameraType, timelinePosition, isPlaying, playbackSpeed]);
-
-  // Handle camera type changes
-  useEffect(() => {
-    if (cameraType !== prevCameraType) {
-      setCameraTransitioning(true);
-      
-      // After a brief delay, update the camera type
-      setTimeout(() => {
-        setPrevCameraType(cameraType);
-        setCameraTransitioning(false);
-      }, 400);
-    }
-  }, [cameraType, prevCameraType]);
+    console.log("VideoFeed state:", { videoState, timelinePosition, isPlaying, playbackSpeed });
+  }, [videoState, timelinePosition, isPlaying, playbackSpeed]);
 
   // Handle timeline position changes
   useEffect(() => {
@@ -239,78 +221,17 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
     return null;
   };
 
-  // Camera type badge background color
-  const getCameraBadgeColor = (type: CameraType) => {
-    switch (type) {
-      case 'wide':
-        return 'bg-blue-600/70 border-blue-500';
-      case 'zoom':
-        return 'bg-purple-600/70 border-purple-500';
-      case 'thermal':
-        return 'bg-orange-600/70 border-orange-500';
-      case 'ogi':
-        return 'bg-green-600/70 border-green-500';
-      default:
-        return 'bg-blue-600/70 border-blue-500';
-    }
-  };
-
-  // Camera border color
-  const getCameraBorderColor = (type: CameraType) => {
-    switch (type) {
-      case 'wide':
-        return 'border-blue-500/30';
-      case 'zoom':
-        return 'border-purple-500/30';
-      case 'thermal':
-        return 'border-orange-500/30';
-      case 'ogi':
-        return 'border-green-500/30';
-      default:
-        return 'border-blue-500/30';
-    }
-  };
-
-  // Camera type icon
-  const CameraIcon = () => {
-    switch (cameraType) {
-      case 'wide':
-        return <Camera className="w-4 h-4 mr-1" />;
-      case 'zoom':
-        return <Maximize2 className="w-4 h-4 mr-1" />;
-      case 'thermal':
-        return <Thermometer className="w-4 h-4 mr-1" />;
-      case 'ogi':
-        return <Square className="w-4 h-4 mr-1" />;
-      default:
-        return <Camera className="w-4 h-4 mr-1" />;
-    }
-  };
-
-  // Get nearest video information for empty state
-  const nearestVideo = timelinePosition ? findNearestVideoSegment(timelinePosition.timestamp) : null;
-
   return (
     <div className={cn("flex flex-col h-full", className)}>
       <div className="flex items-center justify-between mb-4">
-        <Badge 
-          className={cn(
-            "flex items-center gap-1 px-2 py-1 border transition-colors duration-300", 
-            getCameraBadgeColor(cameraType),
-            cameraTransitioning && "opacity-0"
-          )} 
-          aria-label={`Camera type: ${cameraType}`}
-        >
-          <CameraIcon />
-          <span className="capitalize">{cameraType}</span>
+        <Badge className="flex items-center gap-1 px-2 py-1 border bg-blue-600/70 border-blue-500">
+          <Video className="w-4 h-4 mr-1" />
+          <span>Video Feed</span>
         </Badge>
       </div>
 
-      <div className={cn(
-        "relative flex-1 rounded-lg border overflow-hidden", 
-        getCameraBorderColor(cameraType)
-      )} 
-        aria-label={`Video feed showing ${cameraType} camera view`} 
+      <div className="relative flex-1 rounded-lg border overflow-hidden border-blue-500/30" 
+        aria-label="Video feed" 
         role="region"
       >
         {videoState === 'loading' && (
@@ -335,100 +256,43 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
             <p className="text-white text-base font-medium mb-2">No video available at current position</p>
             <p className="text-gray-400 text-sm">Try a different position on the timeline</p>
             
-            {nearestVideo && (
-              <div className="mt-4 text-gray-400 text-sm">
-                <p>Nearest video: {nearestVideo.direction === 'before' ? 'Before' : 'After'} current position</p>
-                <p className="mt-1">
-                  {nearestVideo.direction === 'before' 
-                    ? `Ends at ${nearestVideo.segment.endTime}` 
-                    : `Starts at ${nearestVideo.segment.startTime}`}
-                </p>
-              </div>
+            {/* Nearest video information */}
+            {timelinePosition && (
+              (() => {
+                const nearestVideo = findNearestVideoSegment(timelinePosition.timestamp);
+                return nearestVideo && (
+                  <div className="mt-4 text-gray-400 text-sm">
+                    <p>Nearest video: {nearestVideo.direction === 'before' ? 'Before' : 'After'} current position</p>
+                    <p className="mt-1">
+                      {nearestVideo.direction === 'before' 
+                        ? `Ends at ${nearestVideo.segment.endTime}` 
+                        : `Starts at ${nearestVideo.segment.startTime}`}
+                    </p>
+                  </div>
+                );
+              })()
             )}
           </div>
         )}
 
         {videoState === 'playing' && (
-          <>
-            {/* Video Element */}
-            <div className="absolute inset-0 bg-gray-900">
-              {/* Actual video element */}
-              <video 
-                ref={videoRef} 
-                className={cn(
-                  "w-full h-full object-cover", 
-                  isTransitioning && "opacity-0 transition-opacity duration-500", 
-                  !isTransitioning && "opacity-100 transition-opacity duration-500"
-                )} 
-                src={activeSegment?.url || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} 
-                muted={true} 
-                autoPlay={false}
-                playsInline 
-                controls={false}
-                onTimeUpdate={handleTimeUpdate}
-                aria-label={`${cameraType} camera video feed`} 
-              />
-            </div>
-
-            {/* Overlay elements */}
-            <div className="absolute inset-0 flex flex-col pointer-events-none">
-              {/* Top overlay with camera selection */}
-              <div className="p-3 flex justify-between items-start">
-                <div className="flex space-x-2 pointer-events-auto">
-                  <Badge 
-                    className={cn(
-                      "flex items-center gap-1 px-2 py-1 border transition-colors duration-300",
-                      cameraType === 'wide' ? 'bg-blue-600/70 border-blue-500' : 'bg-gray-800/70 border-gray-700',
-                      cameraTransitioning && "opacity-0"
-                    )}
-                  >
-                    <Camera className="w-4 h-4 mr-1" />
-                    <span>Wide</span>
-                  </Badge>
-
-                  <Badge 
-                    className={cn(
-                      "flex items-center gap-1 px-2 py-1 border transition-colors duration-300",
-                      cameraType === 'zoom' ? 'bg-purple-600/70 border-purple-500' : 'bg-gray-800/70 border-gray-700',
-                      cameraTransitioning && "opacity-0"
-                    )}
-                  >
-                    <Maximize2 className="w-4 h-4 mr-1" />
-                    <span>Zoom</span>
-                  </Badge>
-
-                  <Badge 
-                    className={cn(
-                      "flex items-center gap-1 px-2 py-1 border transition-colors duration-300",
-                      cameraType === 'thermal' ? 'bg-orange-600/70 border-orange-500' : 'bg-gray-800/70 border-gray-700',
-                      cameraTransitioning && "opacity-0"
-                    )}
-                  >
-                    <Thermometer className="w-4 h-4 mr-1" />
-                    <span>Thermal</span>
-                  </Badge>
-
-                  <Badge 
-                    className={cn(
-                      "flex items-center gap-1 px-2 py-1 border transition-colors duration-300",
-                      cameraType === 'ogi' ? 'bg-green-600/70 border-green-500' : 'bg-gray-800/70 border-gray-700',
-                      cameraTransitioning && "opacity-0"
-                    )}
-                  >
-                    <Square className="w-4 h-4 mr-1" />
-                    <span>OGI</span>
-                  </Badge>
-                </div>
-              </div>
-              
-              {/* Camera transition effect */}
-              {cameraTransitioning && (
-                <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                  <div className="text-white font-medium text-lg">Switching to {cameraType}</div>
-                </div>
-              )}
-            </div>
-          </>
+          <div className="absolute inset-0 bg-gray-900">
+            <video 
+              ref={videoRef} 
+              className={cn(
+                "w-full h-full object-cover", 
+                isTransitioning && "opacity-0 transition-opacity duration-500", 
+                !isTransitioning && "opacity-100 transition-opacity duration-500"
+              )} 
+              src={activeSegment?.url || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} 
+              muted={true} 
+              autoPlay={false}
+              playsInline 
+              controls={false}
+              onTimeUpdate={handleTimeUpdate}
+              aria-label="Video feed" 
+            />
+          </div>
         )}
       </div>
     </div>
