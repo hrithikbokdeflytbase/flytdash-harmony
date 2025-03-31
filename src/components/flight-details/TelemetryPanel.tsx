@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Activity, Clock, Wifi, Thermometer, Wind, Compass, Home, Gauge, Signal, Video, Cpu, Eye } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -10,10 +11,8 @@ import SectionHeader from './SectionHeader';
 import TelemetryMetricsGrid from './TelemetryMetricsGrid';
 import NetworkStatusSection from './NetworkStatusSection';
 import PositionDataSection from './PositionDataSection';
-import EnvironmentalDataSection from './EnvironmentalDataSection';
 import SystemStatusSection from './SystemStatusSection';
 import CompassHeadingCard from './CompassHeadingCard';
-import DistanceToHomeCard from './DistanceToHomeCard';
 
 // Define interface for telemetry data
 export interface TelemetryData {
@@ -166,10 +165,7 @@ const TelemetryPanel: React.FC<TelemetryPanelProps> = ({
               coordinates={telemetryData.coordinates}
             />
             
-            {/* Environmental Data Section */}
-            <EnvironmentalDataSection 
-              environment={telemetryData.environment}
-            />
+            {/* Environmental Data Section removed */}
             
             {/* System Status Section */}
             <SystemStatusSection 
