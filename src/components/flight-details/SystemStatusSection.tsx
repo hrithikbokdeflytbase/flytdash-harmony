@@ -58,21 +58,7 @@ const SystemStatusSection: React.FC<SystemStatusSectionProps> = ({
       <div className="px-4 py-2">
         <div className="bg-background-level-1 rounded-md border border-outline-primary divide-y divide-outline-primary overflow-hidden">
           {/* GPS Status */}
-          {gpsStatus && <div className="p-3 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Satellite className="w-4 h-4 text-text-icon-02" />
-                <span className="text-sm text-text-icon-01">GPS Signal</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-text-icon-02">
-                  {gpsStatus.count} satellites
-                </span>
-                <div className="flex items-center gap-1">
-                  <div className={`w-2 h-2 rounded-full ${getStatusColor(gpsStatus.quality)}`}></div>
-                  <span className="text-xs text-text-icon-02 capitalize">{gpsStatus.quality}</span>
-                </div>
-              </div>
-            </div>}
+          {gpsStatus}
           
           {/* RTK Status */}
           <div className="p-3 flex items-center justify-between">
