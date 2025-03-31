@@ -121,7 +121,7 @@ const SystemStatusSection: React.FC<SystemStatusSectionProps> = ({
             <div className="flex items-center gap-1">
               <div className={`w-2 h-2 rounded-full ${getStatusColor(visionSystem.status)}`}></div>
               <span className="text-xs text-text-icon-02 capitalize">{visionSystem.status}</span>
-              {visionSystem.details && <span className="text-xs text-text-icon-02 ml-1">({visionSystem.details})</span>}
+              {visionSystem.details}
             </div>
           </div>
         </div>
