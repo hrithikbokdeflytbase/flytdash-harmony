@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Video, Map, Columns } from 'lucide-react';
@@ -127,7 +126,7 @@ const FlightDetails = () => {
   const [videoState, setVideoState] = useState<VideoState>('loading');
   const [hasVideo, setHasVideo] = useState(false);
   const [timestamp, setTimestamp] = useState('00:15:32');
-  const [cameraType, setCameraType] = useState<'wide' | 'zoom' | 'thermal' | 'ogi'>('wide');
+  // We'll remove the cameraType state since it's no longer needed
   const [recordingDuration, setRecordingDuration] = useState('00:03:45');
 
   // Timeline synchronization state
@@ -386,23 +385,7 @@ const FlightDetails = () => {
     console.log(`Current flight mode: ${flightMode} at ${timelinePosition.timestamp}`);
   }, [timelinePosition.timestamp, missionPhases]);
 
-  // Simulate camera type switching based on timeline position
-  useEffect(() => {
-    // Find appropriate camera type based on timestamp
-    const timeInSeconds = timeToSeconds(timelinePosition.timestamp);
-    
-    // Simple logic to switch camera at specific times for demo
-    if (timeInSeconds < 500) {
-      setCameraType('wide');
-    } else if (timeInSeconds < 900) {
-      setCameraType('zoom');
-    } else if (timeInSeconds < 1300) {
-      setCameraType('thermal');
-    } else {
-      setCameraType('ogi');
-    }
-    
-  }, [timelinePosition.timestamp]);
+  // Remove the useEffect for camera type switching since it's no longer needed
 
   // Convert "HH:MM:SS" format to seconds for comparison
   const timeToSeconds = (timeString: string): number => {
@@ -592,7 +575,6 @@ const FlightDetails = () => {
             <ScrollArea className="h-full w-full" type="auto">
               <div className="h-full">
                 <VideoFeed 
-                  cameraType={cameraType} 
                   videoState={videoState} 
                   timelinePosition={timelinePosition} 
                   videoSegments={videoSegments} 
@@ -642,7 +624,7 @@ const FlightDetails = () => {
             </ScrollArea>
           </div>
           
-          {/* 3. Flight Details Panel - UPDATED: Single panel, no grid rows */}
+          {/* 3. Flight Details Panel */}
           <div className="col-span-3 overflow-hidden h-full">
             <FlightDetailsPanel 
               flightId={flightId || 'unknown'} 
