@@ -36,6 +36,7 @@ interface MetricChartProps {
   currentTimestamp: number; // in seconds from flight start
   config: MetricChartConfig;
   isLastChart?: boolean;
+  zoomLevel?: number; // Added zoom level prop
 }
 
 export const MetricChart: React.FC<MetricChartProps> = ({
@@ -43,7 +44,8 @@ export const MetricChart: React.FC<MetricChartProps> = ({
   currentValue,
   currentTimestamp,
   config,
-  isLastChart = false
+  isLastChart = false,
+  zoomLevel = 100 // Default to 100% if not provided
 }) => {
   // Format the current value with the appropriate decimals
   const formattedCurrentValue = useMemo(() => {
@@ -79,11 +81,27 @@ export const MetricChart: React.FC<MetricChartProps> = ({
 
   // Filter data to only show points within visible range
   const visibleData = useMemo(() => {
-    return decimatedData;
-  }, [decimatedData]);
+    if (zoomLevel === 100) {
+      return decimatedData;
+    }
+    
+    // Calculate the visible range based on zoom level
+    const dataCenter = currentTimestamp;
+    const totalRange = data.length > 0 ? 
+      Math.max(...data.map(d => d.timestamp)) - Math.min(...data.map(d => d.timestamp)) : 0;
+    const visibleRange = totalRange * (100 / zoomLevel);
+    
+    const startTime = dataCenter - (visibleRange / 2);
+    const endTime = dataCenter + (visibleRange / 2);
+    
+    return decimatedData.filter(d => d.timestamp >= startTime && d.timestamp <= endTime);
+  }, [decimatedData, zoomLevel, currentTimestamp, data]);
+
+  // Calculate chart height based on zoom level
+  const chartHeight = 90 + (zoomLevel - 100) * 0.2;
 
   return (
-    <div className="bg-background-level-2 rounded-md p-4" style={{height: "100px"}}>
+    <div className="bg-background-level-2 rounded-md p-4" style={{height: `${chartHeight}px`}}>
       <div className="flex justify-between items-start mb-1">
         <div className="text-text-icon-01 text-sm font-medium">
           {config.title}
@@ -93,7 +111,7 @@ export const MetricChart: React.FC<MetricChartProps> = ({
         </div>
       </div>
 
-      <div className="w-full h-[70px]">
+      <div className="w-full" style={{height: `${chartHeight - 30}px`}}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
             data={visibleData}

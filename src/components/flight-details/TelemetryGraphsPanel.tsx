@@ -5,6 +5,8 @@ import { TelemetryData } from './TelemetryPanel';
 import { MetricChart } from './graphs/MetricChart';
 import { generateMockTelemetryHistory } from './graphs/mockTelemetryData';
 import { timeToSeconds } from './timeline/timelineUtils';
+import { Button } from '@/components/ui/button';
+import { ZoomIn, ZoomOut } from 'lucide-react';
 
 interface TelemetryGraphsPanelProps {
   timestamp: string;
@@ -70,6 +72,9 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({ timestamp, 
   // Generate mock historical data for each metric
   const [telemetryHistory] = useState(() => generateMockTelemetryHistory());
   
+  // Zoom level state for all charts (100% is default)
+  const [zoomLevel, setZoomLevel] = useState(100);
+  
   // Calculate current timestamp in seconds
   const currentTimestampSeconds = useMemo(() => {
     return timeToSeconds(timestamp);
@@ -94,15 +99,53 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({ timestamp, 
     }
   };
 
+  // Handle zoom in
+  const handleZoomIn = () => {
+    setZoomLevel((prevZoom) => Math.min(prevZoom + 25, 200));
+  };
+
+  // Handle zoom out
+  const handleZoomOut = () => {
+    setZoomLevel((prevZoom) => Math.max(prevZoom - 25, 50));
+  };
+
   return (
     <ScrollArea className="h-full w-full">
-      <div className="flex flex-col space-y-2 px-2 pb-4">
-        <p className="text-sm text-text-icon-02 mb-2 px-1">
-          Historical telemetry data for this flight
-        </p>
+      <div className="flex flex-col space-y-4 px-2 pb-4">
+        <div className="flex justify-between items-center mb-1 px-1">
+          <p className="text-sm text-text-icon-02">
+            Historical telemetry data for this flight
+          </p>
+          
+          <div className="flex items-center space-x-1">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 px-2"
+              onClick={handleZoomOut}
+              aria-label="Zoom out"
+              title="Zoom out"
+            >
+              <ZoomOut className="h-4 w-4" />
+            </Button>
+            <span className="text-xs text-text-icon-02 w-16 text-center">
+              {zoomLevel}%
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 px-2"
+              onClick={handleZoomIn}
+              aria-label="Zoom in"
+              title="Zoom in"
+            >
+              <ZoomIn className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
 
         {/* Render each metric chart */}
-        <div className="space-y-2">
+        <div className="space-y-6">
           {/* Battery Percentage Chart */}
           <MetricChart 
             data={telemetryHistory.battery}
@@ -110,6 +153,7 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({ timestamp, 
             currentTimestamp={currentTimestampSeconds}
             config={metricConfigs.battery}
             isLastChart={false}
+            zoomLevel={zoomLevel}
           />
 
           {/* Altitude Chart */}
@@ -119,6 +163,7 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({ timestamp, 
             currentTimestamp={currentTimestampSeconds}
             config={metricConfigs.altitude}
             isLastChart={false}
+            zoomLevel={zoomLevel}
           />
 
           {/* Horizontal Speed Chart */}
@@ -128,6 +173,7 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({ timestamp, 
             currentTimestamp={currentTimestampSeconds}
             config={metricConfigs.horizontalSpeed}
             isLastChart={false}
+            zoomLevel={zoomLevel}
           />
 
           {/* Vertical Speed Chart */}
@@ -137,6 +183,7 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({ timestamp, 
             currentTimestamp={currentTimestampSeconds}
             config={metricConfigs.verticalSpeed}
             isLastChart={false}
+            zoomLevel={zoomLevel}
           />
 
           {/* Signal Strength Chart */}
@@ -146,6 +193,7 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({ timestamp, 
             currentTimestamp={currentTimestampSeconds}
             config={metricConfigs.signal}
             isLastChart={true}
+            zoomLevel={zoomLevel}
           />
         </div>
       </div>
