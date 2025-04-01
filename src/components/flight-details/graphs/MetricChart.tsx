@@ -55,14 +55,23 @@ export const MetricChart: React.FC<MetricChartProps> = ({
   isLastChart = false,
   zoomLevel = 100 // Default to 100% if not provided
 }) => {
-  // Format the current value with the appropriate decimals
+  // Format the current value with the appropriate decimals and sign for vertical speed
   const formattedCurrentValue = useMemo(() => {
+    // Special formatting for vertical speed to show + sign for positive values
+    if (config.title === "Vertical Speed" && currentValue > 0) {
+      return `+${currentValue.toFixed(config.decimals)}`;
+    }
     return currentValue.toFixed(config.decimals);
-  }, [currentValue, config.decimals]);
+  }, [currentValue, config.decimals, config.title]);
 
   // Find min and max values for the Y axis - ensure we capture full data variation
   const yDomain = useMemo(() => {
     if (data.length === 0) return [0, 100]; // Default if no data
+    
+    // If minValue and maxValue are both provided in config, use those
+    if (config.minValue !== undefined && config.maxValue !== undefined) {
+      return [config.minValue, config.maxValue];
+    }
     
     const values = data.map(d => d.value);
     
@@ -93,6 +102,13 @@ export const MetricChart: React.FC<MetricChartProps> = ({
 
   // Format the Y axis with the unit
   const formatYAxis = (value: number) => {
+    // Special case for vertical speed to show sign
+    if (config.title === "Vertical Speed") {
+      if (value > 0) return `+${value}${config.unit}`;
+      if (value < 0) return `${value}${config.unit}`;
+      return `0${config.unit}`;
+    }
+    
     // Use different precision based on the value range and type
     let formattedValue: string;
     
@@ -222,6 +238,15 @@ export const MetricChart: React.FC<MetricChartProps> = ({
     const [min, max] = yDomain;
     const range = max - min;
     
+    // Special case for vertical speed to ensure we have a 0 tick
+    if (config.title === "Vertical Speed") {
+      const ticks = [min, 0, max];
+      // Add some intermediate values if the range is large enough
+      if (Math.abs(min) > 2) ticks.splice(1, 0, min / 2);
+      if (Math.abs(max) > 2) ticks.splice(3, 0, max / 2);
+      return ticks;
+    }
+    
     // Choose appropriate step size based on range
     let step: number;
     if (range <= 1) step = 0.2;
@@ -256,7 +281,7 @@ export const MetricChart: React.FC<MetricChartProps> = ({
     }
     
     return ticks;
-  }, [yDomain]);
+  }, [yDomain, config.title]);
 
   // Keep chart height fixed regardless of zoom level
   const chartHeight = 90;
@@ -272,11 +297,18 @@ export const MetricChart: React.FC<MetricChartProps> = ({
   // Custom tooltip for hover info
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
+      let displayValue = payload[0].value.toFixed(config.decimals);
+      
+      // Special formatting for vertical speed
+      if (config.title === "Vertical Speed" && payload[0].value > 0) {
+        displayValue = `+${displayValue}`;
+      }
+      
       return (
         <div className="bg-background-level-1 p-2 border border-outline-primary rounded shadow text-xs">
           <p className="text-xs">{`Time: ${formatXAxis(label)}`}</p>
           <p className="text-xs font-medium" style={{ color: config.color }}>
-            {`${config.title}: ${payload[0].value.toFixed(config.decimals)}${config.unit}`}
+            {`${config.title}: ${displayValue}${config.unit}`}
           </p>
         </div>
       );
@@ -352,7 +384,7 @@ export const MetricChart: React.FC<MetricChartProps> = ({
                 {threshold.label && (
                   <text
                     x={25}
-                    y={-5}
+                    y={threshold.value > 0 ? -5 : 15}
                     textAnchor="start"
                     fill={threshold.color}
                     fontSize={9}

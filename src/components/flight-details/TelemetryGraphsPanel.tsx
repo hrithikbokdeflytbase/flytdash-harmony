@@ -131,7 +131,14 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
     color: "#14B8A6", // Teal
     dataKey: "value",
     gradientFill: false,
-    decimals: 1
+    decimals: 1,
+    // Center the axis around 0 by explicitly setting min and max values
+    // Set a reasonable range based on expected vertical speeds
+    minValue: -5,  // Down to -5 m/s (descent)
+    maxValue: 5,   // Up to 5 m/s (ascent)
+    thresholds: [
+      { value: 0, color: "#94A3B8", label: "Hover" }, // Neutral line at 0
+    ]
   };
 
   const signalStrengthConfig = {
