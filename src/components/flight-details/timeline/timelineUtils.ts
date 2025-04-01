@@ -128,3 +128,98 @@ export const getMarkerClusters = (events: { timestamp: string; details: string; 
   
   return clusters;
 };
+
+/**
+ * Find the nearest data point in a time series at a given timestamp
+ * Used for synchronizing telemetry data with timeline position
+ */
+export const findNearestDataPoint = <T extends { timestamp: number }>(
+  data: T[], 
+  targetTimestamp: number
+): T | null => {
+  if (!data || data.length === 0) return null;
+  
+  let nearestPoint = data[0];
+  let minDistance = Math.abs(nearestPoint.timestamp - targetTimestamp);
+  
+  for (let i = 1; i < data.length; i++) {
+    const distance = Math.abs(data[i].timestamp - targetTimestamp);
+    if (distance < minDistance) {
+      minDistance = distance;
+      nearestPoint = data[i];
+    }
+  }
+  
+  return nearestPoint;
+};
+
+/**
+ * Interpolate between two data points for smooth telemetry transitions
+ */
+export const interpolateDataPoints = <T extends { timestamp: number; value: number }>(
+  data: T[], 
+  targetTimestamp: number
+): number => {
+  if (!data || data.length < 2) {
+    return data && data.length === 1 ? data[0].value : 0;
+  }
+  
+  // Sort data by timestamp
+  const sortedData = [...data].sort((a, b) => a.timestamp - b.timestamp);
+  
+  // If target timestamp is before the first data point
+  if (targetTimestamp <= sortedData[0].timestamp) {
+    return sortedData[0].value;
+  }
+  
+  // If target timestamp is after the last data point
+  if (targetTimestamp >= sortedData[sortedData.length - 1].timestamp) {
+    return sortedData[sortedData.length - 1].value;
+  }
+  
+  // Find the two data points that the target timestamp falls between
+  for (let i = 0; i < sortedData.length - 1; i++) {
+    const currentPoint = sortedData[i];
+    const nextPoint = sortedData[i + 1];
+    
+    if (targetTimestamp >= currentPoint.timestamp && targetTimestamp <= nextPoint.timestamp) {
+      // Linear interpolation
+      const timeRange = nextPoint.timestamp - currentPoint.timestamp;
+      const valueRange = nextPoint.value - currentPoint.value;
+      
+      if (timeRange === 0) return currentPoint.value;
+      
+      const ratio = (targetTimestamp - currentPoint.timestamp) / timeRange;
+      return currentPoint.value + (ratio * valueRange);
+    }
+  }
+  
+  // Fallback (should not reach here if data is valid)
+  return sortedData[0].value;
+};
+
+/**
+ * Find the active mission phase at a specific timestamp
+ */
+export const findActiveMissionPhase = (
+  phases: { startTime: string; endTime: string; type: string; label: string }[],
+  timestamp: string
+): { type: string; label: string } | null => {
+  if (!phases || phases.length === 0) return null;
+  
+  const targetTime = timeToSeconds(timestamp);
+  
+  for (const phase of phases) {
+    const startTime = timeToSeconds(phase.startTime);
+    const endTime = timeToSeconds(phase.endTime);
+    
+    if (targetTime >= startTime && targetTime <= endTime) {
+      return {
+        type: phase.type,
+        label: phase.label
+      };
+    }
+  }
+  
+  return null;
+};

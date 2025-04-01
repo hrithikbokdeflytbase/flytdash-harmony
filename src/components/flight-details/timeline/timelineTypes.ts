@@ -1,3 +1,4 @@
+
 // Timeline position interface
 export interface TimelinePosition {
   timestamp: string;
@@ -54,4 +55,25 @@ export interface MediaAction {
   type: MediaActionType;
   timestamp: string;
   fileId: string;
+}
+
+// Interface for timeline synchronization event
+export interface TimelineSyncEvent {
+  timestamp: string;
+  source: 'timeline' | 'telemetry' | 'graph' | 'map' | 'video';
+}
+
+// Interface for synchronizable telemetry value
+export interface SyncedTelemetryValue<T> {
+  value: T;
+  timestamp: string;
+  previousValue?: T;
+  nextValue?: T;
+}
+
+// Interface for telemetry history point
+export interface TelemetryHistoryPoint {
+  timestamp: number; // in seconds from flight start
+  value: number;
+  label?: string;
 }
