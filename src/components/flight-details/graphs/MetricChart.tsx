@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import {
   ResponsiveContainer,
@@ -55,8 +54,8 @@ export const MetricChart: React.FC<MetricChartProps> = ({
   // Find min and max values for the Y axis
   const yDomain = useMemo(() => {
     const values = data.map(d => d.value);
-    const minValue = config.minValue !== undefined ? config.minValue : Math.min(...values) * 0.9;
-    const maxValue = config.maxValue !== undefined ? config.maxValue : Math.max(...values) * 1.1;
+    const minValue = config.minValue !== undefined ? config.minValue : Math.floor(Math.min(...values) * 0.9);
+    const maxValue = config.maxValue !== undefined ? config.maxValue : Math.ceil(Math.max(...values) * 1.1);
     return [minValue, maxValue];
   }, [data, config.minValue, config.maxValue]);
 
@@ -67,7 +66,21 @@ export const MetricChart: React.FC<MetricChartProps> = ({
 
   // Format the Y axis with the unit
   const formatYAxis = (value: number) => {
-    return `${value}${config.unit}`;
+    // Use different precision based on the value range and type
+    let formattedValue: string;
+    
+    if (Math.abs(yDomain[1] - yDomain[0]) > 100) {
+      // Large range values - use no decimals
+      formattedValue = Math.round(value).toString();
+    } else if (config.decimals === 0) {
+      // Integer values
+      formattedValue = Math.round(value).toString();
+    } else {
+      // Use specified decimal precision but avoid trailing zeros
+      formattedValue = parseFloat(value.toFixed(config.decimals)).toString();
+    }
+    
+    return `${formattedValue}${config.unit}`;
   };
 
   // Decimate data if there are too many points (performance optimization)
@@ -96,6 +109,47 @@ export const MetricChart: React.FC<MetricChartProps> = ({
     
     return decimatedData.filter(d => d.timestamp >= startTime && d.timestamp <= endTime);
   }, [decimatedData, zoomLevel, currentTimestamp, data]);
+
+  // Calculate nice round Y-axis ticks for better readability
+  const calculateYAxisTicks = useMemo(() => {
+    const [min, max] = yDomain;
+    const range = max - min;
+    
+    // Choose appropriate step size based on range
+    let step: number;
+    if (range <= 1) step = 0.2;
+    else if (range <= 5) step = 1;
+    else if (range <= 20) step = 5;
+    else if (range <= 50) step = 10;
+    else if (range <= 100) step = 25;
+    else if (range <= 500) step = 100;
+    else step = Math.ceil(range / 5 / 100) * 100;
+    
+    // Generate nice round ticks
+    const ticks: number[] = [];
+    for (let i = Math.floor(min / step) * step; i <= max; i += step) {
+      ticks.push(i);
+    }
+    
+    // Make sure we have at least min and max
+    if (!ticks.includes(min)) ticks.unshift(min);
+    if (!ticks.includes(max)) ticks.push(max);
+    
+    // Limit to at most 6 ticks for readability
+    if (ticks.length > 6) {
+      const newTicks = [];
+      const stride = Math.floor(ticks.length / 5);
+      for (let i = 0; i < ticks.length; i += stride) {
+        newTicks.push(ticks[i]);
+      }
+      if (!newTicks.includes(ticks[ticks.length - 1])) {
+        newTicks.push(ticks[ticks.length - 1]);
+      }
+      return newTicks;
+    }
+    
+    return ticks;
+  }, [yDomain]);
 
   // Keep chart height fixed regardless of zoom level
   const chartHeight = 90;
@@ -151,8 +205,8 @@ export const MetricChart: React.FC<MetricChartProps> = ({
               tickFormatter={formatYAxis}
               tick={{ fontSize: 10, fill: 'rgba(255, 255, 255, 0.54)' }}
               width={18} // Minimized Y-axis width to optimize space
-              tickCount={5} // Display 5 ticks for better labeling
-              interval="preserveStartEnd"
+              ticks={calculateYAxisTicks} // Use calculated nice round ticks
+              interval={0} // Show all calculated ticks
             />
 
             {/* Reference line showing current timestamp */}

@@ -58,7 +58,7 @@ const metricConfigs = {
   },
   signal: {
     title: "Signal Strength",
-    unit: "",
+    unit: "%",
     color: "#888888",
     // Gray/white
     dataKey: "value",
