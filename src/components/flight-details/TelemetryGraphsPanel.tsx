@@ -65,26 +65,175 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
     [telemetryData.battery.percentage]
   );
   
-  const altitudeData = useMemo(() => 
-    generateMockHistoryData(telemetryData.altitude.value, 1500, 5, 'fluctuating'),
-    [telemetryData.altitude.value]
-  );
+  const altitudeData = useMemo(() => {
+    // Create more realistic altitude data with takeoff, cruise, and landing phases
+    const duration = 1500;
+    const points = Math.min(200, duration);
+    const data: TelemetryDataPoint[] = [];
+    
+    for (let i = 0; i <= points; i++) {
+      const timestampSec = Math.floor((i / points) * duration);
+      let value: number;
+      
+      // Simulate takeoff, cruise and landing
+      if (i < points * 0.1) {
+        // Takeoff phase: 0-10% of flight
+        value = telemetryData.altitude.value * (i / (points * 0.1));
+      } else if (i > points * 0.85) {
+        // Landing phase: 85-100% of flight
+        const landingProgress = (i - points * 0.85) / (points * 0.15);
+        value = telemetryData.altitude.value * (1 - landingProgress);
+      } else {
+        // Cruise phase with variations
+        const cruisePhase = (i - points * 0.1) / (points * 0.75);
+        const baseAltitude = telemetryData.altitude.value;
+        
+        // Add some realistic altitude variations during cruise
+        const variation = Math.sin(cruisePhase * 6) * 5 + Math.sin(cruisePhase * 12) * 3;
+        value = baseAltitude + variation;
+      }
+      
+      // Add some random noise
+      value += (Math.random() - 0.5) * 2;
+      
+      data.push({
+        timestamp: timestampSec,
+        value: Math.max(0, value)
+      });
+    }
+    
+    return data;
+  }, [telemetryData.altitude.value]);
   
-  const horizontalSpeedData = useMemo(() => 
-    generateMockHistoryData(telemetryData.horizontalSpeed.value, 1500, 1, 'fluctuating'),
-    [telemetryData.horizontalSpeed.value]
-  );
+  const horizontalSpeedData = useMemo(() => {
+    // Create more realistic speed data with acceleration and deceleration
+    const duration = 1500;
+    const points = Math.min(200, duration);
+    const data: TelemetryDataPoint[] = [];
+    const maxSpeed = telemetryData.horizontalSpeed.value * 1.5;
+    
+    for (let i = 0; i <= points; i++) {
+      const timestampSec = Math.floor((i / points) * duration);
+      let value: number;
+      
+      // Different flight phases
+      if (i < points * 0.1) {
+        // Takeoff acceleration
+        value = maxSpeed * (i / (points * 0.1)) * 0.7;
+      } else if (i > points * 0.85) {
+        // Landing deceleration
+        const landingProgress = (i - points * 0.85) / (points * 0.15);
+        value = maxSpeed * 0.6 * (1 - landingProgress);
+      } else {
+        // Various speed changes during flight
+        const flightPhase = (i - points * 0.1) / (points * 0.75);
+        
+        // Create a pattern of speeds with transitions between slow and fast
+        const speedPattern = 
+          0.4 + 0.6 * (
+            0.5 * Math.sin(flightPhase * 3 * Math.PI) + 
+            0.3 * Math.sin(flightPhase * 7 * Math.PI) +
+            0.2 * Math.sin(flightPhase * 12 * Math.PI)
+          );
+        
+        value = maxSpeed * speedPattern;
+      }
+      
+      // Add some random variations
+      value += (Math.random() - 0.5) * maxSpeed * 0.1;
+      value = Math.max(0, value);
+      
+      data.push({
+        timestamp: timestampSec,
+        value
+      });
+    }
+    
+    return data;
+  }, [telemetryData.horizontalSpeed.value]);
   
-  const verticalSpeedData = useMemo(() => 
-    generateMockHistoryData(telemetryData.verticalSpeed.value, 1500, 0.5, 'fluctuating'),
-    [telemetryData.verticalSpeed.value]
-  );
+  const verticalSpeedData = useMemo(() => {
+    // Create realistic vertical speed data with positive and negative values
+    const duration = 1500;
+    const points = Math.min(200, duration);
+    const data: TelemetryDataPoint[] = [];
+    const maxVerticalSpeed = Math.abs(telemetryData.verticalSpeed.value) * 2;
+    
+    for (let i = 0; i <= points; i++) {
+      const timestampSec = Math.floor((i / points) * duration);
+      let value: number;
+      
+      // Different flight phases with vertical speed
+      if (i < points * 0.1) {
+        // Takeoff - positive vertical speed
+        value = maxVerticalSpeed * (i / (points * 0.1));
+      } else if (i > points * 0.85) {
+        // Landing - negative vertical speed
+        value = -maxVerticalSpeed * 0.5;
+      } else {
+        // Cruise phase with occasional altitude adjustments
+        const flightPhase = (i - points * 0.1) / (points * 0.75);
+        
+        // Most of the time hover (zero), with occasional climbs and descents
+        if (i % 30 < 5) {
+          // Climb
+          value = maxVerticalSpeed * 0.7 * Math.random();
+        } else if (i % 30 > 25) {
+          // Descent
+          value = -maxVerticalSpeed * 0.7 * Math.random();
+        } else {
+          // Hover with tiny fluctuations
+          value = (Math.random() - 0.5) * 0.5;
+        }
+        
+        // Add some wave patterns for more natural transitions
+        value += maxVerticalSpeed * 0.2 * Math.sin(flightPhase * 20 * Math.PI);
+      }
+      
+      data.push({
+        timestamp: timestampSec,
+        value
+      });
+    }
+    
+    return data;
+  }, [telemetryData.verticalSpeed.value]);
   
   const signalStrengthData = useMemo(() => {
     // Calculate signal strength as a percentage from RF Link status
     const signalValue = telemetryData.connections.rfLink.status === 'active' ? 90 : 
                        telemetryData.connections.rfLink.status === 'poor' ? 40 : 10;
-    return generateMockHistoryData(signalValue, 1500, 10, 'fluctuating');
+                       
+    // Create realistic signal strength data with occasional drops
+    const duration = 1500;
+    const points = Math.min(200, duration);
+    const data: TelemetryDataPoint[] = [];
+    
+    for (let i = 0; i <= points; i++) {
+      const timestampSec = Math.floor((i / points) * duration);
+      let value: number;
+      
+      // Base signal strength
+      value = signalValue * 0.9;
+      
+      // Add randomness
+      value += (Math.random() * 15);
+      
+      // Add occasional signal drops
+      if (Math.random() < 0.05) {
+        value *= 0.5;
+      }
+      
+      // Ensure signal is between 0-100%
+      value = Math.min(100, Math.max(0, value));
+      
+      data.push({
+        timestamp: timestampSec,
+        value
+      });
+    }
+    
+    return data;
   }, [telemetryData.connections.rfLink.status]);
 
   // Chart configurations for each telemetry metric
@@ -160,6 +309,7 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
           currentValue={telemetryData.battery.percentage}
           currentTimestamp={timestampInSeconds}
           config={batteryConfig}
+          height={120}
         />
 
         <MetricChart 
@@ -167,6 +317,7 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
           currentValue={telemetryData.altitude.value}
           currentTimestamp={timestampInSeconds}
           config={altitudeConfig}
+          height={120}
         />
 
         <MetricChart 
@@ -174,6 +325,7 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
           currentValue={telemetryData.horizontalSpeed.value}
           currentTimestamp={timestampInSeconds}
           config={horizontalSpeedConfig}
+          height={120}
         />
 
         <MetricChart 
@@ -181,6 +333,7 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
           currentValue={telemetryData.verticalSpeed.value}
           currentTimestamp={timestampInSeconds}
           config={verticalSpeedConfig}
+          height={120}
         />
 
         <MetricChart 
@@ -189,6 +342,7 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
                        telemetryData.connections.rfLink.status === 'poor' ? 40 : 10}
           currentTimestamp={timestampInSeconds}
           config={signalStrengthConfig}
+          height={120}
           isLastChart={true}
         />
       </div>

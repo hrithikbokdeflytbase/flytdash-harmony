@@ -45,6 +45,7 @@ interface MetricChartProps {
   config: MetricChartConfig;
   isLastChart?: boolean;
   zoomLevel?: number; // Added zoom level prop
+  height?: number; // Height of the chart in pixels
 }
 
 export const MetricChart: React.FC<MetricChartProps> = ({
@@ -53,7 +54,8 @@ export const MetricChart: React.FC<MetricChartProps> = ({
   currentTimestamp,
   config,
   isLastChart = false,
-  zoomLevel = 100 // Default to 100% if not provided
+  zoomLevel = 100, // Default to 100% if not provided
+  height = 120, // Default height of 120px
 }) => {
   // Format the current value with the appropriate decimals and sign for vertical speed
   const formattedCurrentValue = useMemo(() => {
@@ -240,11 +242,14 @@ export const MetricChart: React.FC<MetricChartProps> = ({
     
     // Special case for vertical speed to ensure we have a 0 tick
     if (config.title === "Vertical Speed") {
-      const ticks = [min, 0, max];
-      // Add some intermediate values if the range is large enough
-      if (Math.abs(min) > 2) ticks.splice(1, 0, min / 2);
-      if (Math.abs(max) > 2) ticks.splice(3, 0, max / 2);
+      // For vertical speed, always include 0 and symmetrically add ticks
+      const ticks = [min, -2.5, 0, 2.5, max];
       return ticks;
+    }
+    
+    // For battery, ensure we have 0, 25, 50, 75, 100
+    if (config.title === "Battery") {
+      return [0, 25, 50, 75, 100];
     }
     
     // Choose appropriate step size based on range
@@ -254,13 +259,12 @@ export const MetricChart: React.FC<MetricChartProps> = ({
     else if (range <= 20) step = 5;
     else if (range <= 50) step = 10;
     else if (range <= 100) step = 25;
-    else if (range <= 500) step = 100;
     else step = Math.ceil(range / 5 / 100) * 100;
     
     // Generate nice round ticks
     const ticks: number[] = [];
     for (let i = Math.floor(min / step) * step; i <= max; i += step) {
-      ticks.push(i);
+      ticks.push(parseFloat(i.toFixed(1)));
     }
     
     // Make sure we have at least min and max
@@ -282,17 +286,6 @@ export const MetricChart: React.FC<MetricChartProps> = ({
     
     return ticks;
   }, [yDomain, config.title]);
-
-  // Keep chart height fixed regardless of zoom level
-  const chartHeight = 90;
-
-  // Get current value position in chart for dot positioning
-  const currentValuePosition = useMemo(() => {
-    return {
-      timestamp: currentTimestamp,
-      value: currentValue
-    };
-  }, [currentTimestamp, currentValue]);
 
   // Custom tooltip for hover info
   const CustomTooltip = ({ active, payload, label }: any) => {
@@ -317,8 +310,11 @@ export const MetricChart: React.FC<MetricChartProps> = ({
   };
 
   return (
-    <div className="bg-background-level-2 rounded-md px-3 py-2" style={{height: `${chartHeight}px`}}>
-      <div className="flex justify-between items-start">
+    <div 
+      className="bg-background-level-2 rounded-md px-3 py-2" 
+      style={{height: `${height}px`}}
+    >
+      <div className="flex justify-between items-start mb-1">
         <div className="text-text-icon-01 text-sm font-medium flex items-center gap-1.5">
           {config.icon && config.icon}
           {config.title}
@@ -328,11 +324,11 @@ export const MetricChart: React.FC<MetricChartProps> = ({
         </div>
       </div>
 
-      <div className="w-full" style={{height: `${chartHeight - 25}px`}}>
+      <div className="w-full" style={{height: `${height - 30}px`}}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
             data={visibleData}
-            margin={{ top: 0, right: 2, bottom: 0, left: 20 }} // Minimized margins to maximize space
+            margin={{ top: 5, right: 2, bottom: 5, left: 25 }}
           >
             <defs>
               {config.gradientFill && (
@@ -347,7 +343,6 @@ export const MetricChart: React.FC<MetricChartProps> = ({
               strokeDasharray="3 3"
               vertical={false}
               stroke="rgba(255, 255, 255, 0.08)"
-              horizontalPoints={[0, 25, 50, 75, 100]} // Ensure grid lines extend full width
             />
 
             <XAxis
@@ -367,7 +362,7 @@ export const MetricChart: React.FC<MetricChartProps> = ({
               tickLine={false}
               tickFormatter={formatYAxis}
               tick={{ fontSize: 10, fill: 'rgba(255, 255, 255, 0.54)' }}
-              width={18} // Minimized Y-axis width to optimize space
+              width={25} // Increased Y-axis width for better label display
               ticks={calculateYAxisTicks} // Use calculated nice round ticks
               interval={0} // Show all calculated ticks
             />
@@ -400,7 +395,7 @@ export const MetricChart: React.FC<MetricChartProps> = ({
               x={currentTimestamp}
               stroke="#FFFFFF"
               strokeWidth={1}
-              opacity={0.3}
+              opacity={0.6}
               isFront={true}
             />
 
@@ -418,14 +413,14 @@ export const MetricChart: React.FC<MetricChartProps> = ({
 
             {/* Add visible dot at current position */}
             <Line
-              data={[currentValuePosition]}
+              data={[{ timestamp: currentTimestamp, value: currentValue }]}
               type="monotone"
               dataKey="value"
               stroke="none"
               dot={{
-                r: 4,
-                fill: config.color,
-                stroke: '#FFFFFF',
+                r: 5,
+                fill: '#FFFFFF',
+                stroke: config.color,
                 strokeWidth: 2
               }}
               isAnimationActive={false}
