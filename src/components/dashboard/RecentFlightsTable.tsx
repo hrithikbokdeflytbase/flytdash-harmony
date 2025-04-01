@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { Loader, CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
+import { Loader, CheckCircle, AlertTriangle, XCircle, Image, Video } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import {
   Table,
@@ -11,6 +12,7 @@ import {
 } from "@/components/ui/table";
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Progress } from "@/components/ui/progress";
 import {
   Pagination,
   PaginationContent,
@@ -26,6 +28,17 @@ interface RecentFlightsTableProps {
 
 type FlightStatus = 'completed' | 'warning' | 'failed';
 
+interface MediaUploadStatus {
+  photos: {
+    total: number;
+    uploaded: number;
+  };
+  videos: {
+    total: number;
+    uploaded: number;
+  };
+}
+
 interface Flight {
   id: string;
   missionName: string;
@@ -33,6 +46,7 @@ interface Flight {
   pilotName: string;
   droneName: string;
   mediaCount: number;
+  mediaStatus: MediaUploadStatus;
   dateTime: string;
   status: FlightStatus;
 }
@@ -46,6 +60,10 @@ const mockFlights: Flight[] = [
     pilotName: 'John Doe',
     droneName: 'DJI Mavic 3',
     mediaCount: 24,
+    mediaStatus: {
+      photos: { total: 18, uploaded: 18 },
+      videos: { total: 6, uploaded: 6 }
+    },
     dateTime: '10:30 AM, Today',
     status: 'completed',
   },
@@ -56,6 +74,10 @@ const mockFlights: Flight[] = [
     pilotName: 'Jane Smith',
     droneName: 'DJI Phantom 4',
     mediaCount: 12,
+    mediaStatus: {
+      photos: { total: 10, uploaded: 2 },
+      videos: { total: 2, uploaded: 0 }
+    },
     dateTime: '11:45 AM, Today',
     status: 'failed',
   },
@@ -66,6 +88,10 @@ const mockFlights: Flight[] = [
     pilotName: 'Mike Johnson',
     droneName: 'Autel EVO II',
     mediaCount: 35,
+    mediaStatus: {
+      photos: { total: 20, uploaded: 20 },
+      videos: { total: 15, uploaded: 15 }
+    },
     dateTime: '2:15 PM, Today',
     status: 'completed',
   },
@@ -76,6 +102,10 @@ const mockFlights: Flight[] = [
     pilotName: 'Sarah Williams',
     droneName: 'Skydio 2',
     mediaCount: 18,
+    mediaStatus: {
+      photos: { total: 15, uploaded: 10 },
+      videos: { total: 3, uploaded: 1 }
+    },
     dateTime: '3:30 PM, Today',
     status: 'warning',
   },
@@ -86,6 +116,10 @@ const mockFlights: Flight[] = [
     pilotName: 'Alex Chen',
     droneName: 'DJI Mavic Air',
     mediaCount: 47,
+    mediaStatus: {
+      photos: { total: 40, uploaded: 30 },
+      videos: { total: 7, uploaded: 3 }
+    },
     dateTime: '9:00 AM, Yesterday',
     status: 'completed',
   },
@@ -96,6 +130,10 @@ const mockFlights: Flight[] = [
     pilotName: 'Emily Roberts',
     droneName: 'DJI Inspire 2',
     mediaCount: 56,
+    mediaStatus: {
+      photos: { total: 36, uploaded: 36 },
+      videos: { total: 20, uploaded: 20 }
+    },
     dateTime: '1:30 PM, Yesterday',
     status: 'completed',
   },
@@ -106,6 +144,10 @@ const mockFlights: Flight[] = [
     pilotName: 'David Miller',
     droneName: 'Autel EVO II Pro',
     mediaCount: 28,
+    mediaStatus: {
+      photos: { total: 22, uploaded: 15 },
+      videos: { total: 6, uploaded: 2 }
+    },
     dateTime: '3:45 PM, Yesterday',
     status: 'warning',
   },
@@ -116,6 +158,10 @@ const mockFlights: Flight[] = [
     pilotName: 'Lisa Johnson',
     droneName: 'DJI Mavic 3',
     mediaCount: 32,
+    mediaStatus: {
+      photos: { total: 25, uploaded: 25 },
+      videos: { total: 7, uploaded: 7 }
+    },
     dateTime: '9:15 AM, 2 days ago',
     status: 'completed',
   },
@@ -126,6 +172,10 @@ const mockFlights: Flight[] = [
     pilotName: 'Tom Wilson',
     droneName: 'DJI Matrice 300',
     mediaCount: 74,
+    mediaStatus: {
+      photos: { total: 60, uploaded: 40 },
+      videos: { total: 14, uploaded: 7 }
+    },
     dateTime: '11:30 AM, 2 days ago',
     status: 'warning',
   },
@@ -136,6 +186,10 @@ const mockFlights: Flight[] = [
     pilotName: 'James Lee',
     droneName: 'DJI Phantom 4 RTK',
     mediaCount: 68,
+    mediaStatus: {
+      photos: { total: 50, uploaded: 50 },
+      videos: { total: 18, uploaded: 18 }
+    },
     dateTime: '2:00 PM, 2 days ago',
     status: 'completed',
   },
@@ -146,6 +200,10 @@ const mockFlights: Flight[] = [
     pilotName: 'Anna Davis',
     droneName: 'DJI Mavic 3 Pro',
     mediaCount: 41,
+    mediaStatus: {
+      photos: { total: 30, uploaded: 30 },
+      videos: { total: 11, uploaded: 11 }
+    },
     dateTime: '4:20 PM, 2 days ago',
     status: 'completed',
   },
@@ -156,6 +214,10 @@ const mockFlights: Flight[] = [
     pilotName: 'Michael Torres',
     droneName: 'DJI Air 2S',
     mediaCount: 92,
+    mediaStatus: {
+      photos: { total: 80, uploaded: 0 },
+      videos: { total: 12, uploaded: 0 }
+    },
     dateTime: '10:15 AM, 3 days ago',
     status: 'failed',
   },
@@ -166,6 +228,10 @@ const mockFlights: Flight[] = [
     pilotName: 'Sophia Kim',
     droneName: 'DJI Mini 3 Pro',
     mediaCount: 36,
+    mediaStatus: {
+      photos: { total: 30, uploaded: 30 },
+      videos: { total: 6, uploaded: 6 }
+    },
     dateTime: '1:45 PM, 3 days ago',
     status: 'completed',
   },
@@ -212,6 +278,14 @@ const getStatusIcon = (status: FlightStatus) => {
     default:
       return null;
   }
+};
+
+// Function to get the color for the media upload progress
+const getMediaUploadProgressColor = (uploadedPercentage: number) => {
+  if (uploadedPercentage === 100) return "bg-success-200";
+  if (uploadedPercentage > 50) return "bg-primary-200";
+  if (uploadedPercentage > 0) return "bg-caution-200";
+  return "bg-error-200";
 };
 
 const RecentFlightsTable: React.FC<RecentFlightsTableProps> = ({ isLoading = false }) => {
@@ -293,7 +367,65 @@ const RecentFlightsTable: React.FC<RecentFlightsTableProps> = ({ isLoading = fal
                   {flight.droneName}
                 </TableCell>
                 <TableCell className="text-text-icon-01">
-                  {flight.mediaCount}
+                  <div className="space-y-2">
+                    {/* Photos upload status */}
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1">
+                        <Image className="w-3 h-3 text-text-icon-02" />
+                        <span className="text-xs font-medium">
+                          {flight.mediaStatus.photos.uploaded}/{flight.mediaStatus.photos.total}
+                        </span>
+                      </div>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="w-16 h-1.5">
+                              <Progress 
+                                value={(flight.mediaStatus.photos.uploaded / flight.mediaStatus.photos.total) * 100} 
+                                className="h-1.5 w-full bg-background-level-2"
+                                indicatorClassName={getMediaUploadProgressColor((flight.mediaStatus.photos.uploaded / flight.mediaStatus.photos.total) * 100)}
+                              />
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>
+                              {flight.mediaStatus.photos.uploaded} of {flight.mediaStatus.photos.total} photos uploaded
+                              ({Math.round((flight.mediaStatus.photos.uploaded / flight.mediaStatus.photos.total) * 100)}%)
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+
+                    {/* Videos upload status */}
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1">
+                        <Video className="w-3 h-3 text-text-icon-02" />
+                        <span className="text-xs font-medium">
+                          {flight.mediaStatus.videos.uploaded}/{flight.mediaStatus.videos.total}
+                        </span>
+                      </div>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="w-16 h-1.5">
+                              <Progress 
+                                value={(flight.mediaStatus.videos.uploaded / flight.mediaStatus.videos.total) * 100} 
+                                className="h-1.5 w-full bg-background-level-2"
+                                indicatorClassName={getMediaUploadProgressColor((flight.mediaStatus.videos.uploaded / flight.mediaStatus.videos.total) * 100)}
+                              />
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>
+                              {flight.mediaStatus.videos.uploaded} of {flight.mediaStatus.videos.total} videos uploaded
+                              ({Math.round((flight.mediaStatus.videos.uploaded / flight.mediaStatus.videos.total) * 100)}%)
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                  </div>
                 </TableCell>
                 <TableCell className="text-text-icon-02">
                   {flight.dateTime}
