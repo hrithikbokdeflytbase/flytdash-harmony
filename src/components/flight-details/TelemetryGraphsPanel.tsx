@@ -110,94 +110,93 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({ timestamp, 
   };
 
   return (
-    <ScrollArea className="h-full w-full">
-      <div className="flex flex-col space-y-4 px-2 pb-4">
-        <div className="flex justify-between items-center mb-1 px-1">
-          <p className="text-sm text-text-icon-02">
-            Historical telemetry data for this flight
-          </p>
-          
-          <div className="flex items-center space-x-1">
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 px-2"
-              onClick={handleZoomOut}
-              aria-label="Zoom out"
-              title="Zoom out"
-            >
-              <ZoomOut className="h-4 w-4" />
-            </Button>
-            <span className="text-xs text-text-icon-02 w-16 text-center">
-              {zoomLevel}%
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 px-2"
-              onClick={handleZoomIn}
-              aria-label="Zoom in"
-              title="Zoom in"
-            >
-              <ZoomIn className="h-4 w-4" />
-            </Button>
+    <div className="h-full w-full relative">
+      <ScrollArea className="h-full w-full">
+        <div className="flex flex-col space-y-6 px-2 pb-16">
+          {/* Render each metric chart */}
+          <div className="space-y-6">
+            {/* Battery Percentage Chart */}
+            <MetricChart 
+              data={telemetryHistory.battery}
+              currentValue={getCurrentValue('battery')}
+              currentTimestamp={currentTimestampSeconds}
+              config={metricConfigs.battery}
+              isLastChart={false}
+              zoomLevel={zoomLevel}
+            />
+
+            {/* Altitude Chart */}
+            <MetricChart 
+              data={telemetryHistory.altitude}
+              currentValue={getCurrentValue('altitude')}
+              currentTimestamp={currentTimestampSeconds}
+              config={metricConfigs.altitude}
+              isLastChart={false}
+              zoomLevel={zoomLevel}
+            />
+
+            {/* Horizontal Speed Chart */}
+            <MetricChart 
+              data={telemetryHistory.horizontalSpeed}
+              currentValue={getCurrentValue('horizontalSpeed')}
+              currentTimestamp={currentTimestampSeconds}
+              config={metricConfigs.horizontalSpeed}
+              isLastChart={false}
+              zoomLevel={zoomLevel}
+            />
+
+            {/* Vertical Speed Chart */}
+            <MetricChart 
+              data={telemetryHistory.verticalSpeed}
+              currentValue={getCurrentValue('verticalSpeed')}
+              currentTimestamp={currentTimestampSeconds}
+              config={metricConfigs.verticalSpeed}
+              isLastChart={false}
+              zoomLevel={zoomLevel}
+            />
+
+            {/* Signal Strength Chart */}
+            <MetricChart 
+              data={telemetryHistory.signal}
+              currentValue={getCurrentValue('signal')}
+              currentTimestamp={currentTimestampSeconds}
+              config={metricConfigs.signal}
+              isLastChart={true}
+              zoomLevel={zoomLevel}
+            />
           </div>
         </div>
-
-        {/* Render each metric chart */}
-        <div className="space-y-6">
-          {/* Battery Percentage Chart */}
-          <MetricChart 
-            data={telemetryHistory.battery}
-            currentValue={getCurrentValue('battery')}
-            currentTimestamp={currentTimestampSeconds}
-            config={metricConfigs.battery}
-            isLastChart={false}
-            zoomLevel={zoomLevel}
-          />
-
-          {/* Altitude Chart */}
-          <MetricChart 
-            data={telemetryHistory.altitude}
-            currentValue={getCurrentValue('altitude')}
-            currentTimestamp={currentTimestampSeconds}
-            config={metricConfigs.altitude}
-            isLastChart={false}
-            zoomLevel={zoomLevel}
-          />
-
-          {/* Horizontal Speed Chart */}
-          <MetricChart 
-            data={telemetryHistory.horizontalSpeed}
-            currentValue={getCurrentValue('horizontalSpeed')}
-            currentTimestamp={currentTimestampSeconds}
-            config={metricConfigs.horizontalSpeed}
-            isLastChart={false}
-            zoomLevel={zoomLevel}
-          />
-
-          {/* Vertical Speed Chart */}
-          <MetricChart 
-            data={telemetryHistory.verticalSpeed}
-            currentValue={getCurrentValue('verticalSpeed')}
-            currentTimestamp={currentTimestampSeconds}
-            config={metricConfigs.verticalSpeed}
-            isLastChart={false}
-            zoomLevel={zoomLevel}
-          />
-
-          {/* Signal Strength Chart */}
-          <MetricChart 
-            data={telemetryHistory.signal}
-            currentValue={getCurrentValue('signal')}
-            currentTimestamp={currentTimestampSeconds}
-            config={metricConfigs.signal}
-            isLastChart={true}
-            zoomLevel={zoomLevel}
-          />
+      </ScrollArea>
+      
+      {/* Fixed bottom overlay panel for zoom controls */}
+      <div className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-sm border-t border-border z-10 py-2 px-4 flex justify-center items-center">
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 w-8 p-0 flex items-center justify-center"
+            onClick={handleZoomOut}
+            aria-label="Zoom out"
+            title="Zoom out"
+          >
+            <ZoomOut className="h-4 w-4" />
+          </Button>
+          <span className="text-xs text-text-icon-01 w-16 text-center font-medium">
+            {zoomLevel}% Zoom
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 w-8 p-0 flex items-center justify-center"
+            onClick={handleZoomIn}
+            aria-label="Zoom in"
+            title="Zoom in"
+          >
+            <ZoomIn className="h-4 w-4" />
+          </Button>
         </div>
       </div>
-    </ScrollArea>
+    </div>
   );
 };
 
