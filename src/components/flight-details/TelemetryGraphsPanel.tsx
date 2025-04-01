@@ -113,25 +113,25 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
     setZoomLevel(prevZoom => Math.max(prevZoom - 25, 50));
   };
 
+  // Generate array of metrics to display
+  const metrics: TelemetryMetric[] = ['battery', 'altitude', 'horizontalSpeed', 'verticalSpeed', 'signal'];
+
   return <div className="h-full w-full relative">
       <ScrollArea className="h-full w-full pb-16">
         <div className="flex flex-col space-y-3 pb-16">
-          {/* Render each metric chart */}
+          {/* Render all metric charts with proper spacing */}
           <div className="space-y-3">
-            {/* Battery Percentage Chart */}
-            <MetricChart data={telemetryHistory.battery} currentValue={getCurrentValue('battery')} currentTimestamp={currentTimestampSeconds} config={metricConfigs.battery} isLastChart={false} zoomLevel={zoomLevel} />
-
-            {/* Altitude Chart */}
-            <MetricChart data={telemetryHistory.altitude} currentValue={getCurrentValue('altitude')} currentTimestamp={currentTimestampSeconds} config={metricConfigs.altitude} isLastChart={false} zoomLevel={zoomLevel} />
-
-            {/* Horizontal Speed Chart */}
-            <MetricChart data={telemetryHistory.horizontalSpeed} currentValue={getCurrentValue('horizontalSpeed')} currentTimestamp={currentTimestampSeconds} config={metricConfigs.horizontalSpeed} isLastChart={false} zoomLevel={zoomLevel} />
-
-            {/* Vertical Speed Chart */}
-            <MetricChart data={telemetryHistory.verticalSpeed} currentValue={getCurrentValue('verticalSpeed')} currentTimestamp={currentTimestampSeconds} config={metricConfigs.verticalSpeed} isLastChart={false} zoomLevel={zoomLevel} />
-
-            {/* Signal Strength Chart */}
-            <MetricChart data={telemetryHistory.signal} currentValue={getCurrentValue('signal')} currentTimestamp={currentTimestampSeconds} config={metricConfigs.signal} isLastChart={true} zoomLevel={zoomLevel} />
+            {metrics.map((metric, index) => (
+              <MetricChart
+                key={metric}
+                data={telemetryHistory[metric]}
+                currentValue={getCurrentValue(metric)}
+                currentTimestamp={currentTimestampSeconds}
+                config={metricConfigs[metric]}
+                isLastChart={index === metrics.length - 1}
+                zoomLevel={zoomLevel}
+              />
+            ))}
           </div>
         </div>
       </ScrollArea>

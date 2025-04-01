@@ -1,3 +1,4 @@
+
 import React, { useMemo } from 'react';
 import {
   ResponsiveContainer,
@@ -209,13 +210,13 @@ export const MetricChart: React.FC<MetricChartProps> = ({
               interval={0} // Show all calculated ticks
             />
 
-            {/* Reference line showing current timestamp */}
+            {/* Reference line showing current timestamp - consistent style across all charts */}
             <ReferenceLine
               x={currentTimestamp}
               stroke="#FFFFFF"
               strokeWidth={1}
-              strokeDasharray="3 2"
-              opacity={0.7}
+              opacity={0.3}
+              isFront={true}
             />
 
             {/* Chart line */}
@@ -228,6 +229,26 @@ export const MetricChart: React.FC<MetricChartProps> = ({
               activeDot={{ r: 4, fill: config.color, stroke: '#FFF' }}
               isAnimationActive={false} // Disable animation for better performance
             />
+
+            {/* Add visible dot at current position */}
+            {visibleData.length > 0 && (
+              <Line
+                data={[{
+                  timestamp: currentTimestamp,
+                  value: currentValue
+                }]}
+                type="monotone"
+                dataKey="value"
+                stroke="none"
+                dot={{
+                  r: 4,
+                  fill: config.color,
+                  stroke: '#FFFFFF',
+                  strokeWidth: 2
+                }}
+                isAnimationActive={false}
+              />
+            )}
 
             {/* Area under the line if gradient fill is enabled */}
             {config.gradientFill && (
