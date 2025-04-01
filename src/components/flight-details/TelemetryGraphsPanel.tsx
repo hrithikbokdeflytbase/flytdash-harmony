@@ -6,7 +6,7 @@ import { MetricChart } from './graphs/MetricChart';
 import { generateMockTelemetryHistory } from './graphs/mockTelemetryData';
 import { timeToSeconds } from './timeline/timelineUtils';
 import { Button } from '@/components/ui/button';
-import { Minus, Plus } from 'lucide-react';
+import { Minus, Plus, Battery, ArrowUp, ArrowDown } from 'lucide-react';
 
 interface TelemetryGraphsPanelProps {
   timestamp: string;
@@ -21,28 +21,36 @@ const metricConfigs = {
   battery: {
     title: "Battery",
     unit: "%",
-    color: "#10B981",
-    // Success green
+    color: "#10B981", // Success green
     gradientFill: true,
     dataKey: "value",
     minValue: 0,
     maxValue: 100,
-    decimals: 0
+    decimals: 0,
+    icon: <Battery className="h-4 w-4" />,
+    thresholds: [
+      { value: 25, color: "#FACC15", strokeDasharray: "3 3", label: "Warning" }, // Yellow
+      { value: 15, color: "#EF4444", strokeDasharray: "3 3", label: "Critical" }  // Red
+    ],
+    formatYAxis: (value: number) => `${value}%`
   },
   altitude: {
     title: "Altitude",
     unit: "m",
-    color: "#496DC8",
-    // Primary 200
+    color: "#496DC8", // Primary 200
     dataKey: "value",
     minValue: 0,
-    decimals: 1
+    decimals: 1,
+    valueSuffix: "AGL",
+    thresholds: [
+      { value: 120, color: "#FACC15", strokeDasharray: "3 3", label: "Max permitted" } // Max altitude line
+    ],
+    formatYAxis: (value: number) => `${value}m`
   },
   horizontalSpeed: {
     title: "Horizontal Speed",
     unit: "m/s",
-    color: "#9b87f5",
-    // Purple
+    color: "#9b87f5", // Purple
     dataKey: "value",
     minValue: 0,
     decimals: 1
@@ -50,8 +58,7 @@ const metricConfigs = {
   verticalSpeed: {
     title: "Vertical Speed",
     unit: "m/s",
-    color: "#0EA5E9",
-    // Teal
+    color: "#0EA5E9", // Teal
     dataKey: "value",
     minValue: -10,
     decimals: 1
@@ -59,8 +66,7 @@ const metricConfigs = {
   signal: {
     title: "Signal Strength",
     unit: "",
-    color: "#888888",
-    // Gray/white
+    color: "#888888", // Gray/white
     dataKey: "value",
     minValue: 0,
     maxValue: 100,
@@ -96,11 +102,28 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
         return telemetryData.verticalSpeed.value;
       case 'signal':
         // Use either RF signal or GPS count as a proxy for signal strength
-        return telemetryData.gpsStatus.count / 24 * 100;
-      // Normalize to percentage
+        return telemetryData.gpsStatus.count / 24 * 100; // Normalize to percentage
       default:
         return 0;
     }
+  };
+
+  // Determine trend direction for metrics based on recent history
+  const getTrendDirection = (metricKey: TelemetryMetric): 'up' | 'down' | 'stable' => {
+    const history = telemetryHistory[metricKey];
+    if (history.length < 2) return 'stable';
+    
+    // Get the last few data points to determine trend
+    const lastFewPoints = history.slice(-5);
+    const firstValue = lastFewPoints[0].value;
+    const lastValue = lastFewPoints[lastFewPoints.length - 1].value;
+    
+    // Calculate significant change threshold (1% for battery, 0.5 for others)
+    const threshold = metricKey === 'battery' ? 1 : 0.5;
+    
+    if (lastValue - firstValue > threshold) return 'up';
+    if (firstValue - lastValue > threshold) return 'down';
+    return 'stable';
   };
 
   // Handle zoom in
@@ -119,19 +142,56 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
           {/* Render each metric chart */}
           <div className="space-y-6">
             {/* Battery Percentage Chart */}
-            <MetricChart data={telemetryHistory.battery} currentValue={getCurrentValue('battery')} currentTimestamp={currentTimestampSeconds} config={metricConfigs.battery} isLastChart={false} zoomLevel={zoomLevel} />
+            <MetricChart 
+              data={telemetryHistory.battery} 
+              currentValue={getCurrentValue('battery')} 
+              currentTimestamp={currentTimestampSeconds} 
+              config={metricConfigs.battery} 
+              isLastChart={false} 
+              zoomLevel={zoomLevel}
+              trendDirection={getTrendDirection('battery')}
+            />
 
             {/* Altitude Chart */}
-            <MetricChart data={telemetryHistory.altitude} currentValue={getCurrentValue('altitude')} currentTimestamp={currentTimestampSeconds} config={metricConfigs.altitude} isLastChart={false} zoomLevel={zoomLevel} />
+            <MetricChart 
+              data={telemetryHistory.altitude} 
+              currentValue={getCurrentValue('altitude')} 
+              currentTimestamp={currentTimestampSeconds} 
+              config={metricConfigs.altitude} 
+              isLastChart={false} 
+              zoomLevel={zoomLevel}
+              trendDirection={getTrendDirection('altitude')}
+            />
 
             {/* Horizontal Speed Chart */}
-            <MetricChart data={telemetryHistory.horizontalSpeed} currentValue={getCurrentValue('horizontalSpeed')} currentTimestamp={currentTimestampSeconds} config={metricConfigs.horizontalSpeed} isLastChart={false} zoomLevel={zoomLevel} />
+            <MetricChart 
+              data={telemetryHistory.horizontalSpeed} 
+              currentValue={getCurrentValue('horizontalSpeed')} 
+              currentTimestamp={currentTimestampSeconds} 
+              config={metricConfigs.horizontalSpeed} 
+              isLastChart={false} 
+              zoomLevel={zoomLevel} 
+            />
 
             {/* Vertical Speed Chart */}
-            <MetricChart data={telemetryHistory.verticalSpeed} currentValue={getCurrentValue('verticalSpeed')} currentTimestamp={currentTimestampSeconds} config={metricConfigs.verticalSpeed} isLastChart={false} zoomLevel={zoomLevel} />
+            <MetricChart 
+              data={telemetryHistory.verticalSpeed} 
+              currentValue={getCurrentValue('verticalSpeed')} 
+              currentTimestamp={currentTimestampSeconds} 
+              config={metricConfigs.verticalSpeed} 
+              isLastChart={false} 
+              zoomLevel={zoomLevel} 
+            />
 
             {/* Signal Strength Chart */}
-            <MetricChart data={telemetryHistory.signal} currentValue={getCurrentValue('signal')} currentTimestamp={currentTimestampSeconds} config={metricConfigs.signal} isLastChart={true} zoomLevel={zoomLevel} />
+            <MetricChart 
+              data={telemetryHistory.signal} 
+              currentValue={getCurrentValue('signal')} 
+              currentTimestamp={currentTimestampSeconds} 
+              config={metricConfigs.signal} 
+              isLastChart={true} 
+              zoomLevel={zoomLevel} 
+            />
           </div>
         </div>
       </ScrollArea>

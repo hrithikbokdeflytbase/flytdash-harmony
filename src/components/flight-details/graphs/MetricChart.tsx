@@ -1,3 +1,4 @@
+
 import React, { useMemo } from 'react';
 import {
   ResponsiveContainer,
@@ -11,11 +12,19 @@ import {
 } from 'recharts';
 import { cn } from '@/lib/utils';
 import { secondsToTime } from '../timeline/timelineUtils';
+import { Battery, ArrowUp, ArrowDown } from 'lucide-react';
 
 export interface TelemetryDataPoint {
   timestamp: number; // in seconds from flight start
   value: number;
   rawTime?: string; // HH:MM:SS format
+}
+
+export interface ThresholdLine {
+  value: number;
+  color: string;
+  strokeDasharray?: string;
+  label?: string;
 }
 
 export interface MetricChartConfig {
@@ -27,6 +36,11 @@ export interface MetricChartConfig {
   maxValue?: number;
   gradientFill?: boolean;
   decimals: number;
+  icon?: React.ReactNode;
+  thresholds?: ThresholdLine[];
+  valuePrefix?: string;
+  valueSuffix?: string;
+  formatYAxis?: (value: number) => string;
 }
 
 interface MetricChartProps {
@@ -36,6 +50,7 @@ interface MetricChartProps {
   config: MetricChartConfig;
   isLastChart?: boolean;
   zoomLevel?: number; // Added zoom level prop
+  trendDirection?: 'up' | 'down' | 'stable';
 }
 
 export const MetricChart: React.FC<MetricChartProps> = ({
@@ -44,7 +59,8 @@ export const MetricChart: React.FC<MetricChartProps> = ({
   currentTimestamp,
   config,
   isLastChart = false,
-  zoomLevel = 100 // Default to 100% if not provided
+  zoomLevel = 100, // Default to 100% if not provided
+  trendDirection
 }) => {
   // Format the current value with the appropriate decimals
   const formattedCurrentValue = useMemo(() => {
@@ -66,6 +82,9 @@ export const MetricChart: React.FC<MetricChartProps> = ({
 
   // Format the Y axis with the unit
   const formatYAxis = (value: number) => {
+    if (config.formatYAxis) {
+      return config.formatYAxis(value);
+    }
     return `${value}${config.unit}`;
   };
 
@@ -99,14 +118,32 @@ export const MetricChart: React.FC<MetricChartProps> = ({
   // Keep chart height fixed regardless of zoom level
   const chartHeight = 90;
 
+  // Get trend indicator component
+  const getTrendIndicator = () => {
+    if (!trendDirection) return null;
+    
+    switch(trendDirection) {
+      case 'up':
+        return <ArrowUp className="h-4 w-4 text-success ml-1" />;
+      case 'down':
+        return <ArrowDown className="h-4 w-4 text-destructive ml-1" />;
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="bg-background-level-2 rounded-md p-4" style={{height: `${chartHeight}px`}}>
       <div className="flex justify-between items-start mb-1">
-        <div className="text-text-icon-01 text-sm font-medium">
+        <div className="text-text-icon-01 text-sm font-medium flex items-center">
+          {config.icon && <span className="mr-1.5">{config.icon}</span>}
           {config.title}
         </div>
-        <div className="text-text-icon-01 text-base font-medium tabular-nums">
+        <div className="text-text-icon-01 text-base font-medium tabular-nums flex items-center">
+          {config.valuePrefix && <span className="mr-1">{config.valuePrefix}</span>}
           {formattedCurrentValue}{config.unit}
+          {config.valueSuffix && <span className="ml-1">{config.valueSuffix}</span>}
+          {getTrendIndicator()}
         </div>
       </div>
 
@@ -119,7 +156,7 @@ export const MetricChart: React.FC<MetricChartProps> = ({
             <defs>
               {config.gradientFill && (
                 <linearGradient id={`gradient-${config.title}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={config.color} stopOpacity={0.3} />
+                  <stop offset="5%" stopColor={config.color} stopOpacity={0.2} />
                   <stop offset="95%" stopColor={config.color} stopOpacity={0} />
                 </linearGradient>
               )}
@@ -159,6 +196,22 @@ export const MetricChart: React.FC<MetricChartProps> = ({
               strokeDasharray="3 2"
               opacity={0.7}
             />
+
+            {/* Threshold lines if provided */}
+            {config.thresholds && config.thresholds.map((threshold, idx) => (
+              <ReferenceLine
+                key={`threshold-${idx}`}
+                y={threshold.value}
+                stroke={threshold.color}
+                strokeDasharray={threshold.strokeDasharray || "3 3"}
+                label={{
+                  value: threshold.label || '',
+                  position: 'right',
+                  fill: threshold.color,
+                  fontSize: 10,
+                }}
+              />
+            ))}
 
             {/* Chart line */}
             <Line
