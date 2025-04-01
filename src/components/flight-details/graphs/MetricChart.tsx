@@ -56,7 +56,7 @@ export const MetricChart: React.FC<MetricChartProps> = ({
   config,
   isLastChart = false,
   zoomLevel = 100, // Default to 100% if not provided
-  height = 120, // Default height of 120px
+  height = 140, // Default height of 140px
 }) => {
   // Format the current value with the appropriate decimals and sign for vertical speed
   const formattedCurrentValue = useMemo(() => {
@@ -312,9 +312,12 @@ export const MetricChart: React.FC<MetricChartProps> = ({
 
   return (
     <div 
-      className="bg-background-level-2 rounded-md p-0 mb-4"
+      className="bg-background-level-2 rounded-md overflow-hidden mb-4"
+      style={{
+        borderBottom: !isLastChart ? '1px solid rgba(255, 255, 255, 0.08)' : 'none',
+      }}
     >
-      <div className="flex justify-between items-start p-3 mb-2">
+      <div className="flex justify-between items-start p-4">
         <div className="text-text-icon-01 text-sm font-medium flex items-center gap-2">
           {config.icon && config.icon}
           {config.title}
@@ -324,11 +327,11 @@ export const MetricChart: React.FC<MetricChartProps> = ({
         </div>
       </div>
 
-      <div className="w-full p-3 pt-0">
+      <div className="w-full px-4 pb-4">
         <ResponsiveContainer width="100%" height={height}>
           <LineChart
             data={visibleData}
-            margin={{ top: 5, right: 2, bottom: 5, left: 25 }}
+            margin={{ top: 5, right: 5, bottom: isLastChart ? 20 : 5, left: 30 }}
           >
             <defs>
               {config.gradientFill && (
@@ -362,9 +365,10 @@ export const MetricChart: React.FC<MetricChartProps> = ({
               tickLine={false}
               tickFormatter={formatYAxis}
               tick={{ fontSize: 10, fill: 'rgba(255, 255, 255, 0.54)' }}
-              width={25} // Increased Y-axis width for better label display
+              width={30} // Increased Y-axis width for better label display
               ticks={calculateYAxisTicks} // Use calculated nice round ticks
               interval={0} // Show all calculated ticks
+              padding={{ top: 10, bottom: 10 }}
             />
 
             {/* Threshold reference lines */}
@@ -378,8 +382,8 @@ export const MetricChart: React.FC<MetricChartProps> = ({
               >
                 {threshold.label && (
                   <text
-                    x={25}
-                    y={threshold.value > 0 ? -5 : 15}
+                    x={30}
+                    y={threshold.value > 0 ? -8 : 16}
                     textAnchor="start"
                     fill={threshold.color}
                     fontSize={9}

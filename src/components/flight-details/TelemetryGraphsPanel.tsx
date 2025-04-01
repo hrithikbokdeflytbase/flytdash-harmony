@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { TelemetryData } from './TelemetryPanel';
@@ -309,7 +308,7 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
           currentValue={telemetryData.battery.percentage}
           currentTimestamp={timestampInSeconds}
           config={batteryConfig}
-          height={120}
+          height={140}
         />
 
         <MetricChart 
@@ -317,7 +316,7 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
           currentValue={telemetryData.altitude.value}
           currentTimestamp={timestampInSeconds}
           config={altitudeConfig}
-          height={120}
+          height={140}
         />
 
         <MetricChart 
@@ -325,7 +324,7 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
           currentValue={telemetryData.horizontalSpeed.value}
           currentTimestamp={timestampInSeconds}
           config={horizontalSpeedConfig}
-          height={120}
+          height={140}
         />
 
         <MetricChart 
@@ -333,7 +332,7 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
           currentValue={telemetryData.verticalSpeed.value}
           currentTimestamp={timestampInSeconds}
           config={verticalSpeedConfig}
-          height={120}
+          height={140}
         />
 
         <MetricChart 
@@ -342,7 +341,7 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
                        telemetryData.connections.rfLink.status === 'poor' ? 40 : 10}
           currentTimestamp={timestampInSeconds}
           config={signalStrengthConfig}
-          height={120}
+          height={140}
           isLastChart={true}
         />
       </div>
