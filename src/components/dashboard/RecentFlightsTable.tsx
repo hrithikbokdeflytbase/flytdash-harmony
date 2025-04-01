@@ -29,11 +29,11 @@ interface RecentFlightsTableProps {
 type FlightStatus = 'completed' | 'warning' | 'failed';
 
 interface MediaUploadStatus {
-  photos: {
+  photos?: {
     total: number;
     uploaded: number;
   };
-  videos: {
+  videos?: {
     total: number;
     uploaded: number;
   };
@@ -227,13 +227,27 @@ const mockFlights: Flight[] = [
     operationType: 'Photography',
     pilotName: 'Sophia Kim',
     droneName: 'DJI Mini 3 Pro',
-    mediaCount: 36,
+    mediaCount: 30,
     mediaStatus: {
-      photos: { total: 30, uploaded: 30 },
-      videos: { total: 6, uploaded: 6 }
+      photos: { total: 30, uploaded: 30 }
+      // Only photos, no videos for this flight
     },
     dateTime: '1:45 PM, 3 days ago',
     status: 'completed',
+  },
+  {
+    id: 'FLT-1247',
+    missionName: 'Wildlife Documentary',
+    operationType: 'Videography',
+    pilotName: 'Carlos Rodriguez',
+    droneName: 'DJI Inspire 2',
+    mediaCount: 15,
+    mediaStatus: {
+      // Only videos, no photos for this flight
+      videos: { total: 15, uploaded: 12 }
+    },
+    dateTime: '8:20 AM, 4 days ago',
+    status: 'warning',
   },
 ];
 
@@ -318,6 +332,44 @@ const RecentFlightsTable: React.FC<RecentFlightsTableProps> = ({ isLoading = fal
     }
   };
 
+  // Helper function to render media upload status row
+  const renderMediaUploadStatus = (mediaType: 'photos' | 'videos', mediaData?: { total: number, uploaded: number }) => {
+    if (!mediaData || mediaData.total === 0) return null;
+    
+    const uploadedPercentage = mediaData.total > 0 ? (mediaData.uploaded / mediaData.total) * 100 : 0;
+    const icon = mediaType === 'photos' ? <Image className="w-3 h-3 text-text-icon-02" /> : <Video className="w-3 h-3 text-text-icon-02" />;
+    
+    return (
+      <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
+          {icon}
+          <span className="text-xs font-medium">
+            {mediaData.uploaded}/{mediaData.total}
+          </span>
+        </div>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="w-16 h-1.5">
+                <Progress 
+                  value={uploadedPercentage} 
+                  className="h-1.5 w-full bg-background-level-2"
+                  indicatorClassName={getMediaUploadProgressColor(uploadedPercentage)}
+                />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>
+                {mediaData.uploaded} of {mediaData.total} {mediaType} uploaded
+                ({Math.round(uploadedPercentage)}%)
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-4">
       <div className="overflow-x-auto -mx-400">
@@ -368,63 +420,16 @@ const RecentFlightsTable: React.FC<RecentFlightsTableProps> = ({ isLoading = fal
                 </TableCell>
                 <TableCell className="text-text-icon-01">
                   <div className="space-y-2">
-                    {/* Photos upload status */}
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-1">
-                        <Image className="w-3 h-3 text-text-icon-02" />
-                        <span className="text-xs font-medium">
-                          {flight.mediaStatus.photos.uploaded}/{flight.mediaStatus.photos.total}
-                        </span>
-                      </div>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <div className="w-16 h-1.5">
-                              <Progress 
-                                value={(flight.mediaStatus.photos.uploaded / flight.mediaStatus.photos.total) * 100} 
-                                className="h-1.5 w-full bg-background-level-2"
-                                indicatorClassName={getMediaUploadProgressColor((flight.mediaStatus.photos.uploaded / flight.mediaStatus.photos.total) * 100)}
-                              />
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>
-                              {flight.mediaStatus.photos.uploaded} of {flight.mediaStatus.photos.total} photos uploaded
-                              ({Math.round((flight.mediaStatus.photos.uploaded / flight.mediaStatus.photos.total) * 100)}%)
-                            </p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
+                    {/* Photos upload status - only show if photos exist */}
+                    {flight.mediaStatus.photos && renderMediaUploadStatus('photos', flight.mediaStatus.photos)}
 
-                    {/* Videos upload status */}
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-1">
-                        <Video className="w-3 h-3 text-text-icon-02" />
-                        <span className="text-xs font-medium">
-                          {flight.mediaStatus.videos.uploaded}/{flight.mediaStatus.videos.total}
-                        </span>
-                      </div>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <div className="w-16 h-1.5">
-                              <Progress 
-                                value={(flight.mediaStatus.videos.uploaded / flight.mediaStatus.videos.total) * 100} 
-                                className="h-1.5 w-full bg-background-level-2"
-                                indicatorClassName={getMediaUploadProgressColor((flight.mediaStatus.videos.uploaded / flight.mediaStatus.videos.total) * 100)}
-                              />
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>
-                              {flight.mediaStatus.videos.uploaded} of {flight.mediaStatus.videos.total} videos uploaded
-                              ({Math.round((flight.mediaStatus.videos.uploaded / flight.mediaStatus.videos.total) * 100)}%)
-                            </p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
+                    {/* Videos upload status - only show if videos exist */}
+                    {flight.mediaStatus.videos && renderMediaUploadStatus('videos', flight.mediaStatus.videos)}
+                    
+                    {/* Show no media message if neither photos nor videos are present */}
+                    {(!flight.mediaStatus.photos && !flight.mediaStatus.videos) && (
+                      <span className="text-xs text-text-icon-02">No media</span>
+                    )}
                   </div>
                 </TableCell>
                 <TableCell className="text-text-icon-02">
