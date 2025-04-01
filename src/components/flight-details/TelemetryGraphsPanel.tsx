@@ -1,160 +1,62 @@
-import React, { useMemo, useState } from 'react';
+
+import React from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { TelemetryData } from './TelemetryPanel';
-import { MetricChart } from './graphs/MetricChart';
-import { generateMockTelemetryHistory } from './graphs/mockTelemetryData';
-import { timeToSeconds } from './timeline/timelineUtils';
-import { Button } from '@/components/ui/button';
-import { Minus, Plus } from 'lucide-react';
 
 interface TelemetryGraphsPanelProps {
   timestamp: string;
   telemetryData: TelemetryData;
 }
 
-// Supported metrics for visualization
-export type TelemetryMetric = 'battery' | 'altitude' | 'horizontalSpeed' | 'verticalSpeed' | 'signal';
-
-// Configuration for each metric chart
-const metricConfigs = {
-  battery: {
-    title: "Battery",
-    unit: "%",
-    color: "#10B981", // Green - unchanged
-    gradientFill: true,
-    dataKey: "value",
-    minValue: 0,
-    maxValue: 100,
-    decimals: 0
-  },
-  altitude: {
-    title: "Altitude",
-    unit: "m",
-    color: "#496DC8", // Blue - unchanged
-    dataKey: "value",
-    minValue: 0,
-    decimals: 1
-  },
-  horizontalSpeed: {
-    title: "Horizontal Speed",
-    unit: "m/s",
-    color: "#8B5CF6", // Updated to Vivid Purple
-    dataKey: "value",
-    minValue: 0,
-    decimals: 1
-  },
-  verticalSpeed: {
-    title: "Vertical Speed",
-    unit: "m/s",
-    color: "#14B8A6", // Updated to Teal
-    dataKey: "value",
-    minValue: -10,
-    decimals: 1
-  },
-  signal: {
-    title: "Signal Strength",
-    unit: "%",
-    color: "#A5F3FC", // Updated to Cyan
-    dataKey: "value",
-    minValue: 0,
-    maxValue: 100,
-    decimals: 0
-  }
-};
-
 const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
   timestamp,
   telemetryData
 }) => {
-  // Generate mock historical data for each metric
-  const [telemetryHistory] = useState(() => generateMockTelemetryHistory());
-
-  // Zoom level state for all charts (100% is default)
-  const [zoomLevel, setZoomLevel] = useState(100);
-
-  // Calculate current timestamp in seconds
-  const currentTimestampSeconds = useMemo(() => {
-    return timeToSeconds(timestamp);
-  }, [timestamp]);
-
-  // Function to get current value based on timestamp
-  const getCurrentValue = (metricKey: TelemetryMetric): number => {
-    switch (metricKey) {
-      case 'battery':
-        return telemetryData.battery.percentage;
-      case 'altitude':
-        return telemetryData.altitude.value;
-      case 'horizontalSpeed':
-        return telemetryData.horizontalSpeed.value;
-      case 'verticalSpeed':
-        return telemetryData.verticalSpeed.value;
-      case 'signal':
-        // Use either RF signal or GPS count as a proxy for signal strength
-        return telemetryData.gpsStatus.count / 24 * 100;
-      // Normalize to percentage
-      default:
-        return 0;
-    }
-  };
-
-  // Handle zoom in
-  const handleZoomIn = () => {
-    setZoomLevel(prevZoom => Math.min(prevZoom + 25, 200));
-  };
-
-  // Handle zoom out
-  const handleZoomOut = () => {
-    setZoomLevel(prevZoom => Math.max(prevZoom - 25, 50));
-  };
-
-  // Generate array of metrics to display
-  const metrics: TelemetryMetric[] = ['battery', 'altitude', 'horizontalSpeed', 'verticalSpeed', 'signal'];
-
-  return <div className="h-full w-full relative">
-      <ScrollArea className="h-full w-full pb-16">
-        <div className="flex flex-col space-y-3 pb-16">
-          {/* Render all metric charts with proper spacing */}
-          <div className="space-y-3">
-            {metrics.map((metric, index) => (
-              <MetricChart
-                key={metric}
-                data={telemetryHistory[metric]}
-                currentValue={getCurrentValue(metric)}
-                currentTimestamp={currentTimestampSeconds}
-                config={metricConfigs[metric]}
-                isLastChart={index === metrics.length - 1}
-                zoomLevel={zoomLevel}
-              />
-            ))}
+  return (
+    <ScrollArea className="h-full w-full">
+      <div className="p-4 space-y-6">
+        {/* Battery Percentage Graph Placeholder */}
+        <div className="rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#262627] p-4">
+          <h3 className="text-[rgba(255,255,255,0.84)] text-lg font-medium mb-2">Battery</h3>
+          <div className="h-[150px] flex items-center justify-center text-[rgba(255,255,255,0.5)]">
+            Battery graph placeholder
           </div>
         </div>
-      </ScrollArea>
-      
-      {/* Fixed bottom overlay panel for zoom controls */}
-      <div className="absolute bottom-0 left-0 right-0 h-12 bg-background-level-1 border-t border-outline-primary flex items-center justify-center">
-        <div className="flex items-center space-x-2">
-          <Button
-            size="sm"
-            variant="outline"
-            className="h-8 w-8 p-0 rounded-full"
-            onClick={handleZoomOut}
-          >
-            <Minus className="h-4 w-4" />
-          </Button>
-          <div className="text-sm font-medium px-2 min-w-[60px] text-center tabular-nums">
-            {zoomLevel}%
+
+        {/* Altitude Graph Placeholder */}
+        <div className="rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#262627] p-4">
+          <h3 className="text-[rgba(255,255,255,0.84)] text-lg font-medium mb-2">Altitude</h3>
+          <div className="h-[150px] flex items-center justify-center text-[rgba(255,255,255,0.5)]">
+            Altitude graph placeholder
           </div>
-          <Button
-            size="sm"
-            variant="outline"
-            className="h-8 w-8 p-0 rounded-full"
-            onClick={handleZoomIn}
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
+        </div>
+
+        {/* Horizontal Speed Graph Placeholder */}
+        <div className="rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#262627] p-4">
+          <h3 className="text-[rgba(255,255,255,0.84)] text-lg font-medium mb-2">Horizontal Speed</h3>
+          <div className="h-[150px] flex items-center justify-center text-[rgba(255,255,255,0.5)]">
+            Horizontal speed graph placeholder
+          </div>
+        </div>
+
+        {/* Vertical Speed Graph Placeholder */}
+        <div className="rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#262627] p-4">
+          <h3 className="text-[rgba(255,255,255,0.84)] text-lg font-medium mb-2">Vertical Speed</h3>
+          <div className="h-[150px] flex items-center justify-center text-[rgba(255,255,255,0.5)]">
+            Vertical speed graph placeholder
+          </div>
+        </div>
+
+        {/* Signal Strength Graph Placeholder */}
+        <div className="rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#262627] p-4">
+          <h3 className="text-[rgba(255,255,255,0.84)] text-lg font-medium mb-2">Signal Strength</h3>
+          <div className="h-[150px] flex items-center justify-center text-[rgba(255,255,255,0.5)]">
+            Signal strength graph placeholder
+          </div>
         </div>
       </div>
-    </div>;
+    </ScrollArea>
+  );
 };
 
 export default TelemetryGraphsPanel;

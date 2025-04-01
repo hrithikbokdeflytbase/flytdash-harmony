@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Activity, Clock } from 'lucide-react';
+import { Activity, Clock, LineChart } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -9,6 +10,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import DetailsPanelHeader from './DetailsPanelHeader';
 import TelemetryPanel, { TelemetryData } from './TelemetryPanel';
 import TimelinePanel from './TimelinePanel';
+import TelemetryGraphsPanel from './TelemetryGraphsPanel';
 
 interface FlightDetailsPanelProps {
   flightId: string;
@@ -175,6 +177,15 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
               </div>
             </TabsTrigger>
             <TabsTrigger 
+              value="graphs" 
+              className="flex-1 h-full rounded-none data-[state=active]:bg-transparent data-[state=active]:text-text-icon-01 data-[state=inactive]:text-text-icon-02 relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-primary-200 after:transform after:scale-x-0 data-[state=active]:after:scale-x-100 after:transition-transform"
+            >
+              <div className="flex items-center gap-2">
+                <LineChart className="w-4 h-4" />
+                Graphs
+              </div>
+            </TabsTrigger>
+            <TabsTrigger 
               value="timeline" 
               className="flex-1 h-full rounded-none data-[state=active]:bg-transparent data-[state=active]:text-text-icon-01 data-[state=inactive]:text-text-icon-02 relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-primary-200 after:transform after:scale-x-0 data-[state=active]:after:scale-x-100 after:transition-transform"
             >
@@ -190,6 +201,15 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
             <TabsContent value="telemetry" className="h-full p-0 m-0 data-[state=active]:flex data-[state=active]:flex-col">
               <div className="flex-1 overflow-hidden">
                 <TelemetryPanel telemetryData={telemetryData} />
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="graphs" className="h-full p-0 m-0 data-[state=active]:flex data-[state=active]:flex-col">
+              <div className="flex-1 overflow-hidden">
+                <TelemetryGraphsPanel 
+                  timestamp={timestamp}
+                  telemetryData={telemetryData} 
+                />
               </div>
             </TabsContent>
             
