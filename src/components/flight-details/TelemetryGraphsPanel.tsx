@@ -1,3 +1,4 @@
+
 import React, { useMemo, useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { TelemetryData } from './TelemetryPanel';
@@ -133,7 +134,29 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
       </ScrollArea>
       
       {/* Fixed bottom overlay panel for zoom controls */}
-      
+      <div className="absolute bottom-0 left-0 right-0 h-12 bg-background-level-1 border-t border-outline-primary flex items-center justify-center">
+        <div className="flex items-center space-x-2">
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 w-8 p-0 rounded-full"
+            onClick={handleZoomOut}
+          >
+            <Minus className="h-4 w-4" />
+          </Button>
+          <div className="text-sm font-medium px-2 min-w-[60px] text-center tabular-nums">
+            {zoomLevel}%
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 w-8 p-0 rounded-full"
+            onClick={handleZoomIn}
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
     </div>;
 };
 export default TelemetryGraphsPanel;
