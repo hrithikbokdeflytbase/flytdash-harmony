@@ -101,8 +101,8 @@ export const MetricChart: React.FC<MetricChartProps> = ({
   const chartHeight = 90;
 
   return (
-    <div className="bg-background-level-2 rounded-md p-3" style={{height: `${chartHeight}px`}}>
-      <div className="flex justify-between items-start mb-1">
+    <div className="bg-background-level-2 rounded-md px-3 py-2" style={{height: `${chartHeight}px`}}>
+      <div className="flex justify-between items-start">
         <div className="text-text-icon-01 text-sm font-medium">
           {config.title}
         </div>
@@ -111,11 +111,11 @@ export const MetricChart: React.FC<MetricChartProps> = ({
         </div>
       </div>
 
-      <div className="w-full" style={{height: `${chartHeight - 30}px`}}>
+      <div className="w-full" style={{height: `${chartHeight - 25}px`}}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
             data={visibleData}
-            margin={{ top: 0, right: 5, bottom: 0, left: 28 }} // Optimized margins
+            margin={{ top: 0, right: 2, bottom: 0, left: 20 }} // Minimized margins to maximize space
           >
             <defs>
               {config.gradientFill && (
@@ -150,7 +150,7 @@ export const MetricChart: React.FC<MetricChartProps> = ({
               tickLine={false}
               tickFormatter={formatYAxis}
               tick={{ fontSize: 10, fill: 'rgba(255, 255, 255, 0.54)' }}
-              width={25} // Reduced Y-axis width to optimize space
+              width={18} // Minimized Y-axis width to optimize space
               tickCount={5} // Display 5 ticks for better labeling
               interval="preserveStartEnd"
             />

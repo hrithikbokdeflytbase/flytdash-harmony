@@ -115,9 +115,9 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
 
   return <div className="h-full w-full relative">
       <ScrollArea className="h-full w-full pb-16">
-        <div className="flex flex-col space-y-4 px-1 pb-16">
+        <div className="flex flex-col space-y-3 pb-16">
           {/* Render each metric chart */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             {/* Battery Percentage Chart */}
             <MetricChart data={telemetryHistory.battery} currentValue={getCurrentValue('battery')} currentTimestamp={currentTimestampSeconds} config={metricConfigs.battery} isLastChart={false} zoomLevel={zoomLevel} />
 
