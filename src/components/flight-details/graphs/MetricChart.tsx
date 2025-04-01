@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import {
   ResponsiveContainer,
@@ -317,21 +316,21 @@ export const MetricChart: React.FC<MetricChartProps> = ({
         borderBottom: !isLastChart ? '1px solid rgba(255, 255, 255, 0.08)' : 'none',
       }}
     >
-      <div className="flex justify-between items-start py-4 px-4">
-        <div className="text-text-icon-01 text-sm font-medium flex items-center gap-2">
+      <div className="flex justify-between items-start py-4 px-0">
+        <div className="text-text-icon-01 text-sm font-medium flex items-center gap-2 ml-4">
           {config.icon && config.icon}
           {config.title}
         </div>
-        <div className="text-text-icon-01 text-base font-medium tabular-nums">
+        <div className="text-text-icon-01 text-base font-medium tabular-nums mr-4">
           {formattedCurrentValue}{config.unit}
         </div>
       </div>
 
-      <div className="w-full px-4 pb-4">
+      <div className="w-full px-0 pb-4">
         <ResponsiveContainer width="100%" height={height}>
           <LineChart
             data={visibleData}
-            margin={{ top: 5, right: 30, bottom: isLastChart ? 20 : 5, left: 30 }}
+            margin={{ top: 5, right: 5, bottom: isLastChart ? 20 : 5, left: 30 }}
           >
             <defs>
               {config.gradientFill && (
