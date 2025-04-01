@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Shield, Satellite, Radar, Video, Cpu, Eye } from 'lucide-react';
 import SectionHeader from './SectionHeader';
@@ -58,7 +59,23 @@ const SystemStatusSection: React.FC<SystemStatusSectionProps> = ({
       <div className="px-4 py-2">
         <div className="bg-background-level-1 rounded-md border border-outline-primary divide-y divide-outline-primary overflow-hidden">
           {/* GPS Status */}
-          {gpsStatus}
+          {gpsStatus && (
+            <div className="p-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Satellite className="w-4 h-4 text-text-icon-02" />
+                <span className="text-sm text-text-icon-01">GPS Status</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-text-icon-02">
+                  {gpsStatus.count} satellites
+                </span>
+                <div className="flex items-center gap-1">
+                  <div className={`w-2 h-2 rounded-full ${getStatusColor(gpsStatus.quality)}`}></div>
+                  <span className="text-xs text-text-icon-02">{gpsStatus.signal}</span>
+                </div>
+              </div>
+            </div>
+          )}
           
           {/* RTK Status */}
           <div className="p-3 flex items-center justify-between">
@@ -107,7 +124,9 @@ const SystemStatusSection: React.FC<SystemStatusSectionProps> = ({
             <div className="flex items-center gap-1">
               <div className={`w-2 h-2 rounded-full ${getStatusColor(visionSystem.status)}`}></div>
               <span className="text-xs text-text-icon-02 capitalize">{visionSystem.status}</span>
-              {visionSystem.details}
+              {visionSystem.details && (
+                <span className="text-xs text-text-icon-02"> - {visionSystem.details}</span>
+              )}
             </div>
           </div>
         </div>
