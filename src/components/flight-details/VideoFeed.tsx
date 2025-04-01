@@ -1,9 +1,12 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Video, Loader2, AlertCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { VideoSegment, TimelinePosition } from './timeline/timelineTypes';
+
 type VideoState = 'loading' | 'error' | 'empty' | 'playing';
+
 type VideoFeedProps = {
   videoState?: VideoState;
   timelinePosition?: TimelinePosition;
@@ -13,6 +16,7 @@ type VideoFeedProps = {
   isPlaying?: boolean;
   playbackSpeed?: number;
 };
+
 const VideoFeed: React.FC<VideoFeedProps> = ({
   videoState = 'empty',
   timelinePosition,
@@ -222,6 +226,68 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
     }
     return null;
   };
-  return;
+
+  // Render the actual video component or placeholders based on state
+  return (
+    <div className={cn("relative w-full h-full flex items-center justify-center bg-background-level-3 rounded-md overflow-hidden", className)}>
+      {videoState === 'loading' && (
+        <div className="flex flex-col items-center justify-center text-text-icon-02">
+          <Loader2 className="w-12 h-12 animate-spin mb-2" />
+          <p>Loading video...</p>
+        </div>
+      )}
+      
+      {videoState === 'error' && (
+        <div className="flex flex-col items-center justify-center text-destructive">
+          <AlertCircle className="w-12 h-12 mb-2" />
+          <p>Failed to load video</p>
+          <Button variant="outline" size="sm" className="mt-4">
+            Try Again
+          </Button>
+        </div>
+      )}
+      
+      {videoState === 'empty' && (
+        <div className="flex flex-col items-center justify-center text-text-icon-02">
+          <Video className="w-12 h-12 mb-2" />
+          <p>No video available at this position</p>
+          {timelinePosition?.hasVideo === false && (
+            <div className="mt-4 flex flex-col items-center">
+              <p className="text-sm text-text-icon-03 mb-2">Jump to nearest video:</p>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" disabled={!findNearestVideoSegment(timelinePosition?.timestamp || '00:00:00')}>
+                  Find Video
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+      
+      {activeSegment && (videoState === 'playing' || videoState === 'empty') && (
+        <div className={cn(
+          "absolute inset-0 transition-opacity duration-500",
+          isTransitioning ? "opacity-0" : "opacity-100"
+        )}>
+          <video
+            ref={videoRef}
+            src={activeSegment.url}
+            className="w-full h-full object-contain"
+            onTimeUpdate={handleTimeUpdate}
+            controls={false}
+          />
+          <div className="absolute bottom-4 right-4 z-10 flex gap-2">
+            {videoState === 'playing' && (
+              <Badge variant="secondary" className="bg-background/80 backdrop-blur-sm px-2 py-1">
+                <Video className="w-4 h-4 mr-1" />
+                {playbackSpeed !== 1 ? `${playbackSpeed}x` : ''}
+              </Badge>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };
+
 export default VideoFeed;
