@@ -1,3 +1,4 @@
+
 import React, { useMemo } from 'react';
 import {
   ResponsiveContainer,
@@ -100,7 +101,7 @@ export const MetricChart: React.FC<MetricChartProps> = ({
   const chartHeight = 90;
 
   return (
-    <div className="bg-background-level-2 rounded-md p-4" style={{height: `${chartHeight}px`}}>
+    <div className="bg-background-level-2 rounded-md p-3" style={{height: `${chartHeight}px`}}>
       <div className="flex justify-between items-start mb-1">
         <div className="text-text-icon-01 text-sm font-medium">
           {config.title}
@@ -114,7 +115,7 @@ export const MetricChart: React.FC<MetricChartProps> = ({
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
             data={visibleData}
-            margin={{ top: 0, right: 0, bottom: 0, left: 35 }} // Increase left margin to prevent label cutoff
+            margin={{ top: 0, right: 5, bottom: 0, left: 28 }} // Optimized margins
           >
             <defs>
               {config.gradientFill && (
@@ -129,6 +130,7 @@ export const MetricChart: React.FC<MetricChartProps> = ({
               strokeDasharray="3 3"
               vertical={false}
               stroke="rgba(255, 255, 255, 0.08)"
+              horizontalPoints={[0, 25, 50, 75, 100]} // Ensure grid lines extend full width
             />
 
             <XAxis
@@ -148,7 +150,9 @@ export const MetricChart: React.FC<MetricChartProps> = ({
               tickLine={false}
               tickFormatter={formatYAxis}
               tick={{ fontSize: 10, fill: 'rgba(255, 255, 255, 0.54)' }}
-              width={35} // Increase Y-axis width to prevent label cutoff
+              width={25} // Reduced Y-axis width to optimize space
+              tickCount={5} // Display 5 ticks for better labeling
+              interval="preserveStartEnd"
             />
 
             {/* Reference line showing current timestamp */}
