@@ -330,7 +330,7 @@ export const MetricChart: React.FC<MetricChartProps> = ({
         <ResponsiveContainer width="100%" height={height}>
           <LineChart
             data={visibleData}
-            margin={{ top: 5, right: 5, bottom: isLastChart ? 20 : 5, left: 30 }}
+            margin={{ top: 5, right: 30, bottom: isLastChart ? 20 : 5, left: 30 }}
           >
             <defs>
               {config.gradientFill && (
@@ -405,14 +405,14 @@ export const MetricChart: React.FC<MetricChartProps> = ({
 
             {/* Chart line with consistent thickness and smooth curve */}
             <Line
-              type="monotoneX" // Use monotoneX for smoother curves with natural-looking interpolation
-              dataKey={config.dataKey}
+              type="monotoneX"
+              dataKey="value"
               stroke={config.color}
-              strokeWidth={2} // Consistent 2px thickness
+              strokeWidth={2}
               dot={false}
               activeDot={{ r: 4, fill: config.color, stroke: '#FFF' }}
-              isAnimationActive={false} // Disable animation for better performance
-              connectNulls={true} // Connect across null/undefined values to avoid breaks
+              isAnimationActive={false}
+              connectNulls={true}
             />
 
             {/* Add visible dot at current position */}
@@ -433,17 +433,16 @@ export const MetricChart: React.FC<MetricChartProps> = ({
             {/* Area under the line if gradient fill is enabled */}
             {config.gradientFill && (
               <Area
-                type="monotoneX" // Match the line interpolation
-                dataKey={config.dataKey}
+                type="monotoneX"
+                dataKey="value"
                 stroke="none"
                 fillOpacity={1}
                 fill={`url(#gradient-${config.title})`}
                 isAnimationActive={false}
-                connectNulls={true} // Connect across null values
+                connectNulls={true}
               />
             )}
             
-            {/* Tooltip for interactive hover information */}
             <Tooltip content={<CustomTooltip />} />
           </LineChart>
         </ResponsiveContainer>
