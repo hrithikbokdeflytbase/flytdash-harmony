@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import {
   ResponsiveContainer,
@@ -79,7 +78,7 @@ export const MetricChart: React.FC<MetricChartProps> = ({
     return data.filter((_, index) => index % factor === 0);
   }, [data]);
 
-  // Filter data to only show points within visible range
+  // Filter data to only show points within visible range based on zoom
   const visibleData = useMemo(() => {
     if (zoomLevel === 100) {
       return decimatedData;
@@ -97,8 +96,8 @@ export const MetricChart: React.FC<MetricChartProps> = ({
     return decimatedData.filter(d => d.timestamp >= startTime && d.timestamp <= endTime);
   }, [decimatedData, zoomLevel, currentTimestamp, data]);
 
-  // Calculate chart height based on zoom level
-  const chartHeight = 90 + (zoomLevel - 100) * 0.2;
+  // Keep chart height fixed regardless of zoom level
+  const chartHeight = 90;
 
   return (
     <div className="bg-background-level-2 rounded-md p-4" style={{height: `${chartHeight}px`}}>
@@ -115,7 +114,7 @@ export const MetricChart: React.FC<MetricChartProps> = ({
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
             data={visibleData}
-            margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
+            margin={{ top: 0, right: 0, bottom: 0, left: 35 }} // Increase left margin to prevent label cutoff
           >
             <defs>
               {config.gradientFill && (
@@ -149,7 +148,7 @@ export const MetricChart: React.FC<MetricChartProps> = ({
               tickLine={false}
               tickFormatter={formatYAxis}
               tick={{ fontSize: 10, fill: 'rgba(255, 255, 255, 0.54)' }}
-              width={30}
+              width={35} // Increase Y-axis width to prevent label cutoff
             />
 
             {/* Reference line showing current timestamp */}

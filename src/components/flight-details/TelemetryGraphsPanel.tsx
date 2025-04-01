@@ -7,6 +7,7 @@ import { generateMockTelemetryHistory } from './graphs/mockTelemetryData';
 import { timeToSeconds } from './timeline/timelineUtils';
 import { Button } from '@/components/ui/button';
 import { Minus, Plus } from 'lucide-react';
+
 interface TelemetryGraphsPanelProps {
   timestamp: string;
   telemetryData: TelemetryData;
@@ -66,6 +67,7 @@ const metricConfigs = {
     decimals: 0
   }
 };
+
 const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
   timestamp,
   telemetryData
@@ -110,6 +112,7 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
   const handleZoomOut = () => {
     setZoomLevel(prevZoom => Math.max(prevZoom - 25, 50));
   };
+
   return <div className="h-full w-full relative">
       <ScrollArea className="h-full w-full pb-16">
         <div className="flex flex-col space-y-6 px-2 pb-16">
@@ -159,4 +162,5 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
       </div>
     </div>;
 };
+
 export default TelemetryGraphsPanel;
