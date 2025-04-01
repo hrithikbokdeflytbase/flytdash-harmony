@@ -1,4 +1,3 @@
-
 import React, { useMemo, useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { TelemetryData } from './TelemetryPanel';
@@ -22,7 +21,7 @@ export type TelemetryMetric =
 // Configuration for each metric chart
 const metricConfigs = {
   battery: {
-    title: "Battery Percentage",
+    title: "Battery",
     unit: "%",
     color: "#10B981", // Success green
     gradientFill: true,
