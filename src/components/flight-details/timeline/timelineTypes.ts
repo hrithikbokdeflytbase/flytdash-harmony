@@ -1,4 +1,3 @@
-
 // Timeline position interface
 export interface TimelinePosition {
   timestamp: string;
@@ -12,7 +11,7 @@ export interface VideoSegment {
   url: string;
 }
 
-// Mission phase type alias
+// Mission phase type alias - Keep only implementable phases
 type MissionPhaseType = 'mission' | 'gtl' | 'manual' | 'rtds';
 
 // Mission phase interface
@@ -23,7 +22,7 @@ export interface MissionPhase {
   label: string;
 }
 
-// System event type alias
+// System event type alias - Simplified to only include implementable events
 type SystemEventType = 'connection' | 'calibration' | 'modeChange' | 'command';
 
 // System event interface
@@ -36,7 +35,7 @@ export interface SystemEvent {
 // Warning severity type
 type WarningSeverity = 'low' | 'medium' | 'high';
 
-// Warning event type alias
+// Warning event type alias - Simplified to core warning types
 type WarningEventType = 'warning' | 'error';
 
 // Warning event interface
@@ -47,7 +46,7 @@ export interface WarningEvent {
   severity: WarningSeverity;
 }
 
-// Media action type alias
+// Media action type alias - Keep only implementable media actions
 type MediaActionType = 'photo' | 'videoStart' | 'videoEnd';
 
 // Media action interface
