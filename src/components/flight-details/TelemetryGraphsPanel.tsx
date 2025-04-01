@@ -5,6 +5,7 @@ import { TelemetryData } from './TelemetryPanel';
 import { timeToSeconds } from './timeline/timelineUtils';
 import { MetricChart, TelemetryDataPoint } from './graphs/MetricChart';
 import { Battery, MountainSnow } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface TelemetryGraphsPanelProps {
   timestamp: string;
@@ -59,6 +60,9 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
   // Convert timestamp to seconds for visualization
   const timestampInSeconds = useMemo(() => timeToSeconds(timestamp), [timestamp]);
   
+  // State for animation triggers
+  const [activeChartIndex, setActiveChartIndex] = useState<number | null>(null);
+  
   // Generate mock history data based on current telemetry values
   const batteryData = useMemo(() => 
     generateMockHistoryData(telemetryData.battery.percentage, 1500, 2, 'decreasing'),
@@ -86,6 +90,25 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
                        telemetryData.connections.rfLink.status === 'poor' ? 40 : 10;
     return generateMockHistoryData(signalValue, 1500, 10, 'fluctuating');
   }, [telemetryData.connections.rfLink.status]);
+
+  // Sequential animation for charts when panel becomes visible
+  useEffect(() => {
+    // Reset animation state
+    setActiveChartIndex(null);
+    
+    // Trigger sequential animations with small delays
+    const timer = setTimeout(() => {
+      const animationSequence = [0, 1, 2, 3, 4];
+      
+      animationSequence.forEach((index, i) => {
+        setTimeout(() => {
+          setActiveChartIndex(index);
+        }, i * 100); // 100ms delay between each chart animation
+      });
+    }, 150);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   // Chart configurations for each telemetry metric
   const batteryConfig = {
@@ -154,42 +177,72 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
 
   return (
     <ScrollArea className="h-full w-full">
-      <div className="p-4 space-y-4">
-        <MetricChart 
-          data={batteryData}
-          currentValue={telemetryData.battery.percentage}
-          currentTimestamp={timestampInSeconds}
-          config={batteryConfig}
-        />
+      <div className="p-4 space-y-4 md:space-y-6">
+        {/* Responsive grid for larger screens */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <MetricChart 
+            data={batteryData}
+            currentValue={telemetryData.battery.percentage}
+            currentTimestamp={timestampInSeconds}
+            config={batteryConfig}
+            animate={activeChartIndex !== null && activeChartIndex >= 0}
+            className={cn(
+              "transition-opacity duration-300",
+              activeChartIndex === null ? "opacity-0 translate-y-2" : "opacity-100 translate-y-0"
+            )}
+          />
 
-        <MetricChart 
-          data={altitudeData}
-          currentValue={telemetryData.altitude.value}
-          currentTimestamp={timestampInSeconds}
-          config={altitudeConfig}
-        />
+          <MetricChart 
+            data={altitudeData}
+            currentValue={telemetryData.altitude.value}
+            currentTimestamp={timestampInSeconds}
+            config={altitudeConfig}
+            animate={activeChartIndex !== null && activeChartIndex >= 1}
+            className={cn(
+              "transition-all duration-300 delay-100",
+              activeChartIndex === null || activeChartIndex < 1 ? "opacity-0 translate-y-2" : "opacity-100 translate-y-0"
+            )}
+          />
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <MetricChart 
+            data={horizontalSpeedData}
+            currentValue={telemetryData.horizontalSpeed.value}
+            currentTimestamp={timestampInSeconds}
+            config={horizontalSpeedConfig}
+            animate={activeChartIndex !== null && activeChartIndex >= 2}
+            className={cn(
+              "transition-all duration-300 delay-200",
+              activeChartIndex === null || activeChartIndex < 2 ? "opacity-0 translate-y-2" : "opacity-100 translate-y-0"
+            )}
+          />
 
-        <MetricChart 
-          data={horizontalSpeedData}
-          currentValue={telemetryData.horizontalSpeed.value}
-          currentTimestamp={timestampInSeconds}
-          config={horizontalSpeedConfig}
-        />
-
-        <MetricChart 
-          data={verticalSpeedData}
-          currentValue={telemetryData.verticalSpeed.value}
-          currentTimestamp={timestampInSeconds}
-          config={verticalSpeedConfig}
-        />
+          <MetricChart 
+            data={verticalSpeedData}
+            currentValue={telemetryData.verticalSpeed.value}
+            currentTimestamp={timestampInSeconds}
+            config={verticalSpeedConfig}
+            animate={activeChartIndex !== null && activeChartIndex >= 3}
+            className={cn(
+              "transition-all duration-300 delay-300",
+              activeChartIndex === null || activeChartIndex < 3 ? "opacity-0 translate-y-2" : "opacity-100 translate-y-0"
+            )}
+          />
+        </div>
 
         <MetricChart 
           data={signalStrengthData}
           currentValue={telemetryData.connections.rfLink.status === 'active' ? 90 : 
-                       telemetryData.connections.rfLink.status === 'poor' ? 40 : 10}
+                      telemetryData.connections.rfLink.status === 'poor' ? 40 : 10}
           currentTimestamp={timestampInSeconds}
           config={signalStrengthConfig}
           isLastChart={true}
+          animate={activeChartIndex !== null && activeChartIndex >= 4}
+          className={cn(
+            "transition-all duration-300 delay-400",
+            activeChartIndex === null || activeChartIndex < 4 ? "opacity-0 translate-y-2" : "opacity-100 translate-y-0"
+          )}
         />
       </div>
     </ScrollArea>

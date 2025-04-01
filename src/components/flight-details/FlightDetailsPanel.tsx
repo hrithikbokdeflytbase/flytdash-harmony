@@ -29,6 +29,8 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
 }) => {
   // State for active tab (handled by Radix UI Tabs)
   const [activeTab, setActiveTab] = useState("telemetry");
+  const [previousTab, setPreviousTab] = useState<string | null>(null);
+  const [isTabTransitioning, setIsTabTransitioning] = useState(false);
   
   // Mock telemetry data (in a real app, this would come from props or API)
   const [telemetryData, setTelemetryData] = useState<TelemetryData>({
@@ -117,6 +119,20 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
     }
   });
   
+  // Handle tab transitions with animations
+  useEffect(() => {
+    if (previousTab !== null && previousTab !== activeTab) {
+      setIsTabTransitioning(true);
+      const timer = setTimeout(() => {
+        setIsTabTransitioning(false);
+      }, 300); // Match this with your CSS transition duration
+      
+      return () => clearTimeout(timer);
+    }
+    
+    return () => {};
+  }, [activeTab, previousTab]);
+  
   // Function to update network connection statuses based on business rules
   useEffect(() => {
     // Make a copy of the current telemetry data
@@ -146,6 +162,7 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
   
   // Handle tab change
   const handleTabChange = (value: string) => {
+    setPreviousTab(activeTab);
     setActiveTab(value);
   };
 
@@ -169,7 +186,7 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
           <TabsList className="flex w-full h-[40px] bg-transparent shrink-0 border-b border-outline-primary">
             <TabsTrigger 
               value="telemetry" 
-              className="flex-1 h-full rounded-none data-[state=active]:bg-transparent data-[state=active]:text-text-icon-01 data-[state=inactive]:text-text-icon-02 relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-primary-200 after:transform after:scale-x-0 data-[state=active]:after:scale-x-100 after:transition-transform"
+              className="flex-1 h-full rounded-none data-[state=active]:bg-transparent data-[state=active]:text-text-icon-01 data-[state=inactive]:text-text-icon-02 relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-primary-200 after:transform after:scale-x-0 data-[state=active]:after:scale-x-100 after:transition-transform after:duration-300"
             >
               <div className="flex items-center gap-2">
                 <Activity className="w-4 h-4" />
@@ -178,7 +195,7 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
             </TabsTrigger>
             <TabsTrigger 
               value="graphs" 
-              className="flex-1 h-full rounded-none data-[state=active]:bg-transparent data-[state=active]:text-text-icon-01 data-[state=inactive]:text-text-icon-02 relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-primary-200 after:transform after:scale-x-0 data-[state=active]:after:scale-x-100 after:transition-transform"
+              className="flex-1 h-full rounded-none data-[state=active]:bg-transparent data-[state=active]:text-text-icon-01 data-[state=inactive]:text-text-icon-02 relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-primary-200 after:transform after:scale-x-0 data-[state=active]:after:scale-x-100 after:transition-transform after:duration-300"
             >
               <div className="flex items-center gap-2">
                 <LineChart className="w-4 h-4" />
@@ -187,7 +204,7 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
             </TabsTrigger>
             <TabsTrigger 
               value="timeline" 
-              className="flex-1 h-full rounded-none data-[state=active]:bg-transparent data-[state=active]:text-text-icon-01 data-[state=inactive]:text-text-icon-02 relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-primary-200 after:transform after:scale-x-0 data-[state=active]:after:scale-x-100 after:transition-transform"
+              className="flex-1 h-full rounded-none data-[state=active]:bg-transparent data-[state=active]:text-text-icon-01 data-[state=inactive]:text-text-icon-02 relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-primary-200 after:transform after:scale-x-0 data-[state=active]:after:scale-x-100 after:transition-transform after:duration-300"
             >
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4" />
@@ -197,14 +214,34 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
           </TabsList>
 
           {/* Tab Contents */}
-          <div className="flex-1 overflow-hidden">
-            <TabsContent value="telemetry" className="h-full p-0 m-0 data-[state=active]:flex data-[state=active]:flex-col">
+          <div className="flex-1 overflow-hidden relative">
+            <TabsContent 
+              value="telemetry" 
+              className={cn(
+                "h-full p-0 m-0 data-[state=active]:flex data-[state=active]:flex-col absolute inset-0 transition-all duration-300",
+                activeTab === "telemetry" 
+                  ? "opacity-100 translate-x-0 z-10" 
+                  : previousTab === "telemetry" && isTabTransitioning 
+                    ? "opacity-0 -translate-x-5 z-0"
+                    : "opacity-0 translate-x-5 z-0"
+              )}
+            >
               <div className="flex-1 overflow-hidden">
                 <TelemetryPanel telemetryData={telemetryData} />
               </div>
             </TabsContent>
             
-            <TabsContent value="graphs" className="h-full p-0 m-0 data-[state=active]:flex data-[state=active]:flex-col">
+            <TabsContent 
+              value="graphs" 
+              className={cn(
+                "h-full p-0 m-0 data-[state=active]:flex data-[state=active]:flex-col absolute inset-0 transition-all duration-300",
+                activeTab === "graphs" 
+                  ? "opacity-100 translate-x-0 z-10" 
+                  : previousTab === "graphs" && isTabTransitioning 
+                    ? "opacity-0 -translate-x-5 z-0"
+                    : "opacity-0 translate-x-5 z-0"
+              )}
+            >
               <div className="flex-1 overflow-hidden">
                 <TelemetryGraphsPanel 
                   timestamp={timestamp}
@@ -213,7 +250,17 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
               </div>
             </TabsContent>
             
-            <TabsContent value="timeline" className="h-full p-0 m-0 data-[state=active]:flex data-[state=active]:flex-col">
+            <TabsContent 
+              value="timeline" 
+              className={cn(
+                "h-full p-0 m-0 data-[state=active]:flex data-[state=active]:flex-col absolute inset-0 transition-all duration-300",
+                activeTab === "timeline" 
+                  ? "opacity-100 translate-x-0 z-10" 
+                  : previousTab === "timeline" && isTabTransitioning 
+                    ? "opacity-0 -translate-x-5 z-0"
+                    : "opacity-0 translate-x-5 z-0"
+              )}
+            >
               <div className="flex-1 overflow-hidden">
                 <TimelinePanel timelinePosition={timestamp} onEventSelect={onEventSelect} />
               </div>
