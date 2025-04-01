@@ -5,7 +5,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
-// Event types
+// Updated event types - removed unsupported event types
 type EventSeverity = 'critical' | 'warning' | 'normal';
 type EventType = 'mode_change' | 'waypoint' | 'warning' | 'error' | 'photo' | 'video';
 
@@ -30,7 +30,7 @@ const TimelinePanel: React.FC<TimelinePanelProps> = ({
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [currentlyViewingMessage, setCurrentlyViewingMessage] = useState<string | null>(null);
   
-  // Sample events data
+  // Updated sample events data - removed unsupported event types
   const events: TimelineEvent[] = [
     {
       id: 'event-1',
@@ -49,14 +49,6 @@ const TimelinePanel: React.FC<TimelinePanelProps> = ({
       type: 'warning'
     },
     {
-      id: 'event-3',
-      name: 'NFZ Breach',
-      description: 'Entered No-Fly Zone: Airport Perimeter',
-      timestamp: '00:04:28',
-      severity: 'critical',
-      type: 'error'
-    },
-    {
       id: 'event-4',
       name: 'Waypoint Reached',
       description: 'Waypoint 3 of 8 completed',
@@ -66,19 +58,11 @@ const TimelinePanel: React.FC<TimelinePanelProps> = ({
     },
     {
       id: 'event-5',
-      name: 'High Wind Speed',
-      description: 'Wind speed 11.2 m/s',
+      name: 'Low Battery Warning',
+      description: 'Battery at 25%',
       timestamp: '00:06:12',
       severity: 'warning',
       type: 'warning'
-    },
-    {
-      id: 'event-6',
-      name: 'Aircraft Detected',
-      description: 'Commercial aircraft 2.1km NE, 400ft above',
-      timestamp: '00:08:42',
-      severity: 'critical',
-      type: 'error'
     },
     {
       id: 'event-7',
@@ -95,14 +79,6 @@ const TimelinePanel: React.FC<TimelinePanelProps> = ({
       timestamp: '00:08:50',
       severity: 'normal',
       type: 'video'
-    },
-    {
-      id: 'event-9',
-      name: 'Geofence Breach',
-      description: 'Approaching east border',
-      timestamp: '00:09:45',
-      severity: 'warning',
-      type: 'warning'
     },
     {
       id: 'event-10',
@@ -182,7 +158,7 @@ const TimelinePanel: React.FC<TimelinePanelProps> = ({
     return closestEvent;
   };
 
-  // Group events by proximity (for clustering)
+  // Group events by proximity (for clustering) - updated for reduced set of events
   const getEventClusters = () => {
     const sortedEvents = [...events].sort((a, b) => 
       timeToSeconds(a.timestamp) - timeToSeconds(b.timestamp)
@@ -223,7 +199,7 @@ const TimelinePanel: React.FC<TimelinePanelProps> = ({
     return clusters;
   };
 
-  // Get the appropriate icon for an event type
+  // Get the appropriate icon for an event type - updated for the reduced set of event types
   const getEventIcon = (event: TimelineEvent) => {
     const size = 14;
     const strokeWidth = 1.5;
