@@ -3,7 +3,7 @@ import React from 'react';
 import { Button as ShadcnButton } from '@/components/ui/button'; // Importing the existing button component
 
 // Simple wrapper component to use the existing button component
-const Button = ({ 
+const CustomButton = ({ 
   children, 
   variant = "default", 
   size = "default",
@@ -22,4 +22,4 @@ const Button = ({
   );
 };
 
-export default Button;
+export default CustomButton;

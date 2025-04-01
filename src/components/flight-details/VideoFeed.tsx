@@ -4,6 +4,7 @@ import { Video, Loader2, AlertCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { VideoSegment, TimelinePosition } from './timeline/timelineTypes';
+import CustomButton from '@/components/ui/CustomButton';
 
 type VideoState = 'loading' | 'error' | 'empty' | 'playing';
 
@@ -241,9 +242,9 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
         <div className="flex flex-col items-center justify-center text-destructive">
           <AlertCircle className="w-12 h-12 mb-2" />
           <p>Failed to load video</p>
-          <Button variant="outline" size="sm" className="mt-4">
+          <CustomButton variant="outline" size="sm" className="mt-4">
             Try Again
-          </Button>
+          </CustomButton>
         </div>
       )}
       
@@ -255,9 +256,9 @@ const VideoFeed: React.FC<VideoFeedProps> = ({
             <div className="mt-4 flex flex-col items-center">
               <p className="text-sm text-text-icon-03 mb-2">Jump to nearest video:</p>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" disabled={!findNearestVideoSegment(timelinePosition?.timestamp || '00:00:00')}>
+                <CustomButton variant="outline" size="sm" disabled={!findNearestVideoSegment(timelinePosition?.timestamp || '00:00:00')}>
                   Find Video
-                </Button>
+                </CustomButton>
               </div>
             </div>
           )}
