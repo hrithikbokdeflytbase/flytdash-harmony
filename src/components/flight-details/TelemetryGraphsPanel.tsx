@@ -12,47 +12,6 @@ interface TelemetryGraphsPanelProps {
   telemetryData: TelemetryData;
 }
 
-// Function to generate mock history data for visualization
-const generateMockHistoryData = (
-  currentValue: number, 
-  duration: number, // in seconds
-  variability: number, 
-  trend: 'stable' | 'increasing' | 'decreasing' | 'fluctuating' = 'stable'
-): TelemetryDataPoint[] => {
-  const data: TelemetryDataPoint[] = [];
-  const points = Math.min(200, duration); // Limit number of points for performance
-  
-  for (let i = 0; i <= points; i++) {
-    const timestampSec = Math.floor((i / points) * duration);
-    let value = currentValue;
-    
-    // Apply trend
-    switch (trend) {
-      case 'increasing':
-        value = currentValue * (0.7 + (0.6 * i / points));
-        break;
-      case 'decreasing':
-        value = currentValue * (1.3 - (0.6 * i / points));
-        break;
-      case 'fluctuating':
-        value = currentValue * (0.9 + 0.2 * Math.sin(i / 5));
-        break;
-      default: // stable
-        value = currentValue * (0.9 + 0.2 * Math.random());
-    }
-    
-    // Add variability
-    value += (Math.random() - 0.5) * 2 * variability;
-    
-    data.push({
-      timestamp: timestampSec,
-      value: Math.max(0, value), // Ensure no negative values for metrics like battery
-    });
-  }
-  
-  return data;
-};
-
 const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
   timestamp,
   telemetryData
@@ -61,10 +20,25 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
   const timestampInSeconds = useMemo(() => timeToSeconds(timestamp), [timestamp]);
   
   // Generate mock history data for all telemetry values
-  const [telemetryHistory] = useState(() => generateMockTelemetryHistory());
+  const [telemetryHistory] = useState(() => {
+    console.log("Generating mock telemetry history");
+    return generateMockTelemetryHistory();
+  });
+  
+  useEffect(() => {
+    console.log("Telemetry history generated:", 
+                `Battery points: ${telemetryHistory.battery.length}`,
+                `Altitude points: ${telemetryHistory.altitude.length}`,
+                `Current timestamp: ${timestampInSeconds}`);
+  }, [telemetryHistory, timestampInSeconds]);
   
   // Dynamically calculate current values at the given timestamp
   const getCurrentValueAtTimestamp = (data: TelemetryDataPoint[], timestamp: number): number => {
+    if (!data || data.length === 0) {
+      console.log("No data provided to getCurrentValueAtTimestamp");
+      return 0;
+    }
+    
     // Sort data by timestamp
     const sortedData = [...data].sort((a, b) => a.timestamp - b.timestamp);
     

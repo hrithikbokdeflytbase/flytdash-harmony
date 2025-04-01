@@ -53,8 +53,8 @@ const generateSmoothRandomWalk = (
         break;
     }
     
-    // Add some randomness - more volatile at certain points
-    const randomFactor = Math.random() < 0.1 ? 2 : 1; // Occasionally more volatile
+    // Add some randomness
+    const randomFactor = Math.random() < 0.1 ? 2 : 1;
     const movement = (Math.random() - 0.5) * volatility * randomFactor;
     
     // Update value with trend and movement
@@ -63,12 +63,7 @@ const generateSmoothRandomWalk = (
     // Ensure we stay within bounds
     value = Math.max(minValue, Math.min(maxValue, value));
     
-    // Add occasional small gaps in data (simulate packet loss) - but not too many
-    if (Math.random() > 0.98) {
-      result.push(null as any); // Add a gap
-    } else {
-      result.push(value);
-    }
+    result.push(value);
   }
 
   return result;
@@ -145,32 +140,32 @@ export const generateMockTelemetryHistory = (): TelemetryHistory => {
   // Generate signal data with occasional drops
   const signalValues = generateSmoothRandomWalk(numPoints, 95, 70, 100, 1, 'peaks');
   
-  // Map values to data points, filtering out nulls
+  // Map values to data points with proper formatting
   return {
     battery: timestamps.map((timestamp, i) => ({
       timestamp,
-      value: batteryValues[i] ?? null as any,
+      value: batteryValues[i],
       rawTime: secondsToTime(timestamp)
-    })).filter(point => point.value !== null),
+    })),
     altitude: timestamps.map((timestamp, i) => ({
       timestamp,
-      value: altitudeValues[i] ?? null as any,
+      value: altitudeValues[i],
       rawTime: secondsToTime(timestamp)
-    })).filter(point => point.value !== null),
+    })),
     horizontalSpeed: timestamps.map((timestamp, i) => ({
       timestamp,
-      value: horizontalSpeedValues[i] ?? null as any,
+      value: horizontalSpeedValues[i],
       rawTime: secondsToTime(timestamp)
-    })).filter(point => point.value !== null),
+    })),
     verticalSpeed: timestamps.map((timestamp, i) => ({
       timestamp,
-      value: verticalSpeedValues[i] ?? null as any,
+      value: verticalSpeedValues[i],
       rawTime: secondsToTime(timestamp)
-    })).filter(point => point.value !== null),
+    })),
     signal: timestamps.map((timestamp, i) => ({
       timestamp,
-      value: signalValues[i] ?? null as any,
+      value: signalValues[i],
       rawTime: secondsToTime(timestamp)
-    })).filter(point => point.value !== null)
+    }))
   };
 };

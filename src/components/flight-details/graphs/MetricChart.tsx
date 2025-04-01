@@ -1,3 +1,4 @@
+
 import React, { useMemo } from 'react';
 import {
   ResponsiveContainer,
@@ -128,113 +129,6 @@ export const MetricChart: React.FC<MetricChartProps> = ({
     return `${formattedValue}${config.unit}`;
   };
 
-  // Process data to ensure no gaps or breaks in visualization
-  const processedData = useMemo(() => {
-    if (data.length <= 1) return data;
-    
-    // Ensure data is sorted by timestamp
-    const sortedData = [...data].sort((a, b) => a.timestamp - b.timestamp);
-    
-    // Fill any gaps in data with interpolated values
-    const result: TelemetryDataPoint[] = [];
-    
-    for (let i = 0; i < sortedData.length - 1; i++) {
-      const current = sortedData[i];
-      const next = sortedData[i + 1];
-      result.push(current);
-      
-      // Check if there's a significant gap (more than 30 seconds)
-      if (next.timestamp - current.timestamp > 30) {
-        // Add interpolated points
-        const timeGap = next.timestamp - current.timestamp;
-        const valueChange = next.value - current.value;
-        const steps = Math.min(5, Math.floor(timeGap / 10)); // Add at most 5 points
-        
-        for (let step = 1; step <= steps; step++) {
-          const interpolatedTime = current.timestamp + (timeGap * step) / (steps + 1);
-          const interpolatedValue = current.value + (valueChange * step) / (steps + 1);
-          result.push({
-            timestamp: interpolatedTime,
-            value: interpolatedValue,
-            rawTime: secondsToTime(interpolatedTime)
-          });
-        }
-      }
-    }
-    
-    // Add the last point
-    if (sortedData.length > 0) {
-      result.push(sortedData[sortedData.length - 1]);
-    }
-    
-    return result;
-  }, [data]);
-  
-  // Decimate data if there are too many points (performance optimization)
-  const decimatedData = useMemo(() => {
-    if (processedData.length <= 100) return processedData;
-    
-    // Ensure we keep enough detail for proper visualization
-    // Use a more intelligent approach - keep min/max points in each segment
-    const factor = Math.ceil(processedData.length / 100);
-    const result: TelemetryDataPoint[] = [];
-    
-    for (let i = 0; i < processedData.length; i += factor) {
-      const segment = processedData.slice(i, i + factor);
-      
-      // Always include the first point in the segment
-      result.push(segment[0]);
-      
-      // If segment has more than 2 points, add min and max points if they're different
-      if (segment.length > 2) {
-        // Find min and max values in segment
-        let minPoint = segment[0];
-        let maxPoint = segment[0];
-        
-        for (let j = 1; j < segment.length; j++) {
-          if (segment[j].value < minPoint.value) minPoint = segment[j];
-          if (segment[j].value > maxPoint.value) maxPoint = segment[j];
-        }
-        
-        // Add min and max points if they're different from the first point
-        if (minPoint !== segment[0] && !result.includes(minPoint)) {
-          result.push(minPoint);
-        }
-        
-        if (maxPoint !== segment[0] && maxPoint !== minPoint && !result.includes(maxPoint)) {
-          result.push(maxPoint);
-        }
-      }
-    }
-    
-    // Make sure we include the last data point
-    const lastPoint = processedData[processedData.length - 1];
-    if (!result.includes(lastPoint)) {
-      result.push(lastPoint);
-    }
-    
-    // Sort by timestamp to ensure proper rendering
-    return result.sort((a, b) => a.timestamp - b.timestamp);
-  }, [processedData]);
-
-  // Filter data to only show points within visible range based on zoom
-  const visibleData = useMemo(() => {
-    if (zoomLevel === 100) {
-      return decimatedData;
-    }
-    
-    // Calculate the visible range based on zoom level
-    const dataCenter = currentTimestamp;
-    const totalRange = data.length > 0 ? 
-      Math.max(...data.map(d => d.timestamp)) - Math.min(...data.map(d => d.timestamp)) : 0;
-    const visibleRange = totalRange * (100 / zoomLevel);
-    
-    const startTime = dataCenter - (visibleRange / 2);
-    const endTime = dataCenter + (visibleRange / 2);
-    
-    return decimatedData.filter(d => d.timestamp >= startTime && d.timestamp <= endTime);
-  }, [decimatedData, zoomLevel, currentTimestamp, data]);
-
   // Calculate nice round Y-axis ticks for better readability
   const calculateYAxisTicks = useMemo(() => {
     const [min, max] = yDomain;
@@ -309,6 +203,8 @@ export const MetricChart: React.FC<MetricChartProps> = ({
     return null;
   };
 
+  console.log(`Rendering ${config.title} chart with ${data.length} data points`);
+
   return (
     <div 
       className="bg-background-level-2 rounded-md overflow-hidden mb-4"
@@ -329,7 +225,7 @@ export const MetricChart: React.FC<MetricChartProps> = ({
       <div className="w-full px-0 pb-4">
         <ResponsiveContainer width="100%" height={height}>
           <LineChart
-            data={visibleData}
+            data={data}
             margin={{ top: 5, right: 30, bottom: isLastChart ? 20 : 5, left: 30 }}
           >
             <defs>
