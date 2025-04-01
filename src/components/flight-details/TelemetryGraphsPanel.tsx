@@ -6,7 +6,7 @@ import { MetricChart } from './graphs/MetricChart';
 import { generateMockTelemetryHistory } from './graphs/mockTelemetryData';
 import { timeToSeconds } from './timeline/timelineUtils';
 import { Button } from '@/components/ui/button';
-import { ZoomIn, ZoomOut } from 'lucide-react';
+import { Minus, Plus } from 'lucide-react';
 
 interface TelemetryGraphsPanelProps {
   timestamp: string;
@@ -179,10 +179,10 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({ timestamp, 
             aria-label="Zoom out"
             title="Zoom out"
           >
-            <ZoomOut className="h-4 w-4" />
+            <Minus className="h-4 w-4" />
           </Button>
           <span className="text-xs text-text-icon-01 w-16 text-center font-medium">
-            {zoomLevel}% Zoom
+            {zoomLevel}%
           </span>
           <Button
             variant="outline"
@@ -192,7 +192,7 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({ timestamp, 
             aria-label="Zoom in"
             title="Zoom in"
           >
-            <ZoomIn className="h-4 w-4" />
+            <Plus className="h-4 w-4" />
           </Button>
         </div>
       </div>
