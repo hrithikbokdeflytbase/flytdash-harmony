@@ -8,6 +8,7 @@ import {
   YAxis,
   ReferenceLine,
   Area,
+  Tooltip,
 } from 'recharts';
 import { cn } from '@/lib/utils';
 import { secondsToTime } from '../timeline/timelineUtils';
@@ -18,8 +19,15 @@ export interface TelemetryDataPoint {
   rawTime?: string; // HH:MM:SS format
 }
 
+export interface ThresholdConfig {
+  value: number;
+  color: string;
+  label?: string;
+}
+
 export interface MetricChartConfig {
   title: string;
+  icon?: React.ReactNode;
   unit: string;
   color: string;
   dataKey: string;
@@ -27,6 +35,7 @@ export interface MetricChartConfig {
   maxValue?: number;
   gradientFill?: boolean;
   decimals: number;
+  thresholds?: ThresholdConfig[];
 }
 
 interface MetricChartProps {
@@ -260,10 +269,26 @@ export const MetricChart: React.FC<MetricChartProps> = ({
     };
   }, [currentTimestamp, currentValue]);
 
+  // Custom tooltip for hover info
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-background-level-1 p-2 border border-outline-primary rounded shadow text-xs">
+          <p className="text-xs">{`Time: ${formatXAxis(label)}`}</p>
+          <p className="text-xs font-medium" style={{ color: config.color }}>
+            {`${config.title}: ${payload[0].value.toFixed(config.decimals)}${config.unit}`}
+          </p>
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <div className="bg-background-level-2 rounded-md px-3 py-2" style={{height: `${chartHeight}px`}}>
       <div className="flex justify-between items-start">
-        <div className="text-text-icon-01 text-sm font-medium">
+        <div className="text-text-icon-01 text-sm font-medium flex items-center gap-1.5">
+          {config.icon && config.icon}
           {config.title}
         </div>
         <div className="text-text-icon-01 text-base font-medium tabular-nums">
@@ -315,6 +340,29 @@ export const MetricChart: React.FC<MetricChartProps> = ({
               interval={0} // Show all calculated ticks
             />
 
+            {/* Threshold reference lines */}
+            {config.thresholds && config.thresholds.map((threshold, index) => (
+              <ReferenceLine 
+                key={`threshold-${index}`}
+                y={threshold.value}
+                stroke={threshold.color}
+                strokeDasharray="3 3"
+                strokeWidth={1.5}
+              >
+                {threshold.label && (
+                  <text
+                    x={25}
+                    y={-5}
+                    textAnchor="start"
+                    fill={threshold.color}
+                    fontSize={9}
+                  >
+                    {threshold.label}
+                  </text>
+                )}
+              </ReferenceLine>
+            ))}
+
             {/* Reference line showing current timestamp - consistent style across all charts */}
             <ReferenceLine
               x={currentTimestamp}
@@ -363,6 +411,9 @@ export const MetricChart: React.FC<MetricChartProps> = ({
                 connectNulls={true} // Connect across null values
               />
             )}
+            
+            {/* Tooltip for interactive hover information */}
+            <Tooltip content={<CustomTooltip />} />
           </LineChart>
         </ResponsiveContainer>
       </div>

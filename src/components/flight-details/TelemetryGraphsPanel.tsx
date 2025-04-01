@@ -4,6 +4,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { TelemetryData } from './TelemetryPanel';
 import { timeToSeconds } from './timeline/timelineUtils';
 import { MetricChart, TelemetryDataPoint } from './graphs/MetricChart';
+import { Battery } from 'lucide-react';
 
 interface TelemetryGraphsPanelProps {
   timestamp: string;
@@ -89,13 +90,18 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
   // Chart configurations for each telemetry metric
   const batteryConfig = {
     title: "Battery",
+    icon: <Battery className="h-4 w-4" />,
     unit: "%",
     color: "#10B981", // Green
     dataKey: "value",
     minValue: 0,
     maxValue: 100,
     gradientFill: true,
-    decimals: 1
+    decimals: 1,
+    thresholds: [
+      { value: 15, color: "#ea384c", label: "Critical" }, // Red threshold at 15%
+      { value: 25, color: "#F97316", label: "Warning" }, // Orange threshold at 25%
+    ]
   };
 
   const altitudeConfig = {
