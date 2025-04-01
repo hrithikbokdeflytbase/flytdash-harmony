@@ -1,4 +1,3 @@
-
 import React, { useMemo, useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { TelemetryData } from './TelemetryPanel';
@@ -21,8 +20,7 @@ const metricConfigs = {
   battery: {
     title: "Battery",
     unit: "%",
-    color: "#10B981",
-    // Success green
+    color: "#10B981", // Green - unchanged
     gradientFill: true,
     dataKey: "value",
     minValue: 0,
@@ -32,8 +30,7 @@ const metricConfigs = {
   altitude: {
     title: "Altitude",
     unit: "m",
-    color: "#496DC8",
-    // Primary 200
+    color: "#496DC8", // Blue - unchanged
     dataKey: "value",
     minValue: 0,
     decimals: 1
@@ -41,8 +38,7 @@ const metricConfigs = {
   horizontalSpeed: {
     title: "Horizontal Speed",
     unit: "m/s",
-    color: "#9b87f5",
-    // Purple
+    color: "#8B5CF6", // Updated to Vivid Purple
     dataKey: "value",
     minValue: 0,
     decimals: 1
@@ -50,8 +46,7 @@ const metricConfigs = {
   verticalSpeed: {
     title: "Vertical Speed",
     unit: "m/s",
-    color: "#0EA5E9",
-    // Teal
+    color: "#14B8A6", // Updated to Teal
     dataKey: "value",
     minValue: -10,
     decimals: 1
@@ -59,8 +54,7 @@ const metricConfigs = {
   signal: {
     title: "Signal Strength",
     unit: "%",
-    color: "#888888",
-    // Gray/white
+    color: "#A5F3FC", // Updated to Cyan
     dataKey: "value",
     minValue: 0,
     maxValue: 100,

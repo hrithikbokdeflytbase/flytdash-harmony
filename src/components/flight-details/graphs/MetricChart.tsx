@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import {
   ResponsiveContainer,
@@ -52,11 +51,29 @@ export const MetricChart: React.FC<MetricChartProps> = ({
     return currentValue.toFixed(config.decimals);
   }, [currentValue, config.decimals]);
 
-  // Find min and max values for the Y axis
+  // Find min and max values for the Y axis - ensure we capture full data variation
   const yDomain = useMemo(() => {
+    if (data.length === 0) return [0, 100]; // Default if no data
+    
     const values = data.map(d => d.value);
-    const minValue = config.minValue !== undefined ? config.minValue : Math.floor(Math.min(...values) * 0.9);
-    const maxValue = config.maxValue !== undefined ? config.maxValue : Math.ceil(Math.max(...values) * 1.1);
+    
+    // Calculate actual min/max from data points
+    const dataMin = Math.min(...values);
+    const dataMax = Math.max(...values);
+    
+    // Ensure there's always some visible variation (at least 10% of the max value)
+    const variation = Math.max((dataMax - dataMin), dataMax * 0.1);
+    
+    // Apply config constraints if provided
+    let minValue = config.minValue !== undefined ? config.minValue : Math.floor(dataMin - variation * 0.1);
+    let maxValue = config.maxValue !== undefined ? config.maxValue : Math.ceil(dataMax + variation * 0.1);
+    
+    // Ensure min and max are different
+    if (minValue === maxValue) {
+      minValue = minValue - 1;
+      maxValue = maxValue + 1;
+    }
+    
     return [minValue, maxValue];
   }, [data, config.minValue, config.maxValue]);
 
@@ -84,14 +101,94 @@ export const MetricChart: React.FC<MetricChartProps> = ({
     return `${formattedValue}${config.unit}`;
   };
 
+  // Process data to ensure no gaps or breaks in visualization
+  const processedData = useMemo(() => {
+    if (data.length <= 1) return data;
+    
+    // Ensure data is sorted by timestamp
+    const sortedData = [...data].sort((a, b) => a.timestamp - b.timestamp);
+    
+    // Fill any gaps in data with interpolated values
+    const result: TelemetryDataPoint[] = [];
+    
+    for (let i = 0; i < sortedData.length - 1; i++) {
+      const current = sortedData[i];
+      const next = sortedData[i + 1];
+      result.push(current);
+      
+      // Check if there's a significant gap (more than 30 seconds)
+      if (next.timestamp - current.timestamp > 30) {
+        // Add interpolated points
+        const timeGap = next.timestamp - current.timestamp;
+        const valueChange = next.value - current.value;
+        const steps = Math.min(5, Math.floor(timeGap / 10)); // Add at most 5 points
+        
+        for (let step = 1; step <= steps; step++) {
+          const interpolatedTime = current.timestamp + (timeGap * step) / (steps + 1);
+          const interpolatedValue = current.value + (valueChange * step) / (steps + 1);
+          result.push({
+            timestamp: interpolatedTime,
+            value: interpolatedValue,
+            rawTime: secondsToTime(interpolatedTime)
+          });
+        }
+      }
+    }
+    
+    // Add the last point
+    if (sortedData.length > 0) {
+      result.push(sortedData[sortedData.length - 1]);
+    }
+    
+    return result;
+  }, [data]);
+  
   // Decimate data if there are too many points (performance optimization)
   const decimatedData = useMemo(() => {
-    if (data.length <= 100) return data;
+    if (processedData.length <= 100) return processedData;
     
-    // Simple decimation by picking evenly spaced points
-    const factor = Math.ceil(data.length / 100);
-    return data.filter((_, index) => index % factor === 0);
-  }, [data]);
+    // Ensure we keep enough detail for proper visualization
+    // Use a more intelligent approach - keep min/max points in each segment
+    const factor = Math.ceil(processedData.length / 100);
+    const result: TelemetryDataPoint[] = [];
+    
+    for (let i = 0; i < processedData.length; i += factor) {
+      const segment = processedData.slice(i, i + factor);
+      
+      // Always include the first point in the segment
+      result.push(segment[0]);
+      
+      // If segment has more than 2 points, add min and max points if they're different
+      if (segment.length > 2) {
+        // Find min and max values in segment
+        let minPoint = segment[0];
+        let maxPoint = segment[0];
+        
+        for (let j = 1; j < segment.length; j++) {
+          if (segment[j].value < minPoint.value) minPoint = segment[j];
+          if (segment[j].value > maxPoint.value) maxPoint = segment[j];
+        }
+        
+        // Add min and max points if they're different from the first point
+        if (minPoint !== segment[0] && !result.includes(minPoint)) {
+          result.push(minPoint);
+        }
+        
+        if (maxPoint !== segment[0] && maxPoint !== minPoint && !result.includes(maxPoint)) {
+          result.push(maxPoint);
+        }
+      }
+    }
+    
+    // Make sure we include the last data point
+    const lastPoint = processedData[processedData.length - 1];
+    if (!result.includes(lastPoint)) {
+      result.push(lastPoint);
+    }
+    
+    // Sort by timestamp to ensure proper rendering
+    return result.sort((a, b) => a.timestamp - b.timestamp);
+  }, [processedData]);
 
   // Filter data to only show points within visible range based on zoom
   const visibleData = useMemo(() => {
@@ -154,6 +251,14 @@ export const MetricChart: React.FC<MetricChartProps> = ({
 
   // Keep chart height fixed regardless of zoom level
   const chartHeight = 90;
+
+  // Get current value position in chart for dot positioning
+  const currentValuePosition = useMemo(() => {
+    return {
+      timestamp: currentTimestamp,
+      value: currentValue
+    };
+  }, [currentTimestamp, currentValue]);
 
   return (
     <div className="bg-background-level-2 rounded-md px-3 py-2" style={{height: `${chartHeight}px`}}>
@@ -219,46 +324,43 @@ export const MetricChart: React.FC<MetricChartProps> = ({
               isFront={true}
             />
 
-            {/* Chart line */}
+            {/* Chart line with consistent thickness and smooth curve */}
             <Line
-              type="monotone"
+              type="monotoneX" // Use monotoneX for smoother curves with natural-looking interpolation
               dataKey={config.dataKey}
               stroke={config.color}
-              strokeWidth={2}
+              strokeWidth={2} // Consistent 2px thickness
               dot={false}
               activeDot={{ r: 4, fill: config.color, stroke: '#FFF' }}
               isAnimationActive={false} // Disable animation for better performance
+              connectNulls={true} // Connect across null/undefined values to avoid breaks
             />
 
             {/* Add visible dot at current position */}
-            {visibleData.length > 0 && (
-              <Line
-                data={[{
-                  timestamp: currentTimestamp,
-                  value: currentValue
-                }]}
-                type="monotone"
-                dataKey="value"
-                stroke="none"
-                dot={{
-                  r: 4,
-                  fill: config.color,
-                  stroke: '#FFFFFF',
-                  strokeWidth: 2
-                }}
-                isAnimationActive={false}
-              />
-            )}
+            <Line
+              data={[currentValuePosition]}
+              type="monotone"
+              dataKey="value"
+              stroke="none"
+              dot={{
+                r: 4,
+                fill: config.color,
+                stroke: '#FFFFFF',
+                strokeWidth: 2
+              }}
+              isAnimationActive={false}
+            />
 
             {/* Area under the line if gradient fill is enabled */}
             {config.gradientFill && (
               <Area
-                type="monotone"
+                type="monotoneX" // Match the line interpolation
                 dataKey={config.dataKey}
                 stroke="none"
                 fillOpacity={1}
                 fill={`url(#gradient-${config.title})`}
                 isAnimationActive={false}
+                connectNulls={true} // Connect across null values
               />
             )}
           </LineChart>
