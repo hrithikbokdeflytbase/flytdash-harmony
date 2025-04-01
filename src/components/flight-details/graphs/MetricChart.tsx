@@ -234,6 +234,23 @@ export const MetricChart: React.FC<MetricChartProps> = ({
     });
   }, [data, config.title, currentTimestamp, currentValue, yDomain]);
 
+  // Add CSS for timeline animation
+  useEffect(() => {
+    // Add a style tag for the timeline indicator animation
+    const styleTag = document.createElement('style');
+    styleTag.textContent = `
+      .timeline-indicator {
+        transition: all 150ms ease-out;
+      }
+    `;
+    document.head.appendChild(styleTag);
+    
+    // Clean up the style tag when component unmounts
+    return () => {
+      document.head.removeChild(styleTag);
+    };
+  }, []);
+
   return (
     <div 
       className="bg-background-level-2 rounded-md overflow-hidden mb-4"
@@ -329,8 +346,7 @@ export const MetricChart: React.FC<MetricChartProps> = ({
               strokeWidth={1}
               opacity={0.3}
               isFront={true}
-              className="timeline-indicator transition-all duration-150"
-              animationDuration={150}
+              className="timeline-indicator"
             />
 
             {/* Chart line with consistent thickness and smooth curve */}
