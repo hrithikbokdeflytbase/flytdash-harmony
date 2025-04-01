@@ -1,3 +1,4 @@
+
 import React, { useMemo } from 'react';
 import {
   ResponsiveContainer,
@@ -311,11 +312,10 @@ export const MetricChart: React.FC<MetricChartProps> = ({
 
   return (
     <div 
-      className="bg-background-level-2 rounded-md px-3 py-2" 
-      style={{height: `${height}px`}}
+      className="bg-background-level-2 rounded-md p-0 mb-4"
     >
-      <div className="flex justify-between items-start mb-1">
-        <div className="text-text-icon-01 text-sm font-medium flex items-center gap-1.5">
+      <div className="flex justify-between items-start p-3 mb-2">
+        <div className="text-text-icon-01 text-sm font-medium flex items-center gap-2">
           {config.icon && config.icon}
           {config.title}
         </div>
@@ -324,8 +324,8 @@ export const MetricChart: React.FC<MetricChartProps> = ({
         </div>
       </div>
 
-      <div className="w-full" style={{height: `${height - 30}px`}}>
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="w-full p-3 pt-0">
+        <ResponsiveContainer width="100%" height={height}>
           <LineChart
             data={visibleData}
             margin={{ top: 5, right: 2, bottom: 5, left: 25 }}
