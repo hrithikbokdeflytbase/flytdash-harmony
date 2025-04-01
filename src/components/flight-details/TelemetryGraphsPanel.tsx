@@ -6,26 +6,21 @@ import { generateMockTelemetryHistory } from './graphs/mockTelemetryData';
 import { timeToSeconds } from './timeline/timelineUtils';
 import { Button } from '@/components/ui/button';
 import { Minus, Plus } from 'lucide-react';
-
 interface TelemetryGraphsPanelProps {
   timestamp: string;
   telemetryData: TelemetryData;
 }
 
 // Supported metrics for visualization
-export type TelemetryMetric = 
-  | 'battery'
-  | 'altitude'
-  | 'horizontalSpeed'
-  | 'verticalSpeed'
-  | 'signal';
+export type TelemetryMetric = 'battery' | 'altitude' | 'horizontalSpeed' | 'verticalSpeed' | 'signal';
 
 // Configuration for each metric chart
 const metricConfigs = {
   battery: {
     title: "Battery",
     unit: "%",
-    color: "#10B981", // Success green
+    color: "#10B981",
+    // Success green
     gradientFill: true,
     dataKey: "value",
     minValue: 0,
@@ -35,7 +30,8 @@ const metricConfigs = {
   altitude: {
     title: "Altitude",
     unit: "m",
-    color: "#496DC8", // Primary 200
+    color: "#496DC8",
+    // Primary 200
     dataKey: "value",
     minValue: 0,
     decimals: 1
@@ -43,15 +39,17 @@ const metricConfigs = {
   horizontalSpeed: {
     title: "Horizontal Speed",
     unit: "m/s",
-    color: "#9b87f5", // Purple
+    color: "#9b87f5",
+    // Purple
     dataKey: "value",
     minValue: 0,
     decimals: 1
   },
   verticalSpeed: {
     title: "Vertical Speed",
-    unit: "m/s", 
-    color: "#0EA5E9", // Teal
+    unit: "m/s",
+    color: "#0EA5E9",
+    // Teal
     dataKey: "value",
     minValue: -10,
     decimals: 1
@@ -59,21 +57,24 @@ const metricConfigs = {
   signal: {
     title: "Signal Strength",
     unit: "",
-    color: "#888888", // Gray/white
+    color: "#888888",
+    // Gray/white
     dataKey: "value",
     minValue: 0,
     maxValue: 100,
     decimals: 0
   }
 };
-
-const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({ timestamp, telemetryData }) => {
+const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
+  timestamp,
+  telemetryData
+}) => {
   // Generate mock historical data for each metric
   const [telemetryHistory] = useState(() => generateMockTelemetryHistory());
-  
+
   // Zoom level state for all charts (100% is default)
   const [zoomLevel, setZoomLevel] = useState(100);
-  
+
   // Calculate current timestamp in seconds
   const currentTimestampSeconds = useMemo(() => {
     return timeToSeconds(timestamp);
@@ -81,7 +82,7 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({ timestamp, 
 
   // Function to get current value based on timestamp
   const getCurrentValue = (metricKey: TelemetryMetric): number => {
-    switch(metricKey) {
+    switch (metricKey) {
       case 'battery':
         return telemetryData.battery.percentage;
       case 'altitude':
@@ -92,7 +93,8 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({ timestamp, 
         return telemetryData.verticalSpeed.value;
       case 'signal':
         // Use either RF signal or GPS count as a proxy for signal strength
-        return telemetryData.gpsStatus.count / 24 * 100; // Normalize to percentage
+        return telemetryData.gpsStatus.count / 24 * 100;
+      // Normalize to percentage
       default:
         return 0;
     }
@@ -100,103 +102,38 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({ timestamp, 
 
   // Handle zoom in
   const handleZoomIn = () => {
-    setZoomLevel((prevZoom) => Math.min(prevZoom + 25, 200));
+    setZoomLevel(prevZoom => Math.min(prevZoom + 25, 200));
   };
 
   // Handle zoom out
   const handleZoomOut = () => {
-    setZoomLevel((prevZoom) => Math.max(prevZoom - 25, 50));
+    setZoomLevel(prevZoom => Math.max(prevZoom - 25, 50));
   };
-
-  return (
-    <div className="h-full w-full relative">
+  return <div className="h-full w-full relative">
       <ScrollArea className="h-full w-full pb-16">
         <div className="flex flex-col space-y-6 px-2 pb-16">
           {/* Render each metric chart */}
           <div className="space-y-6">
             {/* Battery Percentage Chart */}
-            <MetricChart 
-              data={telemetryHistory.battery}
-              currentValue={getCurrentValue('battery')}
-              currentTimestamp={currentTimestampSeconds}
-              config={metricConfigs.battery}
-              isLastChart={false}
-              zoomLevel={zoomLevel}
-            />
+            <MetricChart data={telemetryHistory.battery} currentValue={getCurrentValue('battery')} currentTimestamp={currentTimestampSeconds} config={metricConfigs.battery} isLastChart={false} zoomLevel={zoomLevel} />
 
             {/* Altitude Chart */}
-            <MetricChart 
-              data={telemetryHistory.altitude}
-              currentValue={getCurrentValue('altitude')}
-              currentTimestamp={currentTimestampSeconds}
-              config={metricConfigs.altitude}
-              isLastChart={false}
-              zoomLevel={zoomLevel}
-            />
+            <MetricChart data={telemetryHistory.altitude} currentValue={getCurrentValue('altitude')} currentTimestamp={currentTimestampSeconds} config={metricConfigs.altitude} isLastChart={false} zoomLevel={zoomLevel} />
 
             {/* Horizontal Speed Chart */}
-            <MetricChart 
-              data={telemetryHistory.horizontalSpeed}
-              currentValue={getCurrentValue('horizontalSpeed')}
-              currentTimestamp={currentTimestampSeconds}
-              config={metricConfigs.horizontalSpeed}
-              isLastChart={false}
-              zoomLevel={zoomLevel}
-            />
+            <MetricChart data={telemetryHistory.horizontalSpeed} currentValue={getCurrentValue('horizontalSpeed')} currentTimestamp={currentTimestampSeconds} config={metricConfigs.horizontalSpeed} isLastChart={false} zoomLevel={zoomLevel} />
 
             {/* Vertical Speed Chart */}
-            <MetricChart 
-              data={telemetryHistory.verticalSpeed}
-              currentValue={getCurrentValue('verticalSpeed')}
-              currentTimestamp={currentTimestampSeconds}
-              config={metricConfigs.verticalSpeed}
-              isLastChart={false}
-              zoomLevel={zoomLevel}
-            />
+            <MetricChart data={telemetryHistory.verticalSpeed} currentValue={getCurrentValue('verticalSpeed')} currentTimestamp={currentTimestampSeconds} config={metricConfigs.verticalSpeed} isLastChart={false} zoomLevel={zoomLevel} />
 
             {/* Signal Strength Chart */}
-            <MetricChart 
-              data={telemetryHistory.signal}
-              currentValue={getCurrentValue('signal')}
-              currentTimestamp={currentTimestampSeconds}
-              config={metricConfigs.signal}
-              isLastChart={true}
-              zoomLevel={zoomLevel}
-            />
+            <MetricChart data={telemetryHistory.signal} currentValue={getCurrentValue('signal')} currentTimestamp={currentTimestampSeconds} config={metricConfigs.signal} isLastChart={true} zoomLevel={zoomLevel} />
           </div>
         </div>
       </ScrollArea>
       
       {/* Fixed bottom overlay panel for zoom controls */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-sm border-t border-border z-10 py-2 px-4 flex justify-center items-center">
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-8 w-8 p-0 flex items-center justify-center"
-            onClick={handleZoomOut}
-            aria-label="Zoom out"
-            title="Zoom out"
-          >
-            <Minus className="h-4 w-4" />
-          </Button>
-          <span className="text-xs text-text-icon-01 w-16 text-center font-medium">
-            {zoomLevel}%
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-8 w-8 p-0 flex items-center justify-center"
-            onClick={handleZoomIn}
-            aria-label="Zoom in"
-            title="Zoom in"
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
+      
+    </div>;
 };
-
 export default TelemetryGraphsPanel;
