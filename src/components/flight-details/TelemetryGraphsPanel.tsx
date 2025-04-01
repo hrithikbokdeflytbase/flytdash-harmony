@@ -1,3 +1,4 @@
+
 import React, { useMemo, useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { TelemetryData } from './TelemetryPanel';
@@ -94,9 +95,9 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({ timestamp, 
   };
 
   return (
-    <ScrollArea className="h-full w-full p-4">
-      <div className="flex flex-col space-y-2 pb-4">
-        <p className="text-sm text-text-icon-02 mb-2">
+    <ScrollArea className="h-full w-full">
+      <div className="flex flex-col space-y-2 px-2 pb-4">
+        <p className="text-sm text-text-icon-02 mb-2 px-1">
           Historical telemetry data for this flight
         </p>
 
