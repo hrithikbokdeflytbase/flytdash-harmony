@@ -1,10 +1,10 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { TelemetryData } from './TelemetryPanel';
 import { timeToSeconds } from './timeline/timelineUtils';
 import { MetricChart, TelemetryDataPoint } from './graphs/MetricChart';
-import { Battery, MountainSnow } from 'lucide-react';
+import { Battery, MountainSnow, Wind, LifeBuoy, Signal } from 'lucide-react';
 import { generateMockTelemetryHistory } from './graphs/mockTelemetryData';
 
 interface TelemetryGraphsPanelProps {
@@ -19,8 +19,8 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
   // Convert timestamp to seconds for visualization
   const timestampInSeconds = useMemo(() => timeToSeconds(timestamp), [timestamp]);
   
-  // Generate mock history data for all telemetry values
-  const [telemetryHistory] = useState(() => {
+  // Generate mock history data for all telemetry values - use a ref to avoid regenerating
+  const [telemetryHistory, setTelemetryHistory] = useState(() => {
     console.log("Generating mock telemetry history");
     return generateMockTelemetryHistory();
   });
@@ -33,7 +33,7 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
   }, [telemetryHistory, timestampInSeconds]);
   
   // Dynamically calculate current values at the given timestamp
-  const getCurrentValueAtTimestamp = (data: TelemetryDataPoint[], timestamp: number): number => {
+  const getCurrentValueAtTimestamp = useCallback((data: TelemetryDataPoint[], timestamp: number): number => {
     if (!data || data.length === 0) {
       console.log("No data provided to getCurrentValueAtTimestamp");
       return 0;
@@ -69,32 +69,32 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
     
     // Fallback: return the original telemetry value
     return data.length > 0 ? data[0].value : 0;
-  };
+  }, []);
 
   // Calculate current values based on timeline position
   const currentBatteryValue = useMemo(() => 
     getCurrentValueAtTimestamp(telemetryHistory.battery, timestampInSeconds),
-    [telemetryHistory.battery, timestampInSeconds]
+    [telemetryHistory.battery, timestampInSeconds, getCurrentValueAtTimestamp]
   );
   
   const currentAltitudeValue = useMemo(() => 
     getCurrentValueAtTimestamp(telemetryHistory.altitude, timestampInSeconds),
-    [telemetryHistory.altitude, timestampInSeconds]
+    [telemetryHistory.altitude, timestampInSeconds, getCurrentValueAtTimestamp]
   );
   
   const currentHorizontalSpeedValue = useMemo(() => 
     getCurrentValueAtTimestamp(telemetryHistory.horizontalSpeed, timestampInSeconds),
-    [telemetryHistory.horizontalSpeed, timestampInSeconds]
+    [telemetryHistory.horizontalSpeed, timestampInSeconds, getCurrentValueAtTimestamp]
   );
   
   const currentVerticalSpeedValue = useMemo(() => 
     getCurrentValueAtTimestamp(telemetryHistory.verticalSpeed, timestampInSeconds),
-    [telemetryHistory.verticalSpeed, timestampInSeconds]
+    [telemetryHistory.verticalSpeed, timestampInSeconds, getCurrentValueAtTimestamp]
   );
   
   const currentSignalStrengthValue = useMemo(() => 
     getCurrentValueAtTimestamp(telemetryHistory.signal, timestampInSeconds),
-    [telemetryHistory.signal, timestampInSeconds]
+    [telemetryHistory.signal, timestampInSeconds, getCurrentValueAtTimestamp]
   );
 
   // Chart configurations for each telemetry metric
@@ -127,6 +127,7 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
 
   const horizontalSpeedConfig = {
     title: "Horizontal Speed",
+    icon: <Wind className="h-4 w-4" />,
     unit: "m/s",
     color: "#8B5CF6", // Purple
     dataKey: "value",
@@ -136,7 +137,8 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
   };
 
   const verticalSpeedConfig = {
-    title: "Vertical Speed", 
+    title: "Vertical Speed",
+    icon: <LifeBuoy className="h-4 w-4 rotate-90" />,
     unit: "m/s",
     color: "#14B8A6", // Teal
     dataKey: "value",
@@ -153,6 +155,7 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
 
   const signalStrengthConfig = {
     title: "Signal Strength",
+    icon: <Signal className="h-4 w-4" />,
     unit: "%",
     color: "#A5F3FC", // Light blue
     dataKey: "value",
@@ -162,16 +165,21 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
     decimals: 0
   };
 
-  // CSS for perfect graph alignment
+  // Add animation styles
   useEffect(() => {
     const style = document.createElement('style');
     style.innerHTML = `
       .timeline-indicator {
         pointer-events: none !important;
+        transition: all 0.15s ease-out !important;
       }
       .recharts-reference-line line {
         stroke-width: 1px !important;
         opacity: 0.3 !important;
+      }
+      .recharts-tooltip-cursor {
+        stroke-width: 1px !important;
+        stroke-dasharray: 3 3 !important;
       }
     `;
     document.head.appendChild(style);

@@ -1,5 +1,5 @@
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef, useEffect } from 'react';
 import {
   ResponsiveContainer,
   LineChart,
@@ -58,6 +58,8 @@ export const MetricChart: React.FC<MetricChartProps> = ({
   zoomLevel = 100, // Default to 100% if not provided
   height = 140, // Default height of 140px
 }) => {
+  const chartRef = useRef<HTMLDivElement>(null);
+  
   // Format the current value with the appropriate decimals and sign for vertical speed
   const formattedCurrentValue = useMemo(() => {
     // Special formatting for vertical speed to show + sign for positive values
@@ -69,16 +71,15 @@ export const MetricChart: React.FC<MetricChartProps> = ({
 
   // Find min and max values for the Y axis - ensure we capture full data variation
   const yDomain = useMemo(() => {
-    if (data.length === 0) return [0, 100]; // Default if no data
+    if (!data || data.length === 0) return [0, 100]; // Default if no data
     
     // If minValue and maxValue are both provided in config, use those
     if (config.minValue !== undefined && config.maxValue !== undefined) {
       return [config.minValue, config.maxValue];
     }
     
-    const values = data.map(d => d.value);
-    
     // Calculate actual min/max from data points
+    const values = data.map(d => d.value);
     const dataMin = Math.min(...values);
     const dataMax = Math.max(...values);
     
@@ -138,7 +139,7 @@ export const MetricChart: React.FC<MetricChartProps> = ({
     if (config.title === "Vertical Speed") {
       // For vertical speed, always include 0 and symmetrically add ticks
       const ticks = [min, -2.5, 0, 2.5, max];
-      return ticks;
+      return ticks.filter((v, i, a) => a.indexOf(v) === i); // Remove duplicates
     }
     
     // For battery, ensure we have 0, 25, 50, 75, 100
@@ -181,6 +182,24 @@ export const MetricChart: React.FC<MetricChartProps> = ({
     return ticks;
   }, [yDomain, config.title]);
 
+  // Find nearest data point to the current timestamp
+  const nearestDataPoint = useMemo(() => {
+    if (!data || data.length === 0) return null;
+    
+    let closestPoint = data[0];
+    let minDistance = Math.abs(closestPoint.timestamp - currentTimestamp);
+    
+    for (let i = 1; i < data.length; i++) {
+      const distance = Math.abs(data[i].timestamp - currentTimestamp);
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestPoint = data[i];
+      }
+    }
+    
+    return closestPoint;
+  }, [data, currentTimestamp]);
+
   // Custom tooltip for hover info
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -203,7 +222,17 @@ export const MetricChart: React.FC<MetricChartProps> = ({
     return null;
   };
 
-  console.log(`Rendering ${config.title} chart with ${data.length} data points`);
+  // Log to debug data rendering issues
+  useEffect(() => {
+    console.log(`${config.title} chart data:`, {
+      dataPoints: data.length,
+      firstPoint: data[0],
+      lastPoint: data[data.length - 1],
+      currentTimestamp,
+      currentValue,
+      yDomain
+    });
+  }, [data, config.title, currentTimestamp, currentValue, yDomain]);
 
   return (
     <div 
@@ -211,13 +240,17 @@ export const MetricChart: React.FC<MetricChartProps> = ({
       style={{
         borderBottom: !isLastChart ? '1px solid rgba(255, 255, 255, 0.08)' : 'none',
       }}
+      ref={chartRef}
     >
       <div className="flex justify-between items-start py-4 px-0">
         <div className="text-text-icon-01 text-sm font-medium flex items-center gap-2 ml-4">
           {config.icon && config.icon}
           {config.title}
         </div>
-        <div className="text-text-icon-01 text-base font-medium tabular-nums mr-4">
+        <div 
+          className="text-text-icon-01 text-base font-medium tabular-nums mr-4 transition-all duration-200"
+          key={`${currentValue}-${config.title}`}
+        >
           {formattedCurrentValue}{config.unit}
         </div>
       </div>
@@ -296,7 +329,8 @@ export const MetricChart: React.FC<MetricChartProps> = ({
               strokeWidth={1}
               opacity={0.3}
               isFront={true}
-              className="timeline-indicator"
+              className="timeline-indicator transition-all duration-150"
+              animationDuration={150}
             />
 
             {/* Chart line with consistent thickness and smooth curve */}
@@ -311,20 +345,25 @@ export const MetricChart: React.FC<MetricChartProps> = ({
               connectNulls={true}
             />
 
-            {/* Add visible dot at current position */}
-            <Line
-              data={[{ timestamp: currentTimestamp, value: currentValue }]}
-              type="monotone"
-              dataKey="value"
-              stroke="none"
-              dot={{
-                r: 4,
-                fill: '#FFFFFF',
-                stroke: config.color,
-                strokeWidth: 2
-              }}
-              isAnimationActive={false}
-            />
+            {/* Add visible dot at current position - uses nearest data point */}
+            {nearestDataPoint && (
+              <Line
+                data={[{ 
+                  timestamp: nearestDataPoint.timestamp, 
+                  value: nearestDataPoint.value 
+                }]}
+                type="monotone"
+                dataKey="value"
+                stroke="none"
+                dot={{
+                  r: 4,
+                  fill: '#FFFFFF',
+                  stroke: config.color,
+                  strokeWidth: 2
+                }}
+                isAnimationActive={false}
+              />
+            )}
 
             {/* Area under the line if gradient fill is enabled */}
             {config.gradientFill && (

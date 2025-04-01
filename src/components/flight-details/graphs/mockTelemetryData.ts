@@ -75,7 +75,7 @@ export const generateMockTelemetryHistory = (): TelemetryHistory => {
   const flightDurationSeconds = 30 * 60;
   
   // Number of data points (1 point every 5 seconds for more detail)
-  const numPoints = flightDurationSeconds / 5;
+  const numPoints = Math.floor(flightDurationSeconds / 5);
   
   // Generate timestamps (every 5 seconds)
   const timestamps = Array.from({ length: numPoints }, (_, i) => i * 5);
@@ -84,32 +84,40 @@ export const generateMockTelemetryHistory = (): TelemetryHistory => {
   const batteryValues = generateSmoothRandomWalk(numPoints, 100, 60, 100, 0.2, 'decreasing');
   
   // Generate altitude data with clear take-off, cruise, and landing phases
-  const altitudeValues: number[] = [];
+  let altitudeValues: number[] = [];
+  
   // Take-off phase (first 15%)
-  for (let i = 0; i < numPoints * 0.15; i++) {
-    const rampUpFactor = i / (numPoints * 0.15);
+  const takeoffLength = Math.floor(numPoints * 0.15);
+  for (let i = 0; i < takeoffLength; i++) {
+    const rampUpFactor = i / takeoffLength;
     altitudeValues.push(Math.min(120, 120 * rampUpFactor + (Math.random() - 0.5) * 2));
   }
+  
   // Cruise phase with variations (middle 70%)
-  const cruisePhaseStart = altitudeValues.length;
-  const cruisePhaseLength = Math.floor(numPoints * 0.7);
+  const cruiseLength = Math.floor(numPoints * 0.7);
   const cruiseAltitude = generateSmoothRandomWalk(
-    cruisePhaseLength,
-    altitudeValues[altitudeValues.length - 1],
+    cruiseLength,
+    altitudeValues[altitudeValues.length - 1] || 120,
     100,
     150,
     1,
     'wave'
   );
-  altitudeValues.push(...cruiseAltitude);
+  altitudeValues = altitudeValues.concat(cruiseAltitude);
   
   // Landing phase (last 15%)
-  const landingPhaseStart = altitudeValues.length;
-  const landingPhaseLength = numPoints - altitudeValues.length;
-  for (let i = 0; i < landingPhaseLength; i++) {
-    const rampDownFactor = 1 - (i / landingPhaseLength);
-    const previousAlt = altitudeValues[landingPhaseStart - 1];
-    altitudeValues.push(Math.max(0, previousAlt * rampDownFactor + (Math.random() - 0.5) * 2));
+  const landingLength = numPoints - altitudeValues.length;
+  const lastAltitude = altitudeValues[altitudeValues.length - 1] || 120;
+  for (let i = 0; i < landingLength; i++) {
+    const rampDownFactor = 1 - (i / landingLength);
+    altitudeValues.push(Math.max(0, lastAltitude * rampDownFactor + (Math.random() - 0.5) * 2));
+  }
+  
+  // Ensure we have exactly numPoints values
+  if (altitudeValues.length < numPoints) {
+    altitudeValues.push(...Array(numPoints - altitudeValues.length).fill(0));
+  } else if (altitudeValues.length > numPoints) {
+    altitudeValues = altitudeValues.slice(0, numPoints);
   }
   
   // Generate horizontal speed data with acceleration and deceleration patterns
@@ -141,7 +149,7 @@ export const generateMockTelemetryHistory = (): TelemetryHistory => {
   const signalValues = generateSmoothRandomWalk(numPoints, 95, 70, 100, 1, 'peaks');
   
   // Map values to data points with proper formatting
-  return {
+  const telemetryHistory: TelemetryHistory = {
     battery: timestamps.map((timestamp, i) => ({
       timestamp,
       value: batteryValues[i],
@@ -168,4 +176,15 @@ export const generateMockTelemetryHistory = (): TelemetryHistory => {
       rawTime: secondsToTime(timestamp)
     }))
   };
+  
+  console.log('Generated telemetry history with points:', {
+    batteryPointCount: telemetryHistory.battery.length,
+    altitudePointCount: telemetryHistory.altitude.length,
+    batteryFirstValue: telemetryHistory.battery[0]?.value,
+    batteryLastValue: telemetryHistory.battery[telemetryHistory.battery.length - 1]?.value,
+    altitudeFirstValue: telemetryHistory.altitude[0]?.value,
+    altitudeLastValue: telemetryHistory.altitude[telemetryHistory.altitude.length - 1]?.value
+  });
+  
+  return telemetryHistory;
 };
