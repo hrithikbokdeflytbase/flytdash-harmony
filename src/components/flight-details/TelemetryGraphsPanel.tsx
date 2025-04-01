@@ -111,7 +111,7 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({ timestamp, 
 
   return (
     <div className="h-full w-full relative">
-      <ScrollArea className="h-full w-full">
+      <ScrollArea className="h-full w-full pb-16">
         <div className="flex flex-col space-y-6 px-2 pb-16">
           {/* Render each metric chart */}
           <div className="space-y-6">
