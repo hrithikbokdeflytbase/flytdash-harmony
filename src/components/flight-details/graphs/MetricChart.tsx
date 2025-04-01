@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback, useEffect } from 'react';
+import React, { useMemo } from 'react';
 import {
   ResponsiveContainer,
   LineChart,
@@ -12,7 +12,6 @@ import {
 } from 'recharts';
 import { cn } from '@/lib/utils';
 import { secondsToTime } from '../timeline/timelineUtils';
-import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export interface TelemetryDataPoint {
   timestamp: number; // in seconds from flight start
@@ -46,8 +45,6 @@ interface MetricChartProps {
   config: MetricChartConfig;
   isLastChart?: boolean;
   zoomLevel?: number; // Added zoom level prop
-  animate?: boolean;
-  className?: string;
 }
 
 export const MetricChart: React.FC<MetricChartProps> = ({
@@ -56,29 +53,8 @@ export const MetricChart: React.FC<MetricChartProps> = ({
   currentTimestamp,
   config,
   isLastChart = false,
-  zoomLevel = 100, // Default to 100% if not provided
-  animate = false,
-  className
+  zoomLevel = 100 // Default to 100% if not provided
 }) => {
-  const [hoveredPoint, setHoveredPoint] = useState<TelemetryDataPoint | null>(null);
-  const [chartReady, setChartReady] = useState(false);
-  const [thresholdOpacity, setThresholdOpacity] = useState(0.7);
-  
-  // Animation effect when component becomes visible
-  useEffect(() => {
-    if (animate) {
-      setChartReady(true);
-      
-      // Animate thresholds in
-      const timer = setTimeout(() => {
-        setThresholdOpacity(0.2);
-        setTimeout(() => setThresholdOpacity(0.7), 300);
-      }, 500);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [animate]);
-  
   // Format the current value with the appropriate decimals and sign for vertical speed
   const formattedCurrentValue = useMemo(() => {
     // Special formatting for vertical speed to show + sign for positive values
@@ -307,7 +283,7 @@ export const MetricChart: React.FC<MetricChartProps> = ({
     return ticks;
   }, [yDomain, config.title]);
 
-  // Responsive chart height based on container width
+  // Keep chart height fixed regardless of zoom level
   const chartHeight = 90;
 
   // Get current value position in chart for dot positioning
@@ -317,22 +293,6 @@ export const MetricChart: React.FC<MetricChartProps> = ({
       value: currentValue
     };
   }, [currentTimestamp, currentValue]);
-
-  // Handler for mouse move on the chart
-  const handleMouseMove = useCallback((e: any) => {
-    if (e && e.activePayload && e.activePayload.length) {
-      const point = {
-        timestamp: e.activePayload[0].payload.timestamp,
-        value: e.activePayload[0].value
-      };
-      setHoveredPoint(point);
-    }
-  }, []);
-  
-  // Handler for mouse leave
-  const handleMouseLeave = useCallback(() => {
-    setHoveredPoint(null);
-  }, []);
 
   // Custom tooltip for hover info
   const CustomTooltip = ({ active, payload, label }: any) => {
@@ -345,39 +305,25 @@ export const MetricChart: React.FC<MetricChartProps> = ({
       }
       
       return (
-        <div className="bg-background-level-1 p-2 border border-outline-primary rounded shadow-lg text-xs backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="bg-background-level-1 p-2 border border-outline-primary rounded shadow text-xs">
           <p className="text-xs">{`Time: ${formatXAxis(label)}`}</p>
           <p className="text-xs font-medium" style={{ color: config.color }}>
             {`${config.title}: ${displayValue}${config.unit}`}
           </p>
         </div>
-    );
+      );
     }
     return null;
   };
 
   return (
-    <div 
-      className={cn(
-        "bg-background-level-2 rounded-md px-3 py-2 transition-all duration-300 shadow-sm hover:shadow-md", 
-        chartReady ? "opacity-100" : "opacity-0 translate-y-2",
-        className
-      )}
-      style={{height: `${chartHeight}px`}}
-    >
+    <div className="bg-background-level-2 rounded-md px-3 py-2" style={{height: `${chartHeight}px`}}>
       <div className="flex justify-between items-start">
         <div className="text-text-icon-01 text-sm font-medium flex items-center gap-1.5">
-          {config.icon && (
-            <div className={cn(
-              "transition-all duration-300",
-              chartReady ? "opacity-100" : "opacity-0 scale-90"
-            )}>
-              {config.icon}
-            </div>
-          )}
+          {config.icon && config.icon}
           {config.title}
         </div>
-        <div className="text-text-icon-01 text-base font-medium tabular-nums transition-all duration-300">
+        <div className="text-text-icon-01 text-base font-medium tabular-nums">
           {formattedCurrentValue}{config.unit}
         </div>
       </div>
@@ -386,10 +332,7 @@ export const MetricChart: React.FC<MetricChartProps> = ({
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
             data={visibleData}
-            margin={{ top: 0, right: 2, bottom: 0, left: 20 }}
-            onMouseMove={handleMouseMove}
-            onMouseLeave={handleMouseLeave}
-            className={chartReady ? "opacity-100 transition-opacity duration-500" : "opacity-0"}
+            margin={{ top: 0, right: 2, bottom: 0, left: 20 }} // Minimized margins to maximize space
           >
             <defs>
               {config.gradientFill && (
@@ -405,7 +348,6 @@ export const MetricChart: React.FC<MetricChartProps> = ({
               vertical={false}
               stroke="rgba(255, 255, 255, 0.08)"
               horizontalPoints={[0, 25, 50, 75, 100]} // Ensure grid lines extend full width
-              className="transition-opacity duration-300"
             />
 
             <XAxis
@@ -417,7 +359,6 @@ export const MetricChart: React.FC<MetricChartProps> = ({
               tickFormatter={formatXAxis}
               tick={{ fontSize: 10, fill: 'rgba(255, 255, 255, 0.54)' }}
               hide={!isLastChart} // Only show X axis on the last chart
-              className="transition-all duration-300"
             />
 
             <YAxis
@@ -429,10 +370,9 @@ export const MetricChart: React.FC<MetricChartProps> = ({
               width={18} // Minimized Y-axis width to optimize space
               ticks={calculateYAxisTicks} // Use calculated nice round ticks
               interval={0} // Show all calculated ticks
-              className="transition-all duration-300"
             />
 
-            {/* Threshold reference lines with animation */}
+            {/* Threshold reference lines */}
             {config.thresholds && config.thresholds.map((threshold, index) => (
               <ReferenceLine 
                 key={`threshold-${index}`}
@@ -440,8 +380,6 @@ export const MetricChart: React.FC<MetricChartProps> = ({
                 stroke={threshold.color}
                 strokeDasharray="3 3"
                 strokeWidth={1.5}
-                strokeOpacity={thresholdOpacity}
-                className="transition-all duration-500"
               >
                 {threshold.label && (
                   <text
@@ -450,8 +388,6 @@ export const MetricChart: React.FC<MetricChartProps> = ({
                     textAnchor="start"
                     fill={threshold.color}
                     fontSize={9}
-                    opacity={thresholdOpacity}
-                    className="transition-opacity duration-500"
                   >
                     {threshold.label}
                   </text>
@@ -466,7 +402,6 @@ export const MetricChart: React.FC<MetricChartProps> = ({
               strokeWidth={1}
               opacity={0.3}
               isFront={true}
-              className="transition-all duration-300 ease-out"
             />
 
             {/* Chart line with consistent thickness and smooth curve */}
@@ -476,15 +411,8 @@ export const MetricChart: React.FC<MetricChartProps> = ({
               stroke={config.color}
               strokeWidth={2} // Consistent 2px thickness
               dot={false}
-              activeDot={{ 
-                r: 4, 
-                fill: config.color, 
-                stroke: '#FFF',
-                className: "transition-all duration-200"
-              }}
-              isAnimationActive={true}
-              animationDuration={800}
-              animationEasing="ease-out"
+              activeDot={{ r: 4, fill: config.color, stroke: '#FFF' }}
+              isAnimationActive={false} // Disable animation for better performance
               connectNulls={true} // Connect across null/undefined values to avoid breaks
             />
 
@@ -498,29 +426,10 @@ export const MetricChart: React.FC<MetricChartProps> = ({
                 r: 4,
                 fill: config.color,
                 stroke: '#FFFFFF',
-                strokeWidth: 2,
-                className: "animate-pulse"
+                strokeWidth: 2
               }}
               isAnimationActive={false}
             />
-
-            {/* Highlight dot for hovered position */}
-            {hoveredPoint && (
-              <Line
-                data={[hoveredPoint]}
-                type="monotone"
-                dataKey="value"
-                stroke="none"
-                dot={{
-                  r: 5,
-                  fill: '#FFFFFF',
-                  stroke: config.color,
-                  strokeWidth: 2,
-                  className: "animate-pulse"
-                }}
-                isAnimationActive={false}
-              />
-            )}
 
             {/* Area under the line if gradient fill is enabled */}
             {config.gradientFill && (
@@ -530,44 +439,16 @@ export const MetricChart: React.FC<MetricChartProps> = ({
                 stroke="none"
                 fillOpacity={1}
                 fill={`url(#gradient-${config.title})`}
-                isAnimationActive={true}
-                animationDuration={1000}
+                isAnimationActive={false}
                 connectNulls={true} // Connect across null values
               />
             )}
             
             {/* Tooltip for interactive hover information */}
-            <Tooltip 
-              content={<CustomTooltip />} 
-              animationDuration={200}
-              animationEasing="ease-out"
-              wrapperStyle={{ outline: "none" }}
-            />
+            <Tooltip content={<CustomTooltip />} />
           </LineChart>
         </ResponsiveContainer>
       </div>
-      
-      {/* Small panel indicator for current value - shown only on hover */}
-      {hoveredPoint && (
-        <TooltipProvider>
-          <UITooltip>
-            <TooltipTrigger asChild>
-              <div className="absolute bottom-1 right-2 text-xs font-mono flex items-center opacity-75 hover:opacity-100 transition-opacity">
-                <div 
-                  className="w-2 h-2 rounded-full mr-1"
-                  style={{ backgroundColor: config.color }} 
-                />
-                <span className="tabular-nums">
-                  {formatXAxis(hoveredPoint.timestamp)}
-                </span>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent className="text-xs">
-              <span>Click to jump to this time</span>
-            </TooltipContent>
-          </UITooltip>
-        </TooltipProvider>
-      )}
     </div>
   );
 };
