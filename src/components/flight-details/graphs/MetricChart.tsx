@@ -398,8 +398,9 @@ export const MetricChart: React.FC<MetricChartProps> = ({
               x={currentTimestamp}
               stroke="#FFFFFF"
               strokeWidth={1}
-              opacity={0.6}
+              opacity={0.3}
               isFront={true}
+              className="timeline-indicator"
             />
 
             {/* Chart line with consistent thickness and smooth curve */}
@@ -421,7 +422,7 @@ export const MetricChart: React.FC<MetricChartProps> = ({
               dataKey="value"
               stroke="none"
               dot={{
-                r: 5,
+                r: 4,
                 fill: '#FFFFFF',
                 stroke: config.color,
                 strokeWidth: 2

@@ -236,6 +236,66 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
     return data;
   }, [telemetryData.connections.rfLink.status]);
 
+  // Dynamically calculate current values at the given timestamp
+  const getCurrentValueAtTimestamp = (data: TelemetryDataPoint[], timestamp: number): number => {
+    // Sort data by timestamp
+    const sortedData = [...data].sort((a, b) => a.timestamp - b.timestamp);
+    
+    // Find the data points that bracket the current timestamp
+    for (let i = 0; i < sortedData.length - 1; i++) {
+      if (timestamp >= sortedData[i].timestamp && timestamp <= sortedData[i + 1].timestamp) {
+        // Linear interpolation between the two points
+        const t1 = sortedData[i].timestamp;
+        const t2 = sortedData[i + 1].timestamp;
+        const v1 = sortedData[i].value;
+        const v2 = sortedData[i + 1].value;
+        
+        // Calculate interpolation factor
+        const factor = (timestamp - t1) / (t2 - t1);
+        return v1 + factor * (v2 - v1);
+      }
+    }
+    
+    // If timestamp is before first data point
+    if (timestamp <= sortedData[0].timestamp) {
+      return sortedData[0].value;
+    }
+    
+    // If timestamp is after last data point
+    if (timestamp >= sortedData[sortedData.length - 1].timestamp) {
+      return sortedData[sortedData.length - 1].value;
+    }
+    
+    // Fallback: return the original telemetry value
+    return data.length > 0 ? data[0].value : 0;
+  };
+
+  // Calculate current values based on timeline position
+  const currentBatteryValue = useMemo(() => 
+    getCurrentValueAtTimestamp(batteryData, timestampInSeconds),
+    [batteryData, timestampInSeconds]
+  );
+  
+  const currentAltitudeValue = useMemo(() => 
+    getCurrentValueAtTimestamp(altitudeData, timestampInSeconds),
+    [altitudeData, timestampInSeconds]
+  );
+  
+  const currentHorizontalSpeedValue = useMemo(() => 
+    getCurrentValueAtTimestamp(horizontalSpeedData, timestampInSeconds),
+    [horizontalSpeedData, timestampInSeconds]
+  );
+  
+  const currentVerticalSpeedValue = useMemo(() => 
+    getCurrentValueAtTimestamp(verticalSpeedData, timestampInSeconds),
+    [verticalSpeedData, timestampInSeconds]
+  );
+  
+  const currentSignalStrengthValue = useMemo(() => 
+    getCurrentValueAtTimestamp(signalStrengthData, timestampInSeconds),
+    [signalStrengthData, timestampInSeconds]
+  );
+
   // Chart configurations for each telemetry metric
   const batteryConfig = {
     title: "Battery",
@@ -301,12 +361,31 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
     decimals: 0
   };
 
+  // CSS for perfect graph alignment
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.innerHTML = `
+      .timeline-indicator {
+        pointer-events: none !important;
+      }
+      .recharts-reference-line line {
+        stroke-width: 1px !important;
+        opacity: 0.3 !important;
+      }
+    `;
+    document.head.appendChild(style);
+    
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
   return (
     <ScrollArea className="h-full w-full">
-      <div className="p-0 space-y-4">
+      <div className="p-0 space-y-4 relative">
         <MetricChart 
           data={batteryData}
-          currentValue={telemetryData.battery.percentage}
+          currentValue={currentBatteryValue}
           currentTimestamp={timestampInSeconds}
           config={batteryConfig}
           height={140}
@@ -314,7 +393,7 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
 
         <MetricChart 
           data={altitudeData}
-          currentValue={telemetryData.altitude.value}
+          currentValue={currentAltitudeValue}
           currentTimestamp={timestampInSeconds}
           config={altitudeConfig}
           height={140}
@@ -322,7 +401,7 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
 
         <MetricChart 
           data={horizontalSpeedData}
-          currentValue={telemetryData.horizontalSpeed.value}
+          currentValue={currentHorizontalSpeedValue}
           currentTimestamp={timestampInSeconds}
           config={horizontalSpeedConfig}
           height={140}
@@ -330,7 +409,7 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
 
         <MetricChart 
           data={verticalSpeedData}
-          currentValue={telemetryData.verticalSpeed.value}
+          currentValue={currentVerticalSpeedValue}
           currentTimestamp={timestampInSeconds}
           config={verticalSpeedConfig}
           height={140}
@@ -338,8 +417,7 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
 
         <MetricChart 
           data={signalStrengthData}
-          currentValue={telemetryData.connections.rfLink.status === 'active' ? 90 : 
-                       telemetryData.connections.rfLink.status === 'poor' ? 40 : 10}
+          currentValue={currentSignalStrengthValue}
           currentTimestamp={timestampInSeconds}
           config={signalStrengthConfig}
           height={140}
