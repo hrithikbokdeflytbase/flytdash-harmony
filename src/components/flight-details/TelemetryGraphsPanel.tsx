@@ -4,7 +4,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { TelemetryData } from './TelemetryPanel';
 import { timeToSeconds } from './timeline/timelineUtils';
 import { MetricChart, TelemetryDataPoint } from './graphs/MetricChart';
-import { Battery } from 'lucide-react';
+import { Battery, MountainSnow } from 'lucide-react';
 
 interface TelemetryGraphsPanelProps {
   timestamp: string;
@@ -105,7 +105,8 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
   };
 
   const altitudeConfig = {
-    title: "Altitude",
+    title: "Altitude (AGL)",
+    icon: <MountainSnow className="h-4 w-4" />,
     unit: "m",
     color: "#496DC8", // Blue
     dataKey: "value",
