@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { TelemetryData } from './TelemetryPanel';
@@ -303,7 +302,7 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
 
   return (
     <ScrollArea className="h-full w-full">
-      <div className="p-0 space-y-4">
+      <div className="px-4 space-y-4">
         <MetricChart 
           data={batteryData}
           currentValue={telemetryData.battery.percentage}
