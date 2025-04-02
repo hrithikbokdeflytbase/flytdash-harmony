@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { Loader, CheckCircle, AlertTriangle, XCircle, Image, Video } from 'lucide-react';
+import { Loader, CheckCircle, AlertTriangle, XCircle, Image, Video, RefreshCcw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import {
   Table,
@@ -299,7 +298,13 @@ const getMediaUploadProgressColor = (uploadedPercentage: number) => {
   if (uploadedPercentage === 100) return "bg-success-200";
   if (uploadedPercentage > 50) return "bg-primary-200";
   if (uploadedPercentage > 0) return "bg-caution-200";
-  return "bg-error-200";
+  return "";
+};
+
+// Check if a media upload has failed
+const isMediaUploadFailed = (uploadedPercentage: number) => {
+  // Consider uploads failed if they're at 0%
+  return uploadedPercentage === 0;
 };
 
 const RecentFlightsTable: React.FC<RecentFlightsTableProps> = ({ isLoading = false }) => {
@@ -332,12 +337,20 @@ const RecentFlightsTable: React.FC<RecentFlightsTableProps> = ({ isLoading = fal
     }
   };
 
+  // Helper function to handle retry upload
+  const handleRetryUpload = (e: React.MouseEvent, mediaType: string, flightId: string) => {
+    e.stopPropagation(); // Prevent row click from triggering
+    console.log(`Retrying ${mediaType} upload for flight ${flightId}`);
+    // In a real app, this would initiate the upload retry process
+  };
+
   // Helper function to render media upload status row
-  const renderMediaUploadStatus = (mediaType: 'photos' | 'videos', mediaData?: { total: number, uploaded: number }) => {
+  const renderMediaUploadStatus = (mediaType: 'photos' | 'videos', mediaData?: { total: number, uploaded: number }, flightId?: string) => {
     if (!mediaData || mediaData.total === 0) return null;
     
     const uploadedPercentage = mediaData.total > 0 ? (mediaData.uploaded / mediaData.total) * 100 : 0;
     const icon = mediaType === 'photos' ? <Image className="w-3 h-3 text-text-icon-02" /> : <Video className="w-3 h-3 text-text-icon-02" />;
+    const failed = isMediaUploadFailed(uploadedPercentage);
     
     return (
       <div className="flex items-center gap-2">
@@ -350,18 +363,27 @@ const RecentFlightsTable: React.FC<RecentFlightsTableProps> = ({ isLoading = fal
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="w-16 h-1.5">
+              <div className="w-16 h-1.5 flex items-center">
                 <Progress 
                   value={uploadedPercentage} 
                   className="h-1.5 w-full bg-background-level-2"
                   indicatorClassName={getMediaUploadProgressColor(uploadedPercentage)}
+                  failed={failed}
                 />
+                {failed && flightId && (
+                  <RefreshCcw 
+                    className="w-3 h-3 ml-1 text-error-200 cursor-pointer" 
+                    onClick={(e) => handleRetryUpload(e, mediaType, flightId)}
+                  />
+                )}
               </div>
             </TooltipTrigger>
             <TooltipContent>
               <p>
-                {mediaData.uploaded} of {mediaData.total} {mediaType} uploaded
-                ({Math.round(uploadedPercentage)}%)
+                {failed 
+                  ? `Upload failed. Click the refresh icon to retry.` 
+                  : `${mediaData.uploaded} of ${mediaData.total} ${mediaType} uploaded (${Math.round(uploadedPercentage)}%)`
+                }
               </p>
             </TooltipContent>
           </Tooltip>
@@ -421,10 +443,10 @@ const RecentFlightsTable: React.FC<RecentFlightsTableProps> = ({ isLoading = fal
                 <TableCell className="text-text-icon-01">
                   <div className="space-y-2">
                     {/* Photos upload status - only show if photos exist */}
-                    {flight.mediaStatus.photos && renderMediaUploadStatus('photos', flight.mediaStatus.photos)}
+                    {flight.mediaStatus.photos && renderMediaUploadStatus('photos', flight.mediaStatus.photos, flight.id)}
 
                     {/* Videos upload status - only show if videos exist */}
-                    {flight.mediaStatus.videos && renderMediaUploadStatus('videos', flight.mediaStatus.videos)}
+                    {flight.mediaStatus.videos && renderMediaUploadStatus('videos', flight.mediaStatus.videos, flight.id)}
                     
                     {/* Show no media message if neither photos nor videos are present */}
                     {(!flight.mediaStatus.photos && !flight.mediaStatus.videos) && (

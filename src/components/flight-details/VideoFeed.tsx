@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Video, Loader2, AlertCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
