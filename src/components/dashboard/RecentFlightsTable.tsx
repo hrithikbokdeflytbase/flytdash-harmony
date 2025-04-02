@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { Loader, CheckCircle, AlertTriangle, XCircle, Image, Video, RefreshCcw } from 'lucide-react';
+import { Loader, CheckCircle, AlertTriangle, XCircle, RefreshCcw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import {
   Table,
@@ -331,7 +332,7 @@ const RecentFlightsTable: React.FC<RecentFlightsTableProps> = ({ isLoading = fal
     // In a real app, this would initiate the upload retry process
   };
 
-  // New minimalist approach for media display
+  // New minimalist approach for media display with fixed widths
   const renderMediaStatus = (flight: Flight) => {
     // Calculate total upload percentage across all media
     const totalMedia = 
@@ -351,19 +352,19 @@ const RecentFlightsTable: React.FC<RecentFlightsTableProps> = ({ isLoading = fal
     const isFailed = totalUploaded === 0 && totalMedia > 0;
     
     return (
-      <div className="flex items-center gap-2">
-        <div className="flex gap-1 items-center min-w-16">
+      <div className="flex items-center gap-2 w-[150px]">
+        <div className="flex items-center min-w-[70px]">
           {isComplete ? (
             <CheckCircle size={14} className="text-success-200" />
           ) : (
-            <span className="text-sm font-medium">{uploadPercentage}%</span>
+            <span className="text-sm font-medium w-[30px] text-right">{uploadPercentage}%</span>
           )}
-          <span className="text-sm text-text-icon-02 ml-1">
+          <span className="text-sm text-text-icon-02 ml-2 w-[40px]">
             ({totalUploaded}/{totalMedia})
           </span>
         </div>
         
-        <div className="w-16">
+        <div className="w-[60px]">
           <Progress 
             value={uploadPercentage} 
             className="h-1.5 bg-background-level-2"
@@ -397,13 +398,13 @@ const RecentFlightsTable: React.FC<RecentFlightsTableProps> = ({ isLoading = fal
         <Table className="w-full border-collapse">
           <TableHeader>
             <TableRow className="border-b border-outline-primary">
-              <TableHead className="text-text-icon-02 fb-body4-medium">Status</TableHead>
-              <TableHead className="text-text-icon-02 fb-body4-medium">Mission Name</TableHead>
-              <TableHead className="text-text-icon-02 fb-body4-medium">Operation Type</TableHead>
-              <TableHead className="text-text-icon-02 fb-body4-medium">Pilot</TableHead>
-              <TableHead className="text-text-icon-02 fb-body4-medium">Drone</TableHead>
-              <TableHead className="text-text-icon-02 fb-body4-medium">Media</TableHead>
-              <TableHead className="text-text-icon-02 fb-body4-medium">Date & Time</TableHead>
+              <TableHead className="text-text-icon-02 fb-body4-medium w-[60px]">Status</TableHead>
+              <TableHead className="text-text-icon-02 fb-body4-medium w-[180px]">Mission Name</TableHead>
+              <TableHead className="text-text-icon-02 fb-body4-medium w-[120px]">Operation Type</TableHead>
+              <TableHead className="text-text-icon-02 fb-body4-medium w-[140px]">Pilot</TableHead>
+              <TableHead className="text-text-icon-02 fb-body4-medium w-[140px]">Drone</TableHead>
+              <TableHead className="text-text-icon-02 fb-body4-medium w-[150px]">Media</TableHead>
+              <TableHead className="text-text-icon-02 fb-body4-medium w-[140px]">Date & Time</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -413,7 +414,7 @@ const RecentFlightsTable: React.FC<RecentFlightsTableProps> = ({ isLoading = fal
                 className="hover:bg-surface-states-hover cursor-pointer border-b border-outline-primary last:border-0"
                 onClick={() => handleRowClick(flight.id)}
               >
-                <TableCell>
+                <TableCell className="w-[60px]">
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -427,23 +428,33 @@ const RecentFlightsTable: React.FC<RecentFlightsTableProps> = ({ isLoading = fal
                     </Tooltip>
                   </TooltipProvider>
                 </TableCell>
-                <TableCell className="font-medium text-text-icon-01">
-                  {flight.missionName}
+                <TableCell className="font-medium text-text-icon-01 w-[180px]">
+                  <div className="truncate max-w-[160px]" title={flight.missionName}>
+                    {flight.missionName}
+                  </div>
                 </TableCell>
-                <TableCell className="text-text-icon-02">
-                  {flight.operationType}
+                <TableCell className="text-text-icon-02 w-[120px]">
+                  <div className="truncate max-w-[100px]" title={flight.operationType}>
+                    {flight.operationType}
+                  </div>
                 </TableCell>
-                <TableCell className="text-text-icon-02">
-                  {flight.pilotName}
+                <TableCell className="text-text-icon-02 w-[140px]">
+                  <div className="truncate max-w-[120px]" title={flight.pilotName}>
+                    {flight.pilotName}
+                  </div>
                 </TableCell>
-                <TableCell className="text-text-icon-01">
-                  {flight.droneName}
+                <TableCell className="text-text-icon-01 w-[140px]">
+                  <div className="truncate max-w-[120px]" title={flight.droneName}>
+                    {flight.droneName}
+                  </div>
                 </TableCell>
-                <TableCell className="text-text-icon-01">
+                <TableCell className="text-text-icon-01 w-[150px]">
                   {renderMediaStatus(flight)}
                 </TableCell>
-                <TableCell className="text-text-icon-02">
-                  {flight.dateTime}
+                <TableCell className="text-text-icon-02 w-[140px]">
+                  <div className="truncate max-w-[120px]" title={flight.dateTime}>
+                    {flight.dateTime}
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
