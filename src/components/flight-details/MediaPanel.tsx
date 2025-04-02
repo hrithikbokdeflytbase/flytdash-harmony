@@ -1,9 +1,15 @@
+
 import React, { useState, useEffect } from 'react';
-import { Image as ImageIcon, Film, Loader2, Info } from 'lucide-react';
+import { Image as ImageIcon, Film, Loader2, Info, RefreshCcw, Check, X, Clock } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { timeToSeconds } from './timeline/timelineUtils';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface MediaItem {
   id: string;
@@ -67,7 +73,7 @@ const MOCK_MEDIA_ITEMS: MediaItem[] = [
     thumbnailUrl: 'https://images.unsplash.com/photo-1534447677768-be436bb09401',
     url: 'https://images.unsplash.com/photo-1534447677768-be436bb09401',
     title: 'Tower Closeup',
-    uploadStatus: 'success'
+    uploadStatus: 'failed'
   },
   {
     id: 'video-002',
@@ -88,7 +94,7 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00' }: MediaPan
   const [filterType, setFilterType] = useState<'all' | 'photos' | 'videos'>('all');
   const [isLoading, setIsLoading] = useState(true);
   const [selectedItem, setSelectedItem] = useState<MediaItem | null>(null);
-  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   
   // Add placeholder implementation for fetching media
   useEffect(() => {
@@ -135,12 +141,28 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00' }: MediaPan
   // Handle item click
   const handleItemClick = (item: MediaItem) => {
     setSelectedItem(item);
-    setIsPreviewOpen(true);
+    setIsDialogOpen(true);
   };
   
-  // Close preview
-  const closePreview = () => {
-    setIsPreviewOpen(false);
+  // Handle retry upload
+  const handleRetryUpload = (e: React.MouseEvent, itemId: string) => {
+    e.stopPropagation();
+    console.log(`Retrying upload for item: ${itemId}`);
+    
+    // Simulate retry logic
+    const updatedItems = mediaItems.map(item => 
+      item.id === itemId ? {...item, uploadStatus: 'processing'} : item
+    );
+    
+    setMediaItems(updatedItems);
+    
+    // Simulate completion
+    setTimeout(() => {
+      const finalItems = mediaItems.map(item => 
+        item.id === itemId ? {...item, uploadStatus: 'success'} : item
+      );
+      setMediaItems(finalItems);
+    }, 2000);
   };
   
   // Get counts for summary
@@ -151,6 +173,15 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00' }: MediaPan
   };
   
   const { photoCount, videoCount, totalCount } = getMediaCounts();
+  
+  // Check if a media item is near the current timeline position (within 5 seconds)
+  const isNearTimelinePosition = (itemTimestamp: string): boolean => {
+    if (!timelinePosition) return false;
+    
+    const positionTime = timeToSeconds(timelinePosition);
+    const itemTime = timeToSeconds(itemTimestamp);
+    return Math.abs(positionTime - itemTime) <= 5;
+  };
   
   // Render filter pills
   const renderFilters = () => (
@@ -177,69 +208,136 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00' }: MediaPan
     </div>
   );
   
+  // Render status indicator
+  const renderStatusIndicator = (item: MediaItem) => {
+    switch(item.uploadStatus) {
+      case 'success':
+        return (
+          <Badge variant="default" className="absolute top-2 right-2 bg-green-600">
+            <Check className="w-3 h-3 mr-1" /> Success
+          </Badge>
+        );
+      case 'processing':
+        return (
+          <Badge variant="default" className="absolute top-2 right-2 bg-amber-500">
+            <Loader2 className="w-3 h-3 mr-1 animate-spin" /> Processing
+          </Badge>
+        );
+      case 'failed':
+        return (
+          <div className="absolute top-2 right-2 flex gap-2">
+            <Badge variant="destructive">
+              <X className="w-3 h-3 mr-1" /> Failed
+            </Badge>
+            <Button 
+              variant="destructive" 
+              size="sm" 
+              className="h-6 px-2"
+              onClick={(e) => handleRetryUpload(e, item.id)}
+            >
+              <RefreshCcw className="w-3 h-3 mr-1" /> Retry
+            </Button>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
   // Render media grid
   const renderMediaGrid = () => (
     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
       {filteredItems.map(item => (
-        <div 
+        <Card 
           key={item.id} 
-          className="relative group cursor-pointer rounded-md overflow-hidden bg-background-level-2"
+          className={cn(
+            "overflow-hidden cursor-pointer hover:shadow-md transition-all",
+            isNearTimelinePosition(item.timestamp) ? "ring-2 ring-primary-300" : ""
+          )}
           onClick={() => handleItemClick(item)}
         >
-          <div className="aspect-video relative">
-            <img 
-              src={item.thumbnailUrl} 
-              alt={item.title || item.id}
-              className="w-full h-full object-cover"
-            />
-            {item.type === 'video' && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-10 h-10 rounded-full bg-black/40 flex items-center justify-center">
-                  <Film className="w-5 h-5 text-white" />
-                </div>
+          <div className="relative">
+            <AspectRatio ratio={16/9}>
+              <img 
+                src={item.thumbnailUrl} 
+                alt={item.title || item.id}
+                className="w-full h-full object-cover"
+              />
+              
+              {/* Media type indicator */}
+              <div className="absolute bottom-2 left-2 bg-black/60 rounded-full p-1.5">
+                {item.type === 'photo' ? (
+                  <ImageIcon className="w-4 h-4 text-white" />
+                ) : (
+                  <Film className="w-4 h-4 text-white" />
+                )}
               </div>
-            )}
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity">
-              <p className="text-white text-xs truncate">{item.timestamp}</p>
+              
+              {/* Timestamp indicator */}
+              <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs rounded-full flex items-center gap-1 px-2 py-1">
+                <Clock className="w-3 h-3" />
+                {item.timestamp}
+              </div>
+              
+              {/* Upload status indicator */}
+              {renderStatusIndicator(item)}
+            </AspectRatio>
+          </div>
+          <CardContent className="p-3">
+            <h4 className="font-medium text-sm">{item.title || item.id}</h4>
+            <div className="flex justify-between items-center mt-1">
+              <span className="text-xs text-text-icon-02">
+                {item.type === 'photo' ? 'Photo' : `Video (${item.duration}s)`}
+              </span>
             </div>
-          </div>
-          <div className="p-2">
-            <p className="text-text-icon-01 text-sm truncate font-medium">{item.title || item.id}</p>
-            <p className="text-text-icon-02 text-xs">{item.timestamp}</p>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       ))}
     </div>
   );
-  
-  // Render media preview modal (simplified version)
-  const renderMediaPreview = () => {
-    if (!selectedItem || !isPreviewOpen) return null;
-    
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80" onClick={closePreview}>
-        <div className="max-w-4xl w-full max-h-[80vh] p-4" onClick={e => e.stopPropagation()}>
-          {selectedItem.type === 'photo' ? (
-            <img 
-              src={selectedItem.url} 
-              alt={selectedItem.title || selectedItem.id} 
-              className="w-full h-full object-contain"
-            />
-          ) : (
-            <video 
-              src={selectedItem.url} 
-              controls 
-              className="w-full h-full"
-            />
-          )}
-          <div className="mt-2 bg-background-level-2 p-2 rounded-md">
-            <p className="text-text-icon-01 font-medium">{selectedItem.title || selectedItem.id}</p>
-            <p className="text-text-icon-02 text-sm">Timestamp: {selectedItem.timestamp}</p>
+
+  // Render media preview dialog
+  const renderMediaPreview = () => (
+    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <DialogContent className="max-w-4xl">
+        {selectedItem && (
+          <div className="flex flex-col gap-4">
+            <h2 className="text-xl font-medium">{selectedItem.title || selectedItem.id}</h2>
+            <div className="bg-black rounded-lg overflow-hidden">
+              {selectedItem.type === 'photo' ? (
+                <img 
+                  src={selectedItem.url} 
+                  alt={selectedItem.title || selectedItem.id} 
+                  className="w-full h-auto"
+                />
+              ) : (
+                <video 
+                  src={selectedItem.url} 
+                  controls 
+                  className="w-full"
+                />
+              )}
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm flex items-center gap-2">
+                <Clock className="w-4 h-4" /> 
+                Captured at {selectedItem.timestamp}
+              </span>
+              {selectedItem.uploadStatus === 'failed' && (
+                <Button 
+                  variant="destructive" 
+                  size="sm" 
+                  onClick={(e) => handleRetryUpload(e, selectedItem.id)}
+                >
+                  <RefreshCcw className="w-4 h-4 mr-2" /> Retry Upload
+                </Button>
+              )}
+            </div>
           </div>
-        </div>
-      </div>
-    );
-  };
+        )}
+      </DialogContent>
+    </Dialog>
+  );
 
   return (
     <div className="flex flex-col h-full">
