@@ -324,6 +324,60 @@ const RecentFlightsTable: React.FC<RecentFlightsTableProps> = ({ isLoading = fal
     );
   }
 
+  // Helper function to handle retry upload
+  const handleRetryUpload = (e: React.MouseEvent, mediaType: string, flightId: string) => {
+    e.stopPropagation(); // Prevent row click from triggering
+    console.log(`Retrying ${mediaType} upload for flight ${flightId}`);
+    // In a real app, this would initiate the upload retry process
+  };
+
+  // New minimalist approach for media display
+  const renderMediaStatus = (flight: Flight) => {
+    // Calculate total upload percentage across all media
+    const totalMedia = 
+      (flight.mediaStatus.photos?.total || 0) + 
+      (flight.mediaStatus.videos?.total || 0);
+    
+    const totalUploaded = 
+      (flight.mediaStatus.photos?.uploaded || 0) + 
+      (flight.mediaStatus.videos?.uploaded || 0);
+    
+    if (totalMedia === 0) {
+      return <span className="text-sm text-text-icon-02">No media</span>;
+    }
+    
+    const uploadPercentage = Math.round((totalUploaded / totalMedia) * 100);
+    const isComplete = uploadPercentage === 100;
+    const isFailed = totalUploaded === 0 && totalMedia > 0;
+    
+    return (
+      <div className="flex items-center gap-2">
+        <div className="flex gap-1 items-center min-w-16">
+          {isComplete ? (
+            <CheckCircle size={14} className="text-success-200" />
+          ) : (
+            <span className="text-sm font-medium">{uploadPercentage}%</span>
+          )}
+          <span className="text-sm text-text-icon-02 ml-1">
+            ({totalUploaded}/{totalMedia})
+          </span>
+        </div>
+        
+        <div className="w-16">
+          <Progress 
+            value={uploadPercentage} 
+            className="h-1.5 bg-background-level-2"
+            failed={isFailed}
+            onRetry={isFailed ? () => {
+              const mediaType = flight.mediaStatus.photos?.total ? 'photos' : 'videos';
+              handleRetryUpload(new MouseEvent('click') as unknown as React.MouseEvent, mediaType, flight.id);
+            } : undefined}
+          />
+        </div>
+      </div>
+    );
+  };
+
   // Calculate pagination values
   const totalPages = Math.ceil(mockFlights.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -335,44 +389,6 @@ const RecentFlightsTable: React.FC<RecentFlightsTableProps> = ({ isLoading = fal
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
     }
-  };
-
-  // Helper function to handle retry upload
-  const handleRetryUpload = (e: React.MouseEvent, mediaType: string, flightId: string) => {
-    e.stopPropagation(); // Prevent row click from triggering
-    console.log(`Retrying ${mediaType} upload for flight ${flightId}`);
-    // In a real app, this would initiate the upload retry process
-  };
-
-  // Helper function to render media upload status row
-  const renderMediaUploadStatus = (mediaType: 'photos' | 'videos', mediaData?: { total: number, uploaded: number }, flightId?: string) => {
-    if (!mediaData || mediaData.total === 0) return null;
-    
-    const uploadedPercentage = mediaData.total > 0 ? (mediaData.uploaded / mediaData.total) * 100 : 0;
-    const icon = mediaType === 'photos' ? <Image className="w-3 h-3 text-text-icon-02" /> : <Video className="w-3 h-3 text-text-icon-02" />;
-    const failed = isMediaUploadFailed(uploadedPercentage);
-    
-    return (
-      <div className="flex items-center gap-2">
-        <div className="flex items-center gap-1">
-          {icon}
-          <span className="text-xs font-medium">
-            {mediaData.uploaded}/{mediaData.total}
-          </span>
-        </div>
-        <div className="w-16 flex-1">
-          <Progress 
-            value={uploadedPercentage} 
-            className="h-1.5 bg-background-level-2"
-            failed={failed}
-            onRetry={failed ? (e) => {
-              e?.stopPropagation();
-              handleRetryUpload(e as React.MouseEvent, mediaType, flightId || '');
-            } : undefined}
-          />
-        </div>
-      </div>
-    );
   };
 
   return (
@@ -424,18 +440,7 @@ const RecentFlightsTable: React.FC<RecentFlightsTableProps> = ({ isLoading = fal
                   {flight.droneName}
                 </TableCell>
                 <TableCell className="text-text-icon-01">
-                  <div className="space-y-2">
-                    {/* Photos upload status - only show if photos exist */}
-                    {flight.mediaStatus.photos && renderMediaUploadStatus('photos', flight.mediaStatus.photos, flight.id)}
-
-                    {/* Videos upload status - only show if videos exist */}
-                    {flight.mediaStatus.videos && renderMediaUploadStatus('videos', flight.mediaStatus.videos, flight.id)}
-                    
-                    {/* Show no media message if neither photos nor videos are present */}
-                    {(!flight.mediaStatus.photos && !flight.mediaStatus.videos) && (
-                      <span className="text-xs text-text-icon-02">No media</span>
-                    )}
-                  </div>
+                  {renderMediaStatus(flight)}
                 </TableCell>
                 <TableCell className="text-text-icon-02">
                   {flight.dateTime}
