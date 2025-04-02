@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Activity, Clock, LineChart } from 'lucide-react';
+import { Activity, Clock, LineChart, Camera } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -194,6 +194,15 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
                 Timeline
               </div>
             </TabsTrigger>
+            <TabsTrigger 
+              value="media" 
+              className="flex-1 h-full rounded-none data-[state=active]:bg-transparent data-[state=active]:text-text-icon-01 data-[state=inactive]:text-text-icon-02 relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-primary-200 after:transform after:scale-x-0 data-[state=active]:after:scale-x-100 after:transition-transform"
+            >
+              <div className="flex items-center gap-2">
+                <Camera className="w-4 h-4" />
+                Media
+              </div>
+            </TabsTrigger>
           </TabsList>
 
           {/* Tab Contents */}
@@ -216,6 +225,14 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
             <TabsContent value="timeline" className="h-full p-0 m-0 data-[state=active]:flex data-[state=active]:flex-col">
               <div className="flex-1 overflow-hidden">
                 <TimelinePanel timelinePosition={timestamp} onEventSelect={onEventSelect} />
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="media" className="h-full p-0 m-0 data-[state=active]:flex data-[state=active]:flex-col">
+              <div className="flex-1 overflow-hidden p-4">
+                <div className="flex items-center justify-center h-full">
+                  <p className="text-text-icon-02">Media content loading...</p>
+                </div>
               </div>
             </TabsContent>
           </div>
