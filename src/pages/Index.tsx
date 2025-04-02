@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { DateRangeType } from '@/components/dashboard/DateRangeFilter';
@@ -10,7 +11,7 @@ import { AlertCircle, Calendar, Loader } from 'lucide-react';
 
 const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [dateRange, setDateRange] = useState<DateRangeType>('monthly');
+  const [dateRange, setDateRange] = useState<DateRangeType>('daily');
   const [timelineView, setTimelineView] = useState<'total' | 'status'>('total');
   const [failedFlightsPopupOpen, setFailedFlightsPopupOpen] = useState(false);
   
@@ -122,3 +123,4 @@ const Index = () => {
 };
 
 export default Index;
+

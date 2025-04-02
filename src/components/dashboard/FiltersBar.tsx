@@ -31,7 +31,7 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
   const [selectedDrones, setSelectedDrones] = useState<string[]>([]);
   
   const resetFilters = () => {
-    onDateRangeChange('monthly');
+    onDateRangeChange('daily');
     setOperationType('all');
     setIncludeManual(false);
     setTriggerType('all');
@@ -97,7 +97,7 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
                     size="sm" 
                     className="border-outline-primary text-text-icon-01 bg-background-level-2 hover:bg-background-level-4 transition-colors" 
                     onClick={resetFilters} 
-                    disabled={isLoading || (dateRange === 'monthly' && operationType === 'all' && !includeManual && triggerType === 'all' && selectedDrones.length === 0)}
+                    disabled={isLoading || (dateRange === 'daily' && operationType === 'all' && !includeManual && triggerType === 'all' && selectedDrones.length === 0)}
                   >
                     <RefreshCw className="h-4 w-4 mr-1" />
                     Reset
@@ -229,3 +229,4 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
 };
 
 export default FiltersBar;
+
