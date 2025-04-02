@@ -1,190 +1,201 @@
 
+// Generate realistic mock telemetry data for visualization
 import { TelemetryDataPoint } from './MetricChart';
 import { secondsToTime } from '../timeline/timelineUtils';
 
-// Interface for all telemetry history data
-export interface TelemetryHistory {
-  battery: TelemetryDataPoint[];
-  altitude: TelemetryDataPoint[];
-  horizontalSpeed: TelemetryDataPoint[];
-  verticalSpeed: TelemetryDataPoint[];
-  signal: TelemetryDataPoint[];
-}
-
-// Generate a more realistic and varied random walk with patterns
-const generateSmoothRandomWalk = (
-  length: number, 
-  initialValue: number, 
+// Helper to get realistic data curve with some randomness
+function generateCurve(
+  duration: number, 
+  pointCount: number, 
   minValue: number, 
   maxValue: number, 
-  volatility: number,
-  patternType: 'decreasing' | 'wave' | 'peaks' | 'stable' = 'wave'
-): number[] => {
-  let value = initialValue;
-  const result = [value];
+  pattern: 'rising' | 'falling' | 'fluctuating' | 'stable' | 'sinusoidal' = 'fluctuating'
+): TelemetryDataPoint[] {
+  const data: TelemetryDataPoint[] = [];
+  const timeStep = duration / (pointCount - 1);
+  
+  // Helper to add some realistic noise to the data
+  const addNoise = (value: number, noiseAmount: number = 0.02) => {
+    const noise = (Math.random() - 0.5) * 2 * noiseAmount * (maxValue - minValue);
+    return Math.max(minValue, Math.min(maxValue, value + noise));
+  };
 
-  // Create pattern modifiers for more realistic data
-  for (let i = 1; i < length; i++) {
-    // Generate trend based on pattern type
-    let trendFactor = 0;
+  // Generate initial value within the specified range
+  let initialValue: number;
+  
+  switch (pattern) {
+    case 'rising':
+      initialValue = minValue + (maxValue - minValue) * 0.1;
+      break;
+    case 'falling':
+      initialValue = minValue + (maxValue - minValue) * 0.9;
+      break;
+    case 'stable':
+      initialValue = minValue + (maxValue - minValue) * 0.5;
+      break;
+    case 'sinusoidal':
+    case 'fluctuating':
+    default:
+      initialValue = minValue + (maxValue - minValue) * 0.5;
+      break;
+  }
+  
+  for (let i = 0; i < pointCount; i++) {
+    const timestamp = i * timeStep;
     
-    switch (patternType) {
-      case 'decreasing':
-        // Gradually decreasing trend with some recovery points
-        trendFactor = -0.05 + (Math.sin(i / 20) * 0.02);
+    let value: number;
+    
+    switch (pattern) {
+      case 'rising':
+        // Gradually increasing value with some natural curves and noise
+        value = initialValue + (maxValue - initialValue) * (i / pointCount) ** 1.2;
+        value = addNoise(value);
         break;
-      case 'wave':
-        // Sinusoidal wave pattern
-        trendFactor = Math.sin(i / (length / 5) * Math.PI) * 0.3;
+        
+      case 'falling':
+        // Gradually decreasing value with some natural curves and noise
+        value = initialValue - (initialValue - minValue) * (i / pointCount) ** 0.8;
+        value = addNoise(value);
         break;
-      case 'peaks':
-        // Occasional peaks (like speed bursts)
-        if (i % Math.floor(length / 7) === 0) {
-          trendFactor = volatility * 2;
-        } else if (i % Math.floor(length / 7) === 1) {
-          trendFactor = -volatility * 1.5;
+        
+      case 'stable':
+        // Relatively stable value with minor fluctuations
+        const stableMean = initialValue;
+        value = stableMean + addNoise(0, 0.01);
+        break;
+        
+      case 'sinusoidal':
+        // Sinusoidal pattern (good for altitude, vertical speed, etc.)
+        const range = (maxValue - minValue) * 0.4;
+        const centerValue = minValue + (maxValue - minValue) * 0.5;
+        const cycles = 3 + Math.random() * 2; // 3-5 cycles over the time period
+        value = centerValue + Math.sin(i / pointCount * Math.PI * 2 * cycles) * range;
+        value = addNoise(value, 0.02);
+        break;
+        
+      case 'fluctuating':
+      default:
+        // Random but somewhat correlated fluctuations (natural patterns)
+        if (i === 0) {
+          value = initialValue;
         } else {
-          trendFactor = Math.sin(i / 30) * 0.1;
+          const prevValue = data[i-1].value;
+          const maxChange = (maxValue - minValue) * 0.015; 
+          const change = (Math.random() - 0.5) * 2 * maxChange;
+          
+          // Tendency to return to middle
+          const meanReversionFactor = 0.05;
+          const midPoint = (minValue + maxValue) / 2;
+          const meanReversion = (midPoint - prevValue) * meanReversionFactor;
+          
+          value = prevValue + change + meanReversion;
+          value = Math.max(minValue, Math.min(maxValue, value));
         }
         break;
-      case 'stable':
-        // Mostly stable with minor variations
-        trendFactor = Math.sin(i / 10) * 0.05;
-        break;
     }
     
-    // Add some randomness
-    const randomFactor = Math.random() < 0.1 ? 2 : 1;
-    const movement = (Math.random() - 0.5) * volatility * randomFactor;
-    
-    // Update value with trend and movement
-    value = value + movement + trendFactor;
-    
-    // Ensure we stay within bounds
-    value = Math.max(minValue, Math.min(maxValue, value));
-    
-    result.push(value);
+    // Add datapoint
+    data.push({
+      timestamp,
+      value,
+      rawTime: secondsToTime(timestamp)
+    });
   }
+  
+  return data;
+}
 
-  return result;
-};
-
-// Generate mock data for the telemetry charts with more realistic patterns
-export const generateMockTelemetryHistory = (): TelemetryHistory => {
-  // Flight duration in seconds (30 minutes)
-  const flightDurationSeconds = 30 * 60;
+// Get battery discharge pattern - naturally declining with ocasional recoveries
+function generateBatteryData(duration: number, pointCount: number): TelemetryDataPoint[] {
+  // Start with a natural curve
+  const baseCurve = generateCurve(duration, pointCount, 70, 100, 'falling');
   
-  // Number of data points (1 point every 5 seconds for more detail)
-  const numPoints = Math.floor(flightDurationSeconds / 5);
+  // Now transform it to make it more battery-like
+  let lastValue = 100; // Start at full charge
+  const result: TelemetryDataPoint[] = [];
   
-  // Generate timestamps (every 5 seconds)
-  const timestamps = Array.from({ length: numPoints }, (_, i) => i * 5);
-  
-  // Generate battery data (starts at 100%, gradually decreases)
-  const batteryValues = generateSmoothRandomWalk(numPoints, 100, 60, 100, 0.2, 'decreasing');
-  
-  // Generate altitude data with clear take-off, cruise, and landing phases
-  let altitudeValues: number[] = [];
-  
-  // Take-off phase (first 15%)
-  const takeoffLength = Math.floor(numPoints * 0.15);
-  for (let i = 0; i < takeoffLength; i++) {
-    const rampUpFactor = i / takeoffLength;
-    altitudeValues.push(Math.min(120, 120 * rampUpFactor + (Math.random() - 0.5) * 2));
-  }
-  
-  // Cruise phase with variations (middle 70%)
-  const cruiseLength = Math.floor(numPoints * 0.7);
-  const cruiseAltitude = generateSmoothRandomWalk(
-    cruiseLength,
-    altitudeValues[altitudeValues.length - 1] || 120,
-    100,
-    150,
-    1,
-    'wave'
-  );
-  altitudeValues = altitudeValues.concat(cruiseAltitude);
-  
-  // Landing phase (last 15%)
-  const landingLength = numPoints - altitudeValues.length;
-  const lastAltitude = altitudeValues[altitudeValues.length - 1] || 120;
-  for (let i = 0; i < landingLength; i++) {
-    const rampDownFactor = 1 - (i / landingLength);
-    altitudeValues.push(Math.max(0, lastAltitude * rampDownFactor + (Math.random() - 0.5) * 2));
-  }
-  
-  // Ensure we have exactly numPoints values
-  if (altitudeValues.length < numPoints) {
-    altitudeValues.push(...Array(numPoints - altitudeValues.length).fill(0));
-  } else if (altitudeValues.length > numPoints) {
-    altitudeValues = altitudeValues.slice(0, numPoints);
-  }
-  
-  // Generate horizontal speed data with acceleration and deceleration patterns
-  const horizontalSpeedValues = generateSmoothRandomWalk(numPoints, 0, 0, 15, 0.3, 'peaks');
-  
-  // Generate vertical speed data with more variance during altitude changes
-  const verticalSpeedValues: number[] = [];
-  
-  // Calculate vertical speed based on altitude changes
-  for (let i = 0; i < numPoints; i++) {
-    if (i === 0) {
-      verticalSpeedValues.push(0);
-    } else {
-      // Calculate rate of altitude change and convert to m/s
-      const altChange = altitudeValues[i] - altitudeValues[i - 1];
-      const timeInterval = 5; // seconds
-      let vertSpeed = altChange / timeInterval;
-      
-      // Add some noise
-      vertSpeed += (Math.random() - 0.5) * 0.2;
-      
-      // Clamp to realistic values
-      vertSpeed = Math.max(-5, Math.min(5, vertSpeed));
-      verticalSpeedValues.push(vertSpeed);
-    }
-  }
-  
-  // Generate signal data with occasional drops
-  const signalValues = generateSmoothRandomWalk(numPoints, 95, 70, 100, 1, 'peaks');
-  
-  // Map values to data points with proper formatting
-  const telemetryHistory: TelemetryHistory = {
-    battery: timestamps.map((timestamp, i) => ({
-      timestamp,
-      value: batteryValues[i],
-      rawTime: secondsToTime(timestamp)
-    })),
-    altitude: timestamps.map((timestamp, i) => ({
-      timestamp,
-      value: altitudeValues[i],
-      rawTime: secondsToTime(timestamp)
-    })),
-    horizontalSpeed: timestamps.map((timestamp, i) => ({
-      timestamp,
-      value: horizontalSpeedValues[i],
-      rawTime: secondsToTime(timestamp)
-    })),
-    verticalSpeed: timestamps.map((timestamp, i) => ({
-      timestamp,
-      value: verticalSpeedValues[i],
-      rawTime: secondsToTime(timestamp)
-    })),
-    signal: timestamps.map((timestamp, i) => ({
-      timestamp,
-      value: signalValues[i],
-      rawTime: secondsToTime(timestamp)
-    }))
-  };
-  
-  console.log('Generated telemetry history with points:', {
-    batteryPointCount: telemetryHistory.battery.length,
-    altitudePointCount: telemetryHistory.altitude.length,
-    batteryFirstValue: telemetryHistory.battery[0]?.value,
-    batteryLastValue: telemetryHistory.battery[telemetryHistory.battery.length - 1]?.value,
-    altitudeFirstValue: telemetryHistory.altitude[0]?.value,
-    altitudeLastValue: telemetryHistory.altitude[telemetryHistory.altitude.length - 1]?.value
+  // Ensure the first point is at 100%
+  result.push({
+    timestamp: 0,
+    value: 100,
+    rawTime: secondsToTime(0)
   });
   
-  return telemetryHistory;
+  // Generate the rest with a natural battery discharge pattern
+  for (let i = 1; i < pointCount; i++) {
+    const time = baseCurve[i].timestamp;
+    
+    // Non-linear discharge rate: faster at beginning and end, slower in middle
+    const normalizedTime = time / duration;
+    
+    // Battery discharge often follows a non-linear curve
+    // More drain during takeoff and landing, less during cruise
+    const dischargeRate = 
+      normalizedTime < 0.2 ? 0.4 : // Higher rate at beginning (takeoff)
+      normalizedTime > 0.8 ? 0.5 : // Higher rate at end (low battery)
+      0.25; // Lower rate in middle (cruise)
+      
+    // Calculate non-linear discharge
+    lastValue = lastValue - dischargeRate * (time - baseCurve[i-1].timestamp) / 60;
+    
+    // Occasional small battery recoveries
+    if (Math.random() > 0.95) {
+      lastValue += 0.1 + Math.random() * 0.2;
+    }
+    
+    // Add some slight noise
+    const noise = (Math.random() - 0.5) * 0.2;
+    lastValue = Math.max(0, Math.min(100, lastValue + noise));
+    
+    result.push({
+      timestamp: time,
+      value: lastValue,
+      rawTime: secondsToTime(time)
+    });
+  }
+  
+  return result;
+}
+
+// Main function to generate telemetry data for all metrics
+export const generateMockTelemetryHistory = (
+  pointCount: number = 250,
+  duration: number = 19800 // 5.5 hours in seconds (typical drone flight)
+) => {
+  // Generate different data patterns for each telemetry metric
+  return {
+    battery: generateBatteryData(duration, pointCount),
+    
+    altitude: generateCurve(
+      duration, 
+      pointCount, 
+      0,  // Min altitude (ground level)
+      150, // Max altitude
+      'sinusoidal' // Altitude tends to have peaks and valleys
+    ),
+    
+    horizontalSpeed: generateCurve(
+      duration,
+      pointCount,
+      0,  // Min speed
+      15, // Max speed
+      'fluctuating' // Speed varies but with correlation
+    ),
+    
+    verticalSpeed: generateCurve(
+      duration,
+      pointCount,
+      -5, // Max descent speed
+      5,  // Max ascent speed
+      'sinusoidal' // Vertical speed oscillates between climb and descent
+    ),
+    
+    signal: generateCurve(
+      duration,
+      pointCount,
+      60,  // Minimum acceptable signal
+      100, // Max signal
+      'fluctuating' // Signal strength fluctuates
+    )
+  };
 };

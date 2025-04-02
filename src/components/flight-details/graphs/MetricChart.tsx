@@ -222,34 +222,32 @@ export const MetricChart: React.FC<MetricChartProps> = ({
     return null;
   };
 
-  // Log to debug data rendering issues
-  useEffect(() => {
-    console.log(`${config.title} chart data:`, {
-      dataPoints: data.length,
-      firstPoint: data[0],
-      lastPoint: data[data.length - 1],
-      currentTimestamp,
-      currentValue,
-      yDomain
-    });
-  }, [data, config.title, currentTimestamp, currentValue, yDomain]);
-
-  // Add CSS for timeline animation
-  useEffect(() => {
-    // Add a style tag for the timeline indicator animation
-    const styleTag = document.createElement('style');
-    styleTag.textContent = `
-      .timeline-indicator {
-        transition: all 150ms ease-out;
-      }
-    `;
-    document.head.appendChild(styleTag);
+  // Ensure the Y-axis shows the full range of values
+  const yAxisDomain = useMemo(() => {
+    let [min, max] = yDomain;
     
-    // Clean up the style tag when component unmounts
-    return () => {
-      document.head.removeChild(styleTag);
-    };
-  }, []);
+    // For battery, always show 0-100% range
+    if (config.title === "Battery") {
+      return [0, 100];
+    }
+    
+    // For vertical speed, ensure we include 0 in the domain
+    if (config.title === "Vertical Speed") {
+      min = Math.min(min, -3);
+      max = Math.max(max, 3);
+      return [min, max];
+    }
+    
+    // For altitude and other metrics, ensure we have a reasonable range
+    if (config.title.includes("Altitude")) {
+      // Make sure altitude starts from 0 unless we have negative values
+      min = min < 0 ? min : 0;
+      // Add some headroom on top
+      max = max * 1.1;
+    }
+    
+    return [min, max];
+  }, [yDomain, config.title]);
 
   return (
     <div 
@@ -305,12 +303,12 @@ export const MetricChart: React.FC<MetricChartProps> = ({
             />
 
             <YAxis
-              domain={yDomain}
+              domain={yAxisDomain}
               axisLine={false}
               tickLine={false}
               tickFormatter={formatYAxis}
               tick={{ fontSize: 10, fill: 'rgba(255, 255, 255, 0.54)' }}
-              width={30} // Increased Y-axis width for better label display
+              width={45} // Increased Y-axis width for better label display
               ticks={calculateYAxisTicks} // Use calculated nice round ticks
               interval={0} // Show all calculated ticks
               padding={{ top: 10, bottom: 10 }}
@@ -344,7 +342,7 @@ export const MetricChart: React.FC<MetricChartProps> = ({
               x={currentTimestamp}
               stroke="#FFFFFF"
               strokeWidth={1}
-              opacity={0.3}
+              opacity={0.8}
               isFront={true}
               className="timeline-indicator"
             />
@@ -372,7 +370,7 @@ export const MetricChart: React.FC<MetricChartProps> = ({
                 dataKey="value"
                 stroke="none"
                 dot={{
-                  r: 4,
+                  r: 5,
                   fill: '#FFFFFF',
                   stroke: config.color,
                   strokeWidth: 2
