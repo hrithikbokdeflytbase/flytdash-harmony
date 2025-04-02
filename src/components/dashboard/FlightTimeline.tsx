@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { BarChart, XAxis, YAxis, Bar, Tooltip, CartesianGrid, Legend } from 'recharts';
 import { Loader, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -78,7 +77,7 @@ const generateMockData = (dateRange: DateRangeType, viewType: ViewType, currentD
         });
     }
   } else {
-    // Status view with current period information
+    // Status view with current period information and renamed properties
     switch (dateRange) {
       case 'monthly':
         return Array.from({ length: 12 }, (_, i) => {
@@ -88,9 +87,9 @@ const generateMockData = (dateRange: DateRangeType, viewType: ViewType, currentD
           
           return {
             name: format(date, 'MMM'),
-            successful: isFutureMonth ? 0 : Math.floor(Math.random() * 60) + 20,
+            success: isFutureMonth ? 0 : Math.floor(Math.random() * 60) + 20, // Renamed from successful
             failed: isFutureMonth ? 0 : Math.floor(Math.random() * 15),
-            aborted: isFutureMonth ? 0 : Math.floor(Math.random() * 8),
+            error: isFutureMonth ? 0 : Math.floor(Math.random() * 8), // Renamed from aborted
             date,
             isCurrent: isCurrentMonth,
             isFuture: isFutureMonth
@@ -104,9 +103,9 @@ const generateMockData = (dateRange: DateRangeType, viewType: ViewType, currentD
           
           return {
             name: `W${format(weekStart, 'w')}`,
-            successful: isFutureWeek ? 0 : Math.floor(Math.random() * 25) + 10,
+            success: isFutureWeek ? 0 : Math.floor(Math.random() * 25) + 10, // Renamed from successful
             failed: isFutureWeek ? 0 : Math.floor(Math.random() * 5),
-            aborted: isFutureWeek ? 0 : Math.floor(Math.random() * 3),
+            error: isFutureWeek ? 0 : Math.floor(Math.random() * 3), // Renamed from aborted
             date: weekStart,
             isCurrent: isCurrentWeek,
             isFuture: isFutureWeek
@@ -123,9 +122,9 @@ const generateMockData = (dateRange: DateRangeType, viewType: ViewType, currentD
           
           return {
             name: format(date, 'EEE'),
-            successful: isFutureDay ? 0 : Math.floor(Math.random() * 20) + 5,
+            success: isFutureDay ? 0 : Math.floor(Math.random() * 20) + 5, // Renamed from successful
             failed: isFutureDay ? 0 : Math.floor(Math.random() * 4),
-            aborted: isFutureDay ? 0 : Math.floor(Math.random() * 2),
+            error: isFutureDay ? 0 : Math.floor(Math.random() * 2), // Renamed from aborted
             date,
             isCurrent: isCurrentDay,
             isFuture: isFutureDay
@@ -211,6 +210,17 @@ const CustomBar = (props: any) => {
       return baseColor; // Fallback
     })();
     
+    // Get the glow color that matches the bar's color instead of using purple
+    const getGlowColor = () => {
+      if (baseColor === '#3399FF') return 'rgba(51, 153, 255, 0.6)'; // Blue for total
+      if (baseColor === '#1EAE6D') return 'rgba(30, 174, 109, 0.6)'; // Green for success
+      if (baseColor === '#F8473A') return 'rgba(248, 71, 58, 0.6)'; // Red for failed
+      if (baseColor === '#FDB022') return 'rgba(253, 176, 34, 0.6)'; // Yellow/orange for error
+      return 'rgba(255, 255, 255, 0.6)'; // Default white glow
+    };
+    
+    const glowColor = getGlowColor();
+    
     return (
       <g>
         <defs>
@@ -218,10 +228,10 @@ const CustomBar = (props: any) => {
             <stop offset="0%" stopColor={lighterColor} />
             <stop offset="100%" stopColor={baseColor} />
           </linearGradient>
-          {/* Add outer glow filter */}
+          {/* Add outer glow filter with the color matching the bar */}
           <filter id={`glow-${dataKey}`} x="-30%" y="-30%" width="160%" height="160%">
             <feGaussianBlur stdDeviation="4" result="blur" />
-            <feFlood floodColor="#9b87f5" floodOpacity="0.5" result="color" />
+            <feFlood floodColor={baseColor} floodOpacity="0.5" result="color" />
             <feComposite operator="in" in="color" in2="blur" result="glow" />
             <feMerge>
               <feMergeNode in="glow" />
@@ -251,19 +261,19 @@ const CustomBar = (props: any) => {
           y={y + height - 4}
           width={width}
           height={4}
-          fill="#9b87f5"
+          fill={baseColor}
           rx={2}
           className="animate-pulse"
-          style={{ filter: 'drop-shadow(0 0 5px rgba(155, 135, 245, 0.9))' }}
+          style={{ filter: `drop-shadow(0 0 5px ${glowColor})` }}
         />
         {/* Star/highlight at top */}
         <circle
           cx={x + width / 2}
           cy={y - 5}
           r={4}
-          fill="#9b87f5"
+          fill={baseColor}
           className="animate-pulse"
-          style={{ filter: 'drop-shadow(0 0 3px rgba(255, 255, 255, 1))' }}
+          style={{ filter: `drop-shadow(0 0 3px ${glowColor})` }}
         />
         {/* "Current" label on top */}
         <text
@@ -460,22 +470,22 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
     }
   };
 
-  // Define the color scheme for the chart
+  // Define the color scheme for the chart with renamed labels
   const chartConfig = {
     flights: {
       label: "Flights",
       color: "#3399FF"
     },
-    successful: {
-      label: "Successful",
+    success: { // Renamed from successful
+      label: "Success",
       color: "#1EAE6D"
     },
     failed: {
       label: "Failed",
       color: "#F8473A"
     },
-    aborted: {
-      label: "Aborted",
+    error: { // Renamed from aborted
+      label: "Error",
       color: "#FDB022"
     }
   };
@@ -632,10 +642,10 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
                 <>
                   <Legend />
                   <Bar 
-                    dataKey="successful" 
+                    dataKey="success" 
                     stackId="a" 
                     fill="#1EAE6D" 
-                    name="Successful" 
+                    name="Success" 
                     radius={[4, 4, 0, 0]} 
                     animationDuration={500}
                     activeBar={{ fill: '#25D684', stroke: '#77DDFF', strokeWidth: 1 }}
@@ -655,10 +665,10 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
                     isAnimationActive={true}
                   />
                   <Bar 
-                    dataKey="aborted" 
+                    dataKey="error" 
                     stackId="a" 
                     fill="#FDB022" 
-                    name="Aborted" 
+                    name="Error" 
                     animationDuration={500}
                     activeBar={{ fill: '#FFCC44', stroke: '#77DDFF', strokeWidth: 1 }}
                     shape={<CustomBar />}

@@ -75,6 +75,17 @@ export const CustomBar = (props: any) => {
       return baseColor; // Fallback
     })();
     
+    // Get the glow color that matches the bar's color instead of using purple
+    const getGlowColor = () => {
+      if (baseColor === '#3399FF') return 'rgba(51, 153, 255, 0.6)'; // Blue for total
+      if (baseColor === '#1EAE6D') return 'rgba(30, 174, 109, 0.6)'; // Green for success
+      if (baseColor === '#F8473A') return 'rgba(248, 71, 58, 0.6)'; // Red for failed
+      if (baseColor === '#FDB022') return 'rgba(253, 176, 34, 0.6)'; // Yellow/orange for error
+      return 'rgba(255, 255, 255, 0.6)'; // Default white glow
+    };
+    
+    const glowColor = getGlowColor();
+    
     return (
       <g>
         <defs>
@@ -82,10 +93,10 @@ export const CustomBar = (props: any) => {
             <stop offset="0%" stopColor={lighterColor} />
             <stop offset="100%" stopColor={baseColor} />
           </linearGradient>
-          {/* Add outer glow filter */}
+          {/* Add outer glow filter with the color matching the bar */}
           <filter id={`glow-${dataKey}`} x="-30%" y="-30%" width="160%" height="160%">
             <feGaussianBlur stdDeviation="4" result="blur" />
-            <feFlood floodColor="#9b87f5" floodOpacity="0.5" result="color" />
+            <feFlood floodColor={baseColor} floodOpacity="0.5" result="color" />
             <feComposite operator="in" in="color" in2="blur" result="glow" />
             <feMerge>
               <feMergeNode in="glow" />
@@ -115,19 +126,19 @@ export const CustomBar = (props: any) => {
           y={y + height - 4}
           width={width}
           height={4}
-          fill="#9b87f5"
+          fill={baseColor}
           rx={2}
           className="animate-pulse"
-          style={{ filter: 'drop-shadow(0 0 5px rgba(155, 135, 245, 0.9))' }}
+          style={{ filter: `drop-shadow(0 0 5px ${glowColor})` }}
         />
         {/* Star/highlight at top */}
         <circle
           cx={x + width / 2}
           cy={y - 5}
           r={4}
-          fill="#9b87f5"
+          fill={baseColor}
           className="animate-pulse"
-          style={{ filter: 'drop-shadow(0 0 3px rgba(255, 255, 255, 1))' }}
+          style={{ filter: `drop-shadow(0 0 3px ${glowColor})` }}
         />
         {/* "Current" label on top */}
         <text
