@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Activity, Clock, LineChart, Camera } from 'lucide-react';
@@ -11,7 +10,7 @@ import DetailsPanelHeader from './DetailsPanelHeader';
 import TelemetryPanel, { TelemetryData } from './TelemetryPanel';
 import TimelinePanel from './TimelinePanel';
 import TelemetryGraphsPanel from './TelemetryGraphsPanel';
-import MediaPanel from './MediaPanel';
+import { MediaPanel } from './MediaPanel';
 
 interface FlightDetailsPanelProps {
   flightId: string;
