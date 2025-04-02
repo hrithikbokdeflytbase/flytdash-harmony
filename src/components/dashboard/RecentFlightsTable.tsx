@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Loader, CheckCircle, AlertTriangle, XCircle, RefreshCcw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -332,7 +331,7 @@ const RecentFlightsTable: React.FC<RecentFlightsTableProps> = ({ isLoading = fal
     // In a real app, this would initiate the upload retry process
   };
 
-  // New minimalist approach for media display with fixed widths
+  // Updated minimalist approach for media display with fixed widths and better alignment
   const renderMediaStatus = (flight: Flight) => {
     // Calculate total upload percentage across all media
     const totalMedia = 
@@ -352,14 +351,14 @@ const RecentFlightsTable: React.FC<RecentFlightsTableProps> = ({ isLoading = fal
     const isFailed = totalUploaded === 0 && totalMedia > 0;
     
     return (
-      <div className="flex items-center gap-2 w-[150px]">
+      <div className="flex items-center gap-3 w-[150px]">
         <div className="flex items-center min-w-[70px]">
           {isComplete ? (
-            <CheckCircle size={14} className="text-success-200" />
+            <CheckCircle size={14} className="text-success-200 mr-2" />
           ) : (
-            <span className="text-sm font-medium w-[30px] text-right">{uploadPercentage}%</span>
+            <span className="text-sm font-medium w-[30px] text-right mr-1">{uploadPercentage}%</span>
           )}
-          <span className="text-sm text-text-icon-02 ml-2 w-[40px]">
+          <span className="text-sm text-text-icon-02 ml-1">
             ({totalUploaded}/{totalMedia})
           </span>
         </div>
