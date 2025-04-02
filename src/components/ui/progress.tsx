@@ -34,10 +34,10 @@ const Progress = React.forwardRef<
     {failed && onRetry && (
       <button 
         onClick={onRetry}
-        className="absolute right-0 top-[-2px] p-[2px] rounded-full bg-background-level-3 hover:bg-background-level-4 transition-colors"
+        className="absolute right-[-18px] top-[-2px] p-[2px] rounded-full bg-background-level-3 hover:bg-background-level-4 transition-colors"
         title="Retry"
       >
-        <RefreshCw size={12} className="text-error-200 animate-pulse" />
+        <RefreshCw size={12} className="text-error-200" />
       </button>
     )}
   </div>
