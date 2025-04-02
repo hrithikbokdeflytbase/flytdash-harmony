@@ -158,14 +158,14 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
     }
   };
   
-  // Handle retry upload
+  // Handle retry upload - Fixed the type issue
   const handleRetryUpload = (e: React.MouseEvent, itemId: string) => {
     e.stopPropagation();
     console.log(`Retrying upload for item: ${itemId}`);
     
-    // Simulate retry logic
+    // Ensure we use the correct literal type for uploadStatus
     const updatedItems = mediaItems.map(item => 
-      item.id === itemId ? {...item, uploadStatus: 'processing'} : item
+      item.id === itemId ? {...item, uploadStatus: 'processing' as const} : item
     );
     
     setMediaItems(updatedItems);
@@ -173,7 +173,7 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
     // Simulate completion
     setTimeout(() => {
       const finalItems = mediaItems.map(item => 
-        item.id === itemId ? {...item, uploadStatus: 'success'} : item
+        item.id === itemId ? {...item, uploadStatus: 'success' as const} : item
       );
       setMediaItems(finalItems);
     }, 2000);
