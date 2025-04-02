@@ -18,6 +18,15 @@ const badgeVariants = cva(
         outline: "text-foreground",
         flight: 
           "border-transparent bg-primary-200 text-text-icon-01",
+        // New minimal status variants
+        status: 
+          "h-2 w-2 rounded-full p-0 border-none",
+        "status-success": 
+          "h-2 w-2 rounded-full p-0 border-none bg-success-200",
+        "status-processing": 
+          "h-2 w-2 rounded-full p-0 border-none bg-caution-200",
+        "status-failed": 
+          "h-2 w-2 rounded-full p-0 border-none bg-error-200",
       },
     },
     defaultVariants: {

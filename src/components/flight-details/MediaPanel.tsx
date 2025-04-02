@@ -256,24 +256,24 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
     fetchMediaItems(1, true);
   };
   
-  // Render filter pills
+  // Render filter pills with updated design
   const renderFilters = () => (
-    <div className="flex items-center gap-2 mb-4">
-      <ToggleGroup type="single" value={filterType} onValueChange={(value) => value && setFilterType(value as 'all' | 'photos' | 'videos')}>
-        <ToggleGroupItem value="all" aria-label="Show all media">
+    <div className="flex flex-col gap-2 mb-4">
+      <ToggleGroup type="single" value={filterType} onValueChange={(value) => value && setFilterType(value as 'all' | 'photos' | 'videos')} className="w-full">
+        <ToggleGroupItem value="all" aria-label="Show all media" className="text-sm">
           All
         </ToggleGroupItem>
-        <ToggleGroupItem value="photos" aria-label="Show photos only" className="flex items-center gap-1">
+        <ToggleGroupItem value="photos" aria-label="Show photos only" className="flex items-center gap-1 text-sm">
           <ImageIcon className="w-3 h-3" /> 
           Photos
         </ToggleGroupItem>
-        <ToggleGroupItem value="videos" aria-label="Show videos only" className="flex items-center gap-1">
+        <ToggleGroupItem value="videos" aria-label="Show videos only" className="flex items-center gap-1 text-sm">
           <Film className="w-3 h-3" /> 
           Videos
         </ToggleGroupItem>
       </ToggleGroup>
       
-      <div className="ml-auto text-sm text-text-icon-02">
+      <div className="text-xs text-text-icon-02 self-center">
         {filterType === 'all' && `${totalCount || 0} items (${photoCount} photos, ${videoCount} videos)`}
         {filterType === 'photos' && `${photoCount} photos`}
         {filterType === 'videos' && `${videoCount} videos`}
@@ -281,48 +281,45 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
     </div>
   );
   
-  // Render status indicator
+  // Render status indicator as minimal dot
   const renderStatusIndicator = (item: MediaItem) => {
     // If this item is currently being retried
     if (retryingItems.has(item.id)) {
       return (
-        <Badge variant="default" className="absolute top-2 right-2 bg-amber-500">
-          <Loader2 className="w-3 h-3 mr-1 animate-spin" /> Retrying...
-        </Badge>
+        <div className="absolute top-2 right-2 flex items-center gap-1.5">
+          <Badge variant="status" className="bg-caution-200" />
+          <span className="text-xs font-medium text-white bg-black/40 px-1.5 py-0.5 rounded-sm">Retrying...</span>
+        </div>
       );
     }
     
     switch(item.uploadStatus) {
       case 'success':
         return (
-          <Badge variant="default" className="absolute top-2 right-2 bg-green-600">
-            <Check className="w-3 h-3 mr-1" /> Success
-          </Badge>
+          <div className="absolute top-2 right-2 flex items-center gap-1.5">
+            <Badge variant="status-success" />
+            <span className="text-xs font-medium text-white bg-black/40 px-1.5 py-0.5 rounded-sm">Success</span>
+          </div>
         );
       case 'processing':
         return (
-          <Badge variant="default" className="absolute top-2 right-2 bg-amber-500">
-            <Loader2 className="w-3 h-3 mr-1 animate-spin" /> Processing
-          </Badge>
+          <div className="absolute top-2 right-2 flex items-center gap-1.5">
+            <Badge variant="status-processing" />
+            <span className="text-xs font-medium text-white bg-black/40 px-1.5 py-0.5 rounded-sm">Processing</span>
+          </div>
         );
       case 'failed':
         return (
-          <div className="absolute top-2 right-2 flex gap-2">
-            <Badge variant="destructive">
-              <X className="w-3 h-3 mr-1" /> Failed
-            </Badge>
+          <div className="absolute top-2 right-2 flex items-center gap-1.5">
+            <Badge variant="status-failed" />
+            <span className="text-xs font-medium text-white bg-black/40 px-1.5 py-0.5 rounded-sm">Failed</span>
             <Button 
               variant="destructive" 
               size="sm" 
-              className="h-6 px-2"
+              className="h-5 text-[10px] px-1.5 ml-1"
               onClick={(e) => handleRetryUpload(e, item.id)}
               disabled={retryingItems.has(item.id)}
             >
-              {retryingItems.has(item.id) ? (
-                <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-              ) : (
-                <RefreshCcw className="w-3 h-3 mr-1" />
-              )}
               Retry
             </Button>
           </div>
@@ -332,13 +329,13 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
     }
   };
 
-  // Render media grid with loading skeletons
+  // Render media grid with updated styling for 2 columns
   const renderMediaGrid = () => (
     <>
-      <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {isLoading && !mediaItems.length ? (
-          // Render skeleton loaders during initial load
-          Array.from({ length: 6 }).map((_, index) => (
+          // Render skeleton loaders during initial load - 2 columns
+          Array.from({ length: 4 }).map((_, index) => (
             <Card key={`skeleton-${index}`} className="overflow-hidden">
               <div className="relative">
                 <AspectRatio ratio={16/9}>
@@ -352,14 +349,14 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
             </Card>
           ))
         ) : filteredItems.length > 0 ? (
-          // Render actual media items
+          // Render actual media items with updated minimal design
           filteredItems.map(item => (
             <Card 
               key={item.id} 
               className={cn(
                 "overflow-hidden cursor-pointer hover:shadow-md transition-all",
                 isNearTimelinePosition(item.timestamp) || highlightedMediaId === item.id
-                  ? "ring-2 ring-primary-300"
+                  ? "ring-1 ring-primary-300"
                   : ""
               )}
               onClick={() => handleItemClick(item)}
@@ -387,41 +384,41 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
                     </div>
                   )}
                   
-                  {/* Media type indicator */}
-                  <div className="absolute bottom-2 left-2 bg-black/60 rounded-full p-1.5">
+                  {/* Media type indicator - more minimal */}
+                  <div className="absolute bottom-2 left-2 bg-black/60 rounded-full p-1">
                     {item.type === 'photo' ? (
-                      <ImageIcon className="w-4 h-4 text-white" />
+                      <ImageIcon className="w-3 h-3 text-white" />
                     ) : (
-                      <Film className="w-4 h-4 text-white" />
+                      <Film className="w-3 h-3 text-white" />
                     )}
                   </div>
                   
-                  {/* Timestamp indicator */}
-                  <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs rounded-full flex items-center gap-1 px-2 py-1">
-                    <Clock className="w-3 h-3" />
+                  {/* Timestamp indicator - more minimal */}
+                  <div className="absolute bottom-2 right-2 bg-black/60 text-white text-[10px] rounded-sm flex items-center gap-1 px-1.5 py-0.5">
+                    <Clock className="w-2.5 h-2.5" />
                     {item.timestamp}
                   </div>
                   
-                  {/* Upload status indicator */}
+                  {/* Status indicator - now more minimal */}
                   {renderStatusIndicator(item)}
                 </AspectRatio>
               </div>
-              <CardContent className="p-3">
+              <CardContent className="p-2.5">
                 <h4 className="font-medium text-sm line-clamp-1">{item.title || item.id}</h4>
                 <div className="flex justify-between items-center mt-1">
-                  <span className="text-xs text-text-icon-02">
+                  <span className="text-[10px] text-text-icon-02">
                     {item.type === 'photo' ? 
-                      `Photo${item.fileSize ? ` • ${item.fileSize}` : ''}` : 
-                      `Video${item.duration ? ` • ${item.duration}s` : ''}`
+                      `Photo • ${item.fileSize || 'Unknown size'}` : 
+                      `Video • ${item.duration ? `${item.duration}s` : 'Unknown duration'}`
                     }
                   </span>
                   
-                  {/* Jump to timestamp button for easy navigation */}
+                  {/* Jump to timestamp button - more minimal */}
                   {onTimelinePositionChange && (
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      className="h-6 px-2 text-xs"
+                      className="h-5 px-1.5 text-[10px]"
                       onClick={(e) => {
                         e.stopPropagation();
                         onTimelinePositionChange(item.timestamp);
@@ -432,9 +429,13 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
                         });
                       }}
                     >
-                      <Clock className="w-3 h-3 mr-1" /> Jump
+                      <Clock className="w-2.5 h-2.5 mr-1" /> Jump
                     </Button>
                   )}
+                </div>
+                {/* Added capture time information */}
+                <div className="text-[10px] text-text-icon-02 mt-0.5">
+                  Captured at {item.timestamp}
                 </div>
               </CardContent>
             </Card>
@@ -447,22 +448,23 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
         ) : null}
       </div>
       
-      {/* Load more indicator */}
+      {/* Keep load more indicator with slight styling adjustments */}
       {hasMore && filteredItems.length > 0 && (
         <div 
           ref={loadMoreRef} 
-          className="w-full py-8 flex justify-center items-center"
+          className="w-full py-6 flex justify-center items-center"
         >
           {isLoadingMore ? (
             <div className="flex flex-col items-center">
-              <Loader2 className="w-6 h-6 animate-spin mb-2 text-primary-200" />
-              <p className="text-sm text-text-icon-02">Loading more media...</p>
+              <Loader2 className="w-5 h-5 animate-spin mb-1 text-primary-200" />
+              <p className="text-xs text-text-icon-02">Loading more media...</p>
             </div>
           ) : (
             <Button 
               variant="outline" 
+              size="sm"
               onClick={loadMoreItems} 
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 text-xs"
             >
               Load More
             </Button>
@@ -472,12 +474,12 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
     </>
   );
 
-  // Render media preview dialog with improved details
+  // Update media preview dialog with more minimal styling
   const renderMediaPreview = () => (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogContent className="max-w-6xl p-0 gap-0 overflow-hidden bg-background/95 backdrop-blur-lg border-none sm:rounded-xl">
         <DialogClose className="absolute right-4 top-4 z-50 rounded-full bg-background/40 backdrop-blur hover:bg-background/60 p-2 transition-colors">
-          <X className="h-5 w-5 text-white" />
+          <X className="h-4 w-4 text-white" />
           <span className="sr-only">Close</span>
         </DialogClose>
         
@@ -516,87 +518,98 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
               )}
             </div>
             
-            <div className="p-6 border-t flex flex-col gap-4 bg-background">
-              <div className="flex flex-wrap justify-between items-start gap-4">
-                <div className="flex flex-col gap-2">
-                  <h3 className="text-lg font-medium">{selectedItem.title || `Flight Media ${selectedItem.id}`}</h3>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant="outline" className="flex items-center gap-1">
+            <div className="p-4 border-t flex flex-col gap-3 bg-background">
+              <div className="flex flex-wrap justify-between items-start gap-3">
+                <div className="flex flex-col gap-1.5">
+                  <h3 className="text-base font-medium">{selectedItem.title || `Flight Media ${selectedItem.id}`}</h3>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <div className="flex items-center gap-1.5">
                       {selectedItem.type === 'photo' ? (
                         <>
-                          <ImageIcon className="w-3.5 h-3.5" /> Photo
+                          <ImageIcon className="w-3 h-3 text-text-icon-02" /> 
+                          <span className="text-xs text-text-icon-02">Photo</span>
                         </>
                       ) : (
                         <>
-                          <Film className="w-3.5 h-3.5" /> Video {selectedItem.duration && `(${selectedItem.duration}s)`}
+                          <Film className="w-3 h-3 text-text-icon-02" /> 
+                          <span className="text-xs text-text-icon-02">Video {selectedItem.duration && `(${selectedItem.duration}s)`}</span>
                         </>
                       )}
-                    </Badge>
+                    </div>
                     
-                    <Badge variant="outline" className="flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5" /> {selectedItem.timestamp}
-                    </Badge>
+                    <div className="flex items-center gap-1.5">
+                      <Clock className="w-3 h-3 text-text-icon-02" /> 
+                      <span className="text-xs text-text-icon-02">{selectedItem.timestamp}</span>
+                    </div>
                     
                     {selectedItem.fileSize && (
-                      <Badge variant="outline" className="flex items-center gap-1">
-                        <FileText className="w-3.5 h-3.5" /> {selectedItem.fileSize}
-                      </Badge>
+                      <div className="flex items-center gap-1.5">
+                        <FileText className="w-3 h-3 text-text-icon-02" /> 
+                        <span className="text-xs text-text-icon-02">{selectedItem.fileSize}</span>
+                      </div>
                     )}
                     
                     {selectedItem.width && selectedItem.height && (
-                      <Badge variant="outline" className="flex items-center gap-1">
-                        {selectedItem.width} × {selectedItem.height}
-                      </Badge>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs text-text-icon-02">{selectedItem.width} × {selectedItem.height}</span>
+                      </div>
                     )}
                     
                     {selectedItem.uploadStatus && (
-                      <Badge 
-                        variant={selectedItem.uploadStatus === 'success' ? 'default' : 
-                                selectedItem.uploadStatus === 'processing' ? 'secondary' : 'destructive'} 
-                        className="flex items-center gap-1"
-                      >
-                        {selectedItem.uploadStatus === 'success' && <Check className="w-3.5 h-3.5" />}
-                        {selectedItem.uploadStatus === 'processing' && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                        {selectedItem.uploadStatus === 'failed' && <X className="w-3.5 h-3.5" />}
-                        {selectedItem.uploadStatus.charAt(0).toUpperCase() + selectedItem.uploadStatus.slice(1)}
-                      </Badge>
+                      <div className="flex items-center gap-1.5">
+                        <Badge 
+                          variant={`status-${selectedItem.uploadStatus === 'success' ? 'success' : 
+                                  selectedItem.uploadStatus === 'processing' ? 'processing' : 'failed'}`} 
+                        />
+                        <span className="text-xs text-text-icon-02">
+                          {selectedItem.uploadStatus.charAt(0).toUpperCase() + selectedItem.uploadStatus.slice(1)}
+                        </span>
+                      </div>
                     )}
                   </div>
                 </div>
                 
                 <div className="flex gap-2">
-                  {/* Retry button for failed uploads */}
+                  {/* Retry button for failed uploads - more minimal */}
                   {selectedItem.uploadStatus === 'failed' && (
                     <Button 
                       variant="destructive"
+                      size="sm"
                       onClick={(e) => handleRetryUpload(e, selectedItem.id)}
                       disabled={retryingItems.has(selectedItem.id)}
+                      className="text-xs"
                     >
                       {retryingItems.has(selectedItem.id) ? (
-                        <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Retrying...</>
+                        <><Loader2 className="mr-1.5 h-3 w-3 animate-spin" /> Retrying</>
                       ) : (
-                        <><RefreshCcw className="mr-2 h-4 w-4" /> Retry Upload</>
+                        <><RefreshCcw className="mr-1.5 h-3 w-3" /> Retry</>
                       )}
                     </Button>
                   )}
                   
-                  {/* Download button */}
-                  <Button variant="outline">
-                    <Download className="mr-2 h-4 w-4" />
+                  {/* Download button - more minimal */}
+                  <Button variant="outline" size="sm" className="text-xs">
+                    <Download className="mr-1.5 h-3 w-3" />
                     Download
                   </Button>
                   
-                  {/* Jump to timeline button */}
+                  {/* Jump to timeline button - more minimal */}
                   <Button 
+                    size="sm"
                     onClick={handleJumpToTimestamp}
                     disabled={!onTimelinePositionChange}
+                    className="text-xs"
                   >
-                    <Clock className="mr-1 w-4 h-4" />
+                    <Clock className="mr-1.5 w-3 h-3" />
                     Jump to Timeline
-                    <ArrowRight className="ml-1 w-4 h-4" />
                   </Button>
                 </div>
               </div>
+              
+              {/* Added capture time with more prominence */}
+              <p className="text-xs text-text-icon-01">
+                <span className="font-medium">Captured at:</span> {selectedItem.timestamp} during flight
+              </p>
             </div>
           </div>
         )}
@@ -683,6 +696,15 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
       <p className="text-sm mt-1 text-text-icon-03">Please wait while we fetch the media items...</p>
     </div>
   );
+
+  // Get counts for summary
+  const getMediaCounts = () => {
+    const photoCount = mediaItems.filter(item => item.type === 'photo').length;
+    const videoCount = mediaItems.filter(item => item.type === 'video').length;
+    return { photoCount, videoCount, totalCount: mediaItems.length };
+  };
+  
+  const { photoCount, videoCount, totalCount } = getMediaCounts();
 
   return (
     <div className="flex flex-col h-full">
