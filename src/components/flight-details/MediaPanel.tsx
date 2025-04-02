@@ -13,6 +13,7 @@ interface MediaItem {
   url: string;
   title?: string;
   duration?: string; // For videos only, in seconds
+  uploadStatus?: 'success' | 'failed' | 'processing';
 }
 
 interface MediaPanelProps {
@@ -28,7 +29,8 @@ const MOCK_MEDIA_ITEMS: MediaItem[] = [
     timestamp: '00:01:45',
     thumbnailUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4',
     url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4',
-    title: 'Takeoff Area'
+    title: 'Takeoff Area',
+    uploadStatus: 'success'
   },
   {
     id: 'photo-002',
@@ -36,7 +38,8 @@ const MOCK_MEDIA_ITEMS: MediaItem[] = [
     timestamp: '00:04:30',
     thumbnailUrl: 'https://images.unsplash.com/photo-1494500764479-0c8f2919a3d8',
     url: 'https://images.unsplash.com/photo-1494500764479-0c8f2919a3d8',
-    title: 'City Overview'
+    title: 'City Overview',
+    uploadStatus: 'success'
   },
   {
     id: 'video-001',
@@ -45,7 +48,8 @@ const MOCK_MEDIA_ITEMS: MediaItem[] = [
     thumbnailUrl: 'https://images.unsplash.com/photo-1518623489648-a173ef7824f3',
     url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
     title: 'Mission Start',
-    duration: '45'
+    duration: '45',
+    uploadStatus: 'success'
   },
   {
     id: 'photo-003',
@@ -53,7 +57,8 @@ const MOCK_MEDIA_ITEMS: MediaItem[] = [
     timestamp: '00:09:20',
     thumbnailUrl: 'https://images.unsplash.com/photo-1462332420958-a05d1e002413',
     url: 'https://images.unsplash.com/photo-1462332420958-a05d1e002413',
-    title: 'Inspection Point 1'
+    title: 'Inspection Point 1',
+    uploadStatus: 'processing'
   },
   {
     id: 'photo-004',
@@ -61,7 +66,8 @@ const MOCK_MEDIA_ITEMS: MediaItem[] = [
     timestamp: '00:12:10',
     thumbnailUrl: 'https://images.unsplash.com/photo-1534447677768-be436bb09401',
     url: 'https://images.unsplash.com/photo-1534447677768-be436bb09401',
-    title: 'Tower Closeup'
+    title: 'Tower Closeup',
+    uploadStatus: 'success'
   },
   {
     id: 'video-002',
@@ -70,32 +76,8 @@ const MOCK_MEDIA_ITEMS: MediaItem[] = [
     thumbnailUrl: 'https://images.unsplash.com/photo-1528872042734-8f50f9d3c59b',
     url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
     title: 'Structure Survey',
-    duration: '62'
-  },
-  {
-    id: 'photo-005',
-    type: 'photo',
-    timestamp: '00:18:45',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef',
-    url: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef',
-    title: 'Landing Zone'
-  },
-  {
-    id: 'video-003',
-    type: 'video',
-    timestamp: '00:21:20',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1504608524841-42fe6f032b4b',
-    url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-    title: 'Return Path',
-    duration: '38'
-  },
-  {
-    id: 'photo-006',
-    type: 'photo',
-    timestamp: '00:24:00',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e',
-    url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e',
-    title: 'Mission Complete'
+    duration: '62',
+    uploadStatus: 'success'
   }
 ];
 
