@@ -167,7 +167,7 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
           value={activeTab}
         >
           <div className="border-b border-outline-primary">
-            <ScrollArea orientation="horizontal" className="w-full h-[40px]" type="scroll">
+            <ScrollArea className="w-full h-[40px]" type="scroll">
               <TabsList className="flex w-auto min-w-full h-[40px] bg-transparent shrink-0">
                 <TabsTrigger 
                   value="telemetry" 
