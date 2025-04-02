@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Image as ImageIcon, Film, Loader2, Info, RefreshCcw, Check, X, Clock, Play, ArrowRight, FileInfo, Download } from 'lucide-react';
+import { Image as ImageIcon, Film, Loader2, Info, RefreshCcw, Check, X, Clock, Play, ArrowRight, FileText, Download, AlertCircle } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { timeToSeconds } from './timeline/timelineUtils';
@@ -540,7 +539,7 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
                     
                     {selectedItem.fileSize && (
                       <Badge variant="outline" className="flex items-center gap-1">
-                        <FileInfo className="w-3.5 h-3.5" /> {selectedItem.fileSize}
+                        <FileText className="w-3.5 h-3.5" /> {selectedItem.fileSize}
                       </Badge>
                     )}
                     
