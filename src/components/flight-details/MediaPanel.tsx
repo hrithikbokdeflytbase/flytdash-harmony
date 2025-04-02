@@ -11,17 +11,8 @@ import { Button } from "@/components/ui/button";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-
-interface MediaItem {
-  id: string;
-  type: 'photo' | 'video';
-  timestamp: string;
-  thumbnailUrl: string;
-  url: string;
-  title?: string;
-  duration?: string; // For videos only, in seconds
-  uploadStatus?: 'success' | 'failed' | 'processing';
-}
+import { MediaItem, mediaService } from '@/services/mediaService';
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 interface MediaPanelProps {
   flightId: string;
@@ -29,87 +20,22 @@ interface MediaPanelProps {
   onTimelinePositionChange?: (timestamp: string) => void;
 }
 
-// Mock media data
-const MOCK_MEDIA_ITEMS: MediaItem[] = [
-  {
-    id: 'photo-001',
-    type: 'photo',
-    timestamp: '00:01:45',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4',
-    url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4',
-    title: 'Takeoff Area',
-    uploadStatus: 'success'
-  },
-  {
-    id: 'photo-002',
-    type: 'photo',
-    timestamp: '00:04:30',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1494500764479-0c8f2919a3d8',
-    url: 'https://images.unsplash.com/photo-1494500764479-0c8f2919a3d8',
-    title: 'City Overview',
-    uploadStatus: 'success'
-  },
-  {
-    id: 'video-001',
-    type: 'video',
-    timestamp: '00:06:15',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1518623489648-a173ef7824f3',
-    url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-    title: 'Mission Start',
-    duration: '45',
-    uploadStatus: 'success'
-  },
-  {
-    id: 'photo-003',
-    type: 'photo',
-    timestamp: '00:09:20',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1462332420958-a05d1e002413',
-    url: 'https://images.unsplash.com/photo-1462332420958-a05d1e002413',
-    title: 'Inspection Point 1',
-    uploadStatus: 'processing'
-  },
-  {
-    id: 'photo-004',
-    type: 'photo',
-    timestamp: '00:12:10',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1534447677768-be436bb09401',
-    url: 'https://images.unsplash.com/photo-1534447677768-be436bb09401',
-    title: 'Tower Closeup',
-    uploadStatus: 'failed'
-  },
-  {
-    id: 'video-002',
-    type: 'video',
-    timestamp: '00:15:30',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1528872042734-8f50f9d3c59b',
-    url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
-    title: 'Structure Survey',
-    duration: '62',
-    uploadStatus: 'success'
-  }
-];
-
 export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimelinePositionChange }: MediaPanelProps) {
   // State for media items, filter type, and loading states
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
   const [filteredItems, setFilteredItems] = useState<MediaItem[]>([]);
   const [filterType, setFilterType] = useState<'all' | 'photos' | 'videos'>('all');
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<MediaItem | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [highlightedMediaId, setHighlightedMediaId] = useState<string | null>(null);
+  const [retryingItems, setRetryingItems] = useState<Set<string>>(new Set());
   const { toast } = useToast();
   
-  // Add placeholder implementation for fetching media
+  // Fetch media items when component mounts or flightId changes
   useEffect(() => {
-    // Mock loading for now
-    setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setMediaItems(MOCK_MEDIA_ITEMS);
-      setIsLoading(false);
-    }, 1000);
+    fetchMediaItems();
   }, [flightId]);
   
   // Apply filters whenever media items or filter type changes
@@ -123,7 +49,7 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
     }
   }, [mediaItems, filterType]);
   
-  // Enhanced: Find nearest media item to current timeline position
+  // Find nearest media item to current timeline position
   useEffect(() => {
     if (mediaItems.length === 0 || !timelinePosition) return;
     
@@ -154,13 +80,34 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
     }
   }, [timelinePosition, mediaItems, isDialogOpen]);
   
+  // Function to fetch media items from the API
+  const fetchMediaItems = async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const items = await mediaService.getFlightMedia(flightId);
+      setMediaItems(items);
+    } catch (err) {
+      console.error('Error fetching media items:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load media');
+      toast({
+        title: "Error",
+        description: "Failed to load media items",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
   // Handle item click
   const handleItemClick = (item: MediaItem) => {
     setSelectedItem(item);
     setIsDialogOpen(true);
   };
   
-  // Enhanced: Jump to timestamp in timeline
+  // Jump to timestamp in timeline
   const handleJumpToTimestamp = () => {
     if (selectedItem && onTimelinePositionChange) {
       onTimelinePositionChange(selectedItem.timestamp);
@@ -173,30 +120,49 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
     }
   };
   
-  // Handle retry upload - Fixed the type issue
-  const handleRetryUpload = (e: React.MouseEvent, itemId: string) => {
+  // Handle retry upload
+  const handleRetryUpload = async (e: React.MouseEvent, itemId: string) => {
     e.stopPropagation();
-    console.log(`Retrying upload for item: ${itemId}`);
     
-    // Ensure we use the correct literal type for uploadStatus
-    const updatedItems = mediaItems.map(item => 
-      item.id === itemId ? {...item, uploadStatus: 'processing' as const} : item
-    );
+    // Add item ID to retrying set
+    setRetryingItems(prev => new Set(prev).add(itemId));
     
-    setMediaItems(updatedItems);
-    
-    // Simulate completion
-    setTimeout(() => {
-      const finalItems = mediaItems.map(item => 
+    try {
+      // Call the API to retry the upload
+      const updatedItem = await mediaService.retryUpload(itemId);
+      
+      // Update the media items with the successful upload
+      const updatedItems = mediaItems.map(item => 
         item.id === itemId ? {...item, uploadStatus: 'success' as const} : item
       );
-      setMediaItems(finalItems);
+      setMediaItems(updatedItems);
       
       toast({
         title: "Upload successful",
-        description: `Media item ${itemId} was uploaded successfully.`,
+        description: `Media item was uploaded successfully.`,
       });
-    }, 2000);
+    } catch (error) {
+      console.error('Error retrying upload:', error);
+      
+      // Update the item to show it's still failed
+      const updatedItems = mediaItems.map(item => 
+        item.id === itemId ? {...item, uploadStatus: 'failed' as const} : item
+      );
+      setMediaItems(updatedItems);
+      
+      toast({
+        title: "Upload failed",
+        description: error instanceof Error ? error.message : "Failed to upload media item",
+        variant: "destructive",
+      });
+    } finally {
+      // Remove the item from the retrying set
+      setRetryingItems(prev => {
+        const updated = new Set(prev);
+        updated.delete(itemId);
+        return updated;
+      });
+    }
   };
   
   // Get counts for summary
@@ -208,7 +174,7 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
   
   const { photoCount, videoCount, totalCount } = getMediaCounts();
   
-  // Enhanced: Check if a media item is near the current timeline position (within 5 seconds)
+  // Check if a media item is near the current timeline position (within 5 seconds)
   const isNearTimelinePosition = (itemTimestamp: string): boolean => {
     if (!timelinePosition) return false;
     
@@ -244,6 +210,15 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
   
   // Render status indicator
   const renderStatusIndicator = (item: MediaItem) => {
+    // If this item is currently being retried
+    if (retryingItems.has(item.id)) {
+      return (
+        <Badge variant="default" className="absolute top-2 right-2 bg-amber-500">
+          <Loader2 className="w-3 h-3 mr-1 animate-spin" /> Retrying...
+        </Badge>
+      );
+    }
+    
     switch(item.uploadStatus) {
       case 'success':
         return (
@@ -268,8 +243,14 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
               size="sm" 
               className="h-6 px-2"
               onClick={(e) => handleRetryUpload(e, item.id)}
+              disabled={retryingItems.has(item.id)}
             >
-              <RefreshCcw className="w-3 h-3 mr-1" /> Retry
+              {retryingItems.has(item.id) ? (
+                <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+              ) : (
+                <RefreshCcw className="w-3 h-3 mr-1" />
+              )}
+              Retry
             </Button>
           </div>
         );
@@ -326,7 +307,7 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
                 {item.type === 'photo' ? 'Photo' : `Video (${item.duration}s)`}
               </span>
               
-              {/* Add "Jump to timestamp" button for easy navigation */}
+              {/* Jump to timestamp button for easy navigation */}
               {onTimelinePositionChange && (
                 <Button 
                   variant="ghost" 
@@ -370,6 +351,10 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
                     src={selectedItem.url} 
                     alt={selectedItem.title || selectedItem.id} 
                     className="max-w-full max-h-[70vh] object-contain"
+                    onError={(e) => {
+                      // Show error if image fails to load
+                      (e.target as HTMLImageElement).src = 'https://placehold.co/800x450?text=Image+Failed+to+Load';
+                    }}
                   />
                 </div>
               ) : (
@@ -379,6 +364,16 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
                     controls 
                     className="max-w-full max-h-[70vh]"
                     autoPlay
+                    onError={(e) => {
+                      // Show error message if video fails to load
+                      const target = e.target as HTMLVideoElement;
+                      target.outerHTML = `
+                        <div class="flex flex-col items-center justify-center p-8 text-white">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                          <p class="mt-4">Failed to load video</p>
+                        </div>
+                      `;
+                    }}
                   >
                     Your browser does not support the video tag.
                   </video>
@@ -424,26 +419,67 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
     </Dialog>
   );
 
+  // Render error state
+  const renderError = () => (
+    <Alert variant="destructive" className="mb-4">
+      <AlertTitle className="flex items-center">
+        <X className="w-4 h-4 mr-2" /> Error Loading Media
+      </AlertTitle>
+      <AlertDescription className="flex flex-col gap-2">
+        <p>{error}</p>
+        <Button 
+          variant="destructive" 
+          size="sm" 
+          onClick={fetchMediaItems}
+          className="self-start mt-2"
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          ) : (
+            <RefreshCcw className="w-4 h-4 mr-2" />
+          )}
+          Try Again
+        </Button>
+      </AlertDescription>
+    </Alert>
+  );
+
+  // Render empty state
+  const renderEmpty = () => (
+    <div className="flex flex-col items-center justify-center h-40 text-text-icon-02">
+      <Info className="w-8 h-8 mb-2" />
+      <p>No media found</p>
+      <p className="text-sm">Try changing the filter</p>
+    </div>
+  );
+
+  // Render loading state
+  const renderLoading = () => (
+    <div className="flex flex-col items-center justify-center h-40">
+      <Loader2 className="w-8 h-8 text-primary-200 animate-spin mb-2" />
+      <p className="text-text-icon-02">Loading media...</p>
+    </div>
+  );
+
   return (
     <div className="flex flex-col h-full">
       <div className="p-4 flex-shrink-0">
         {renderFilters()}
+        
+        {error && renderError()}
       </div>
       
       <ScrollArea className="flex-1">
         <div className="p-4">
           {isLoading ? (
-            <div className="flex items-center justify-center h-40">
-              <Loader2 className="w-8 h-8 text-primary-200 animate-spin" />
-            </div>
+            renderLoading()
+          ) : error ? (
+            renderEmpty() // We already show the error above, so just show an empty state here
           ) : filteredItems.length > 0 ? (
             renderMediaGrid()
           ) : (
-            <div className="flex flex-col items-center justify-center h-40 text-text-icon-02">
-              <Info className="w-8 h-8 mb-2" />
-              <p>No media found</p>
-              <p className="text-sm">Try changing the filter</p>
-            </div>
+            renderEmpty()
           )}
         </div>
       </ScrollArea>
