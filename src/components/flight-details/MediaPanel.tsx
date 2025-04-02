@@ -418,12 +418,13 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
                       <span className="text-[10px] text-text-icon-02">
                         {item.type === 'photo' ? 
                           `Photo${item.fileSize ? ` • ${item.fileSize}` : ''}` : 
-                          `Video${item.duration ? ` • ${item.duration}s` : ''}`
+                          `Video${item.duration ? ` • ${item.duration}s` : ''}${item.fileSize ? ` • ${item.fileSize}` : ''}`
                         }
                       </span>
                     </div>
                     <div className="text-[10px] text-text-icon-02 mt-1">
-                      Captured at {formatCaptureTime(item.timestamp)}\n                    </div>
+                      Captured at {formatCaptureTime(item.timestamp)}
+                    </div>
                   </div>
                   
                   {/* Jump to timestamp button for easy navigation - smaller and minimal */}
@@ -563,17 +564,17 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
                         </>
                       )}
                     </Badge>
-                      
+                        
                     <Badge variant="outline" className="flex items-center gap-1 text-[10px] py-0 px-1.5">
                       <Clock className="w-3 h-3" /> {selectedItem.timestamp}
                     </Badge>
-                      
+                        
                     {selectedItem.fileSize && (
                       <Badge variant="outline" className="flex items-center gap-1 text-[10px] py-0 px-1.5">
                         <FileText className="w-3 h-3" /> {selectedItem.fileSize}
                       </Badge>
                     )}
-                      
+                        
                     {selectedItem.uploadStatus && (
                       <Badge 
                         variant={selectedItem.uploadStatus === 'success' ? 'success' : 
@@ -588,7 +589,7 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
                     )}
                   </div>
                 </div>
-                  
+                    
                 <div className="flex gap-2">
                   {/* Minimal buttons */}
                   <Button 
@@ -599,7 +600,7 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
                     <Download className="mr-1 h-3 w-3" />
                     Download
                   </Button>
-                    
+                      
                   <Button 
                     size="sm"
                     className="h-7 text-xs"
