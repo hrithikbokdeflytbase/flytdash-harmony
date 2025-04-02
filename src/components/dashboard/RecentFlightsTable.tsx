@@ -360,34 +360,17 @@ const RecentFlightsTable: React.FC<RecentFlightsTableProps> = ({ isLoading = fal
             {mediaData.uploaded}/{mediaData.total}
           </span>
         </div>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className="w-16 h-1.5 flex items-center">
-                <Progress 
-                  value={uploadedPercentage} 
-                  className="h-1.5 w-full bg-background-level-2"
-                  indicatorClassName={getMediaUploadProgressColor(uploadedPercentage)}
-                  failed={failed}
-                />
-                {failed && flightId && (
-                  <RefreshCcw 
-                    className="w-3 h-3 ml-1 text-error-200 cursor-pointer" 
-                    onClick={(e) => handleRetryUpload(e, mediaType, flightId)}
-                  />
-                )}
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>
-                {failed 
-                  ? `Upload failed. Click the refresh icon to retry.` 
-                  : `${mediaData.uploaded} of ${mediaData.total} ${mediaType} uploaded (${Math.round(uploadedPercentage)}%)`
-                }
-              </p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <div className="w-16 flex-1">
+          <Progress 
+            value={uploadedPercentage} 
+            className="h-1.5 bg-background-level-2"
+            failed={failed}
+            onRetry={failed ? (e) => {
+              e?.stopPropagation();
+              handleRetryUpload(e as React.MouseEvent, mediaType, flightId || '');
+            } : undefined}
+          />
+        </div>
       </div>
     );
   };
