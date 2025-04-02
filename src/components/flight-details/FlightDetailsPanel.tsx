@@ -166,7 +166,7 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
           value={activeTab}
         >
           <div className="border-b border-outline-primary overflow-hidden">
-            <div className="w-full overflow-x-auto hide-scrollbar">
+            <ScrollArea className="w-full" type="scroll">
               <TabsList className="w-max min-w-full flex h-[40px] bg-transparent">
                 <TabsTrigger 
                   value="telemetry" 
@@ -205,7 +205,7 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
                   </div>
                 </TabsTrigger>
               </TabsList>
-            </div>
+            </ScrollArea>
           </div>
 
           {/* Tab Contents */}

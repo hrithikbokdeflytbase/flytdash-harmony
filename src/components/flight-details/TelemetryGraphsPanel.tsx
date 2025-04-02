@@ -19,48 +19,11 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
   // Convert timestamp to seconds for visualization
   const timestampInSeconds = useMemo(() => timeToSeconds(timestamp), [timestamp]);
   
-  // Generate mock history data for all telemetry values with better continuous curves
+  // Generate mock history data for all telemetry values - use a ref to avoid regenerating
   const [telemetryHistory, setTelemetryHistory] = useState(() => {
-    console.log("Generating enhanced mock telemetry history");
-    // Generate with more data points for smoother curves
-    const generatedData = generateMockTelemetryHistory(350); // Increased data points
-    
-    // Ensure data covers the entire flight timeline
-    return {
-      battery: ensureDataCoverage(generatedData.battery),
-      altitude: ensureDataCoverage(generatedData.altitude),
-      horizontalSpeed: ensureDataCoverage(generatedData.horizontalSpeed),
-      verticalSpeed: ensureDataCoverage(generatedData.verticalSpeed),
-      signal: ensureDataCoverage(generatedData.signal),
-    };
+    console.log("Generating mock telemetry history");
+    return generateMockTelemetryHistory();
   });
-  
-  // Helper function to ensure data covers the entire timeline
-  function ensureDataCoverage(data: TelemetryDataPoint[]): TelemetryDataPoint[] {
-    if (!data || data.length === 0) return [];
-    
-    // Sort data by timestamp
-    const sortedData = [...data].sort((a, b) => a.timestamp - b.timestamp);
-    
-    // If data doesn't start from 0, add a starting point
-    if (sortedData[0].timestamp > 0) {
-      sortedData.unshift({
-        timestamp: 0,
-        value: sortedData[0].value
-      });
-    }
-    
-    // If data doesn't end at max duration (5.5 hours = 19800 seconds), add an ending point
-    const maxDuration = 19800;
-    if (sortedData[sortedData.length - 1].timestamp < maxDuration) {
-      sortedData.push({
-        timestamp: maxDuration,
-        value: sortedData[sortedData.length - 1].value
-      });
-    }
-    
-    return sortedData;
-  }
   
   useEffect(() => {
     console.log("Telemetry history generated:", 
@@ -228,13 +191,13 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
 
   return (
     <ScrollArea className="h-full w-full">
-      <div className="p-3 space-y-4 relative">
+      <div className="p-0 space-y-4 relative">
         <MetricChart 
           data={telemetryHistory.battery}
           currentValue={currentBatteryValue}
           currentTimestamp={timestampInSeconds}
           config={batteryConfig}
-          height={160}
+          height={140}
         />
 
         <MetricChart 
@@ -242,7 +205,7 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
           currentValue={currentAltitudeValue}
           currentTimestamp={timestampInSeconds}
           config={altitudeConfig}
-          height={160}
+          height={140}
         />
 
         <MetricChart 
@@ -250,7 +213,7 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
           currentValue={currentHorizontalSpeedValue}
           currentTimestamp={timestampInSeconds}
           config={horizontalSpeedConfig}
-          height={160}
+          height={140}
         />
 
         <MetricChart 
@@ -258,7 +221,7 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
           currentValue={currentVerticalSpeedValue}
           currentTimestamp={timestampInSeconds}
           config={verticalSpeedConfig}
-          height={160}
+          height={140}
         />
 
         <MetricChart 
@@ -266,7 +229,7 @@ const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
           currentValue={currentSignalStrengthValue}
           currentTimestamp={timestampInSeconds}
           config={signalStrengthConfig}
-          height={160}
+          height={140}
           isLastChart={true}
         />
       </div>
