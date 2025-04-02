@@ -87,12 +87,14 @@ const generateMockData = (dateRange: DateRangeType, viewType: ViewType, currentD
           
           return {
             name: format(date, 'MMM'),
-            success: isFutureMonth ? 0 : Math.floor(Math.random() * 60) + 20, // Renamed from successful
+            success: isFutureMonth ? 0 : Math.floor(Math.random() * 60) + 20,
             failed: isFutureMonth ? 0 : Math.floor(Math.random() * 15),
-            error: isFutureMonth ? 0 : Math.floor(Math.random() * 8), // Renamed from aborted
+            error: isFutureMonth ? 0 : Math.floor(Math.random() * 8),
             date,
             isCurrent: isCurrentMonth,
-            isFuture: isFutureMonth
+            isFuture: isFutureMonth,
+            // Add a flag for the first bar to show CURRENT only once
+            isFirstInStack: true
           };
         });
       case 'weekly':
@@ -103,12 +105,13 @@ const generateMockData = (dateRange: DateRangeType, viewType: ViewType, currentD
           
           return {
             name: `W${format(weekStart, 'w')}`,
-            success: isFutureWeek ? 0 : Math.floor(Math.random() * 25) + 10, // Renamed from successful
+            success: isFutureWeek ? 0 : Math.floor(Math.random() * 25) + 10,
             failed: isFutureWeek ? 0 : Math.floor(Math.random() * 5),
-            error: isFutureWeek ? 0 : Math.floor(Math.random() * 3), // Renamed from aborted
+            error: isFutureWeek ? 0 : Math.floor(Math.random() * 3),
             date: weekStart,
             isCurrent: isCurrentWeek,
-            isFuture: isFutureWeek
+            isFuture: isFutureWeek,
+            isFirstInStack: true
           };
         });
       case 'daily':
@@ -122,12 +125,13 @@ const generateMockData = (dateRange: DateRangeType, viewType: ViewType, currentD
           
           return {
             name: format(date, 'EEE'),
-            success: isFutureDay ? 0 : Math.floor(Math.random() * 20) + 5, // Renamed from successful
+            success: isFutureDay ? 0 : Math.floor(Math.random() * 20) + 5,
             failed: isFutureDay ? 0 : Math.floor(Math.random() * 4),
-            error: isFutureDay ? 0 : Math.floor(Math.random() * 2), // Renamed from aborted
+            error: isFutureDay ? 0 : Math.floor(Math.random() * 2),
             date,
             isCurrent: isCurrentDay,
-            isFuture: isFutureDay
+            isFuture: isFutureDay,
+            isFirstInStack: true
           };
         });
     }
@@ -137,7 +141,7 @@ const generateMockData = (dateRange: DateRangeType, viewType: ViewType, currentD
 
 // Enhanced CustomBar component with significantly improved current period highlighting
 const CustomBar = (props: any) => {
-  const { x, y, width, height, isCurrent, isFuture, fill, dataKey, ...rest } = props;
+  const { x, y, width, height, isCurrent, isFuture, fill, dataKey, payload, ...rest } = props;
   
   // Different styling for future months (empty state)
   if (isFuture) {
@@ -196,6 +200,10 @@ const CustomBar = (props: any) => {
     );
   }
   
+  // Only show the CURRENT label for the first bar in the stack
+  const shouldShowCurrentLabel = isCurrent && 
+    ((payload && payload.isFirstInStack) || dataKey === 'flights');
+  
   // Different styling based on whether it's the current period
   if (isCurrent) {
     // For current period, use a gradient and special styling
@@ -210,7 +218,7 @@ const CustomBar = (props: any) => {
       return baseColor; // Fallback
     })();
     
-    // Get the glow color that matches the bar's color instead of using purple
+    // Get the glow color that matches the bar's color
     const getGlowColor = () => {
       if (baseColor === '#3399FF') return 'rgba(51, 153, 255, 0.6)'; // Blue for total
       if (baseColor === '#1EAE6D') return 'rgba(30, 174, 109, 0.6)'; // Green for success
@@ -266,27 +274,31 @@ const CustomBar = (props: any) => {
           className="animate-pulse"
           style={{ filter: `drop-shadow(0 0 5px ${glowColor})` }}
         />
-        {/* Star/highlight at top */}
-        <circle
-          cx={x + width / 2}
-          cy={y - 5}
-          r={4}
-          fill={baseColor}
-          className="animate-pulse"
-          style={{ filter: `drop-shadow(0 0 3px ${glowColor})` }}
-        />
-        {/* "Current" label on top */}
-        <text
-          x={x + width / 2}
-          y={y - 12}
-          textAnchor="middle"
-          fill="#ffffff"
-          fontSize="10"
-          fontWeight="bold"
-          style={{ filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5))' }}
-        >
-          CURRENT
-        </text>
+        {/* Star/highlight at top - Only show for the first bar in stack */}
+        {shouldShowCurrentLabel && (
+          <circle
+            cx={x + width / 2}
+            cy={y - 5}
+            r={4}
+            fill={baseColor}
+            className="animate-pulse"
+            style={{ filter: `drop-shadow(0 0 3px ${glowColor})` }}
+          />
+        )}
+        {/* "Current" label on top - Only show for the first bar in stack */}
+        {shouldShowCurrentLabel && (
+          <text
+            x={x + width / 2}
+            y={y - 12}
+            textAnchor="middle"
+            fill="#ffffff"
+            fontSize="10"
+            fontWeight="bold"
+            style={{ filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5))' }}
+          >
+            CURRENT
+          </text>
+        )}
       </g>
     );
   }
@@ -362,10 +374,24 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-// Custom cursor for highlighting bars on hover
 const CustomCursor = ({ x, y, width, height, payload }: any) => {
   const isCurrentPeriod = payload && payload[0]?.payload?.isCurrent;
   const isFuturePeriod = payload && payload[0]?.payload?.isFuture;
+  
+  // Update cursor colors to use the same color scheme as the bars instead of purple
+  const getCursorColor = () => {
+    if (isFuturePeriod) return "rgba(255, 255, 255, 0.05)";
+    
+    if (isCurrentPeriod) {
+      const dataKey = payload[0]?.dataKey;
+      if (dataKey === 'flights') return "rgba(51, 153, 255, 0.2)"; // Blue for flights
+      if (dataKey === 'success') return "rgba(30, 174, 109, 0.2)"; // Green for success
+      if (dataKey === 'failed') return "rgba(248, 71, 58, 0.2)"; // Red for failed
+      if (dataKey === 'error') return "rgba(253, 176, 34, 0.2)"; // Yellow for error
+    }
+    
+    return "rgba(73, 109, 200, 0.15)"; // Default blue highlight
+  };
   
   return (
     <rect
@@ -373,19 +399,13 @@ const CustomCursor = ({ x, y, width, height, payload }: any) => {
       y={y}
       width={width}
       height={height}
-      fill={
-        isFuturePeriod 
-          ? "rgba(255, 255, 255, 0.05)" 
-          : isCurrentPeriod 
-            ? "rgba(155, 135, 245, 0.2)" 
-            : "rgba(73, 109, 200, 0.15)"
-      }
+      fill={getCursorColor()}
       fillOpacity={0.4}
       stroke={
         isFuturePeriod 
           ? "rgba(255, 255, 255, 0.2)" 
           : isCurrentPeriod 
-            ? "#9b87f5" 
+            ? getCursorColor().replace("0.2", "0.5") 
             : "none"
       }
       strokeWidth={1}
@@ -476,7 +496,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
       label: "Flights",
       color: "#3399FF"
     },
-    success: { // Renamed from successful
+    success: {
       label: "Success",
       color: "#1EAE6D"
     },
@@ -484,7 +504,7 @@ const FlightTimeline: React.FC<FlightTimelineProps> = ({ viewType, dateRange, is
       label: "Failed",
       color: "#F8473A"
     },
-    error: { // Renamed from aborted
+    error: {
       label: "Error",
       color: "#FDB022"
     }

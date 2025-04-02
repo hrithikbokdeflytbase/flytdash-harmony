@@ -2,7 +2,7 @@
 import React from 'react';
 
 export const CustomBar = (props: any) => {
-  const { x, y, width, height, isCurrent, isFuture, fill, dataKey, ...rest } = props;
+  const { x, y, width, height, isCurrent, isFuture, fill, dataKey, payload, ...rest } = props;
   
   // Different styling for future months (empty state)
   if (isFuture) {
@@ -86,6 +86,10 @@ export const CustomBar = (props: any) => {
     
     const glowColor = getGlowColor();
     
+    // Only show the CURRENT label for the first item in a stack (based on payload property)
+    const shouldShowCurrentLabel = dataKey === 'flights' || 
+      (payload && payload.isFirstInStack === true);
+    
     return (
       <g>
         <defs>
@@ -131,27 +135,31 @@ export const CustomBar = (props: any) => {
           className="animate-pulse"
           style={{ filter: `drop-shadow(0 0 5px ${glowColor})` }}
         />
-        {/* Star/highlight at top */}
-        <circle
-          cx={x + width / 2}
-          cy={y - 5}
-          r={4}
-          fill={baseColor}
-          className="animate-pulse"
-          style={{ filter: `drop-shadow(0 0 3px ${glowColor})` }}
-        />
-        {/* "Current" label on top */}
-        <text
-          x={x + width / 2}
-          y={y - 12}
-          textAnchor="middle"
-          fill="#ffffff"
-          fontSize="10"
-          fontWeight="bold"
-          style={{ filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5))' }}
-        >
-          CURRENT
-        </text>
+        {/* Star/highlight at top - Only show for the first bar in stack */}
+        {shouldShowCurrentLabel && (
+          <circle
+            cx={x + width / 2}
+            cy={y - 5}
+            r={4}
+            fill={baseColor}
+            className="animate-pulse"
+            style={{ filter: `drop-shadow(0 0 3px ${glowColor})` }}
+          />
+        )}
+        {/* "Current" label on top - Only show for the first bar in stack */}
+        {shouldShowCurrentLabel && (
+          <text
+            x={x + width / 2}
+            y={y - 12}
+            textAnchor="middle"
+            fill="#ffffff"
+            fontSize="10"
+            fontWeight="bold"
+            style={{ filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5))' }}
+          >
+            CURRENT
+          </text>
+        )}
       </g>
     );
   }
