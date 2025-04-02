@@ -1,15 +1,15 @@
-
 import React, { useState, useEffect } from 'react';
-import { Image as ImageIcon, Film, Loader2, Info, RefreshCcw, Check, X, Clock } from 'lucide-react';
+import { Image as ImageIcon, Film, Loader2, Info, RefreshCcw, Check, X, Clock, Play, ArrowRight } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { timeToSeconds } from './timeline/timelineUtils';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Card, CardContent } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
 
 interface MediaItem {
   id: string;
@@ -25,6 +25,7 @@ interface MediaItem {
 interface MediaPanelProps {
   flightId: string;
   timelinePosition?: string; // Current timeline position in HH:MM:SS format
+  onTimelinePositionChange?: (timestamp: string) => void;
 }
 
 // Mock media data
@@ -87,7 +88,7 @@ const MOCK_MEDIA_ITEMS: MediaItem[] = [
   }
 ];
 
-export function MediaPanel({ flightId, timelinePosition = '00:00:00' }: MediaPanelProps) {
+export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimelinePositionChange }: MediaPanelProps) {
   // State for media items, filter type, and loading states
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
   const [filteredItems, setFilteredItems] = useState<MediaItem[]>([]);
@@ -95,6 +96,7 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00' }: MediaPan
   const [isLoading, setIsLoading] = useState(true);
   const [selectedItem, setSelectedItem] = useState<MediaItem | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { toast } = useToast();
   
   // Add placeholder implementation for fetching media
   useEffect(() => {
@@ -142,6 +144,18 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00' }: MediaPan
   const handleItemClick = (item: MediaItem) => {
     setSelectedItem(item);
     setIsDialogOpen(true);
+  };
+  
+  // Jump to timestamp in timeline
+  const handleJumpToTimestamp = () => {
+    if (selectedItem && onTimelinePositionChange) {
+      onTimelinePositionChange(selectedItem.timestamp);
+      toast({
+        title: "Timeline updated",
+        description: `Jumped to ${selectedItem.timestamp}`,
+      });
+      setIsDialogOpen(false);
+    }
   };
   
   // Handle retry upload
@@ -299,39 +313,68 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00' }: MediaPan
   // Render media preview dialog
   const renderMediaPreview = () => (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-      <DialogContent className="max-w-4xl">
+      <DialogContent className="max-w-6xl p-0 gap-0 overflow-hidden bg-background/95 backdrop-blur-lg border-none sm:rounded-xl">
+        <DialogClose className="absolute right-4 top-4 z-50 rounded-full bg-background/40 backdrop-blur hover:bg-background/60 p-2 transition-colors">
+          <X className="h-5 w-5 text-white" />
+          <span className="sr-only">Close</span>
+        </DialogClose>
+        
         {selectedItem && (
-          <div className="flex flex-col gap-4">
-            <h2 className="text-xl font-medium">{selectedItem.title || selectedItem.id}</h2>
-            <div className="bg-black rounded-lg overflow-hidden">
+          <div className="flex flex-col w-full h-full">
+            <div className="relative flex-1 bg-black min-h-[50vh]">
               {selectedItem.type === 'photo' ? (
-                <img 
-                  src={selectedItem.url} 
-                  alt={selectedItem.title || selectedItem.id} 
-                  className="w-full h-auto"
-                />
+                <div className="relative w-full h-full flex items-center justify-center">
+                  <img 
+                    src={selectedItem.url} 
+                    alt={selectedItem.title || selectedItem.id} 
+                    className="max-w-full max-h-[70vh] object-contain"
+                  />
+                </div>
               ) : (
-                <video 
-                  src={selectedItem.url} 
-                  controls 
-                  className="w-full"
-                />
+                <div className="w-full h-full flex items-center justify-center">
+                  <video 
+                    src={selectedItem.url} 
+                    controls 
+                    className="max-w-full max-h-[70vh]"
+                    autoPlay
+                  >
+                    Your browser does not support the video tag.
+                  </video>
+                </div>
               )}
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm flex items-center gap-2">
-                <Clock className="w-4 h-4" /> 
-                Captured at {selectedItem.timestamp}
-              </span>
-              {selectedItem.uploadStatus === 'failed' && (
-                <Button 
-                  variant="destructive" 
-                  size="sm" 
-                  onClick={(e) => handleRetryUpload(e, selectedItem.id)}
-                >
-                  <RefreshCcw className="w-4 h-4 mr-2" /> Retry Upload
-                </Button>
-              )}
+            
+            <div className="p-6 border-t flex flex-wrap justify-between items-center gap-4 bg-background">
+              <div className="flex flex-col gap-2">
+                <h3 className="text-lg font-medium">{selectedItem.title || `Flight Media ${selectedItem.id}`}</h3>
+                <div className="flex items-center gap-4">
+                  <Badge variant="outline" className="flex items-center gap-1">
+                    {selectedItem.type === 'photo' ? (
+                      <>
+                        <ImageIcon className="w-3.5 h-3.5" /> Photo
+                      </>
+                    ) : (
+                      <>
+                        <Film className="w-3.5 h-3.5" /> Video {selectedItem.duration && `(${selectedItem.duration}s)`}
+                      </>
+                    )}
+                  </Badge>
+                  
+                  <Badge variant="outline" className="flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5" /> {selectedItem.timestamp}
+                  </Badge>
+                </div>
+              </div>
+              
+              <Button 
+                onClick={handleJumpToTimestamp}
+                disabled={!onTimelinePositionChange}
+                className="ml-auto"
+              >
+                <Clock className="mr-1 w-4 h-4" />
+                Jump to Timeline
+                <ArrowRight className="ml-1 w-4 h-4" />
+              </Button>
             </div>
           </div>
         )}
