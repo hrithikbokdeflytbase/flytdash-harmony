@@ -423,8 +423,7 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
                       </span>
                     </div>
                     <div className="text-[10px] text-text-icon-02 mt-1">
-                      Captured at {formatCaptureTime(item.timestamp)}
-                    </div>
+                      Captured at {formatCaptureTime(item.timestamp)}\n                    </div>
                   </div>
                   
                   {/* Jump to timestamp button for easy navigation - smaller and minimal */}
@@ -503,15 +502,17 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
   );
 
   // Render media preview dialog with improved details
-  const renderMediaPreview = () => (
-    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-      <DialogContent className="max-w-6xl p-0 gap-0 overflow-hidden bg-background/95 backdrop-blur-lg border-none sm:rounded-xl">
-        <DialogClose className="absolute right-4 top-4 z-50 rounded-full bg-background/40 backdrop-blur hover:bg-background/60 p-2 transition-colors">
-          <X className="h-5 w-5 text-white" />
-          <span className="sr-only">Close</span>
-        </DialogClose>
-        
-        {selectedItem && (
+  const renderMediaPreview = () => {
+    if (!selectedItem) return null;
+    
+    return (
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-6xl p-0 gap-0 overflow-hidden bg-background/95 backdrop-blur-lg border-none sm:rounded-xl">
+          <DialogClose className="absolute right-4 top-4 z-50 rounded-full bg-background/40 backdrop-blur hover:bg-background/60 p-2 transition-colors">
+            <X className="h-5 w-5 text-white" />
+            <span className="sr-only">Close</span>
+          </DialogClose>
+          
           <div className="flex flex-col w-full h-full">
             <div className="relative flex-1 bg-black min-h-[50vh] flex items-center justify-center">
               {selectedItem.type === 'photo' ? (
@@ -611,11 +612,11 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
                 </div>
               </div>
             </div>
-          </DialogContent>
-        </Dialog>
-      )}
-    
-  );
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  };
 
   // Render error state
   const renderError = () => (
@@ -733,49 +734,7 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
         </div>
       </ScrollArea>
       
-      {selectedItem && (
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="max-w-6xl p-0 gap-0 overflow-hidden bg-background/95 backdrop-blur-lg border-none sm:rounded-xl">
-            <DialogClose className="absolute right-4 top-4 z-50 rounded-full bg-background/40 backdrop-blur hover:bg-background/60 p-2 transition-colors">
-              <X className="h-5 w-5 text-white" />
-              <span className="sr-only">Close</span>
-            </DialogClose>
-            
-            <div className="flex flex-col w-full h-full">
-              <div className="relative flex-1 bg-black min-h-[50vh] flex items-center justify-center">
-                {selectedItem.type === 'photo' ? (
-                  <img 
-                    src={selectedItem.url} 
-                    alt={selectedItem.title || selectedItem.id} 
-                    className="max-w-full max-h-[70vh] object-contain"
-                    onError={(e) => {
-                      // Show error if image fails to load
-                      (e.target as HTMLImageElement).src = 'https://placehold.co/800x450?text=Image+Failed+to+Load';
-                    }}
-                  />
-                ) : (
-                  <video 
-                    src={selectedItem.url} 
-                    controls 
-                    className="max-w-full max-h-[70vh]"
-                    autoPlay
-                    onError={(e) => {
-                      // Show error message if video fails to load
-                      const target = e.target as HTMLVideoElement;
-                      target.outerHTML = `
-                        <div class="flex flex-col items-center justify-center p-8 text-white">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                          <p class="mt-4">Failed to load video</p>
-                        </div>
-                      `;
-                    }}
-                  >
-                    Your browser does not support the video tag.
-                  </video>
-                )}
-              </div>
-              
-              <div className="p-4 border-t flex flex-col gap-3 bg-background">
-                <div className="flex flex-wrap justify-between items-start gap-3">
-                  <div className="flex flex-col gap-1.5">
-                    <h3 className="text-base font-medium">{selectedItem.title ||
+      {renderMediaPreview()}
+    </div>
+  );
+}
