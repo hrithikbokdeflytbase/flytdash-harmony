@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
-import { Image as ImageIcon, Film, Loader2, Info, RefreshCcw, Check, X, Clock, Play, ArrowRight } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Image as ImageIcon, Film, Loader2, Info, RefreshCcw, Check, X, Clock, Play, ArrowRight, FileInfo, Download } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { timeToSeconds } from './timeline/timelineUtils';
@@ -13,6 +13,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { MediaItem, mediaService } from '@/services/mediaService';
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { Progress } from "@/components/ui/progress";
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface MediaPanelProps {
   flightId: string;
@@ -26,16 +28,27 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
   const [filteredItems, setFilteredItems] = useState<MediaItem[]>([]);
   const [filterType, setFilterType] = useState<'all' | 'photos' | 'videos'>('all');
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<MediaItem | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [highlightedMediaId, setHighlightedMediaId] = useState<string | null>(null);
   const [retryingItems, setRetryingItems] = useState<Set<string>>(new Set());
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [totalItems, setTotalItems] = useState(0);
   const { toast } = useToast();
+  
+  // Ref for infinite scroll
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
   
   // Fetch media items when component mounts or flightId changes
   useEffect(() => {
-    fetchMediaItems();
+    setMediaItems([]);
+    setCurrentPage(1);
+    setHasMore(true);
+    fetchMediaItems(1, true);
   }, [flightId]);
   
   // Apply filters whenever media items or filter type changes
@@ -80,14 +93,63 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
     }
   }, [timelinePosition, mediaItems, isDialogOpen]);
   
-  // Function to fetch media items from the API
-  const fetchMediaItems = async () => {
-    setIsLoading(true);
+  // Setup IntersectionObserver for infinite scrolling
+  useEffect(() => {
+    if (!hasMore || isLoading || isLoadingMore) return;
+    
+    // Disconnect previous observer if it exists
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
+    
+    // Create a new observer
+    observerRef.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasMore) {
+        loadMoreItems();
+      }
+    }, { rootMargin: '100px' });
+    
+    // Observe the load more trigger element
+    if (loadMoreRef.current) {
+      observerRef.current.observe(loadMoreRef.current);
+    }
+    
+    return () => {
+      // Clean up observer on unmount
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [hasMore, isLoading, isLoadingMore, filteredItems]);
+  
+  // Function to load more items
+  const loadMoreItems = useCallback(() => {
+    if (!hasMore || isLoadingMore) return;
+    fetchMediaItems(currentPage + 1);
+  }, [currentPage, hasMore, isLoadingMore]);
+  
+  // Function to fetch media items from the API with pagination
+  const fetchMediaItems = async (page: number, reset = false) => {
+    if (page === 1) {
+      setIsLoading(true);
+    } else {
+      setIsLoadingMore(true);
+    }
+    
     setError(null);
     
     try {
-      const items = await mediaService.getFlightMedia(flightId);
-      setMediaItems(items);
+      const result = await mediaService.getFlightMedia(flightId, page);
+      
+      if (reset) {
+        setMediaItems(result.items);
+      } else {
+        setMediaItems(prev => [...prev, ...result.items]);
+      }
+      
+      setCurrentPage(page);
+      setHasMore(result.hasMore);
+      setTotalItems(result.totalCount);
     } catch (err) {
       console.error('Error fetching media items:', err);
       setError(err instanceof Error ? err.message : 'Failed to load media');
@@ -97,7 +159,11 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      if (page === 1) {
+        setIsLoading(false);
+      } else {
+        setIsLoadingMore(false);
+      }
     }
   };
   
@@ -183,6 +249,14 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
     return Math.abs(positionTime - itemTime) <= 5;
   };
   
+  // Handle refresh/retry for initial load error
+  const handleRetryInitialLoad = () => {
+    setMediaItems([]);
+    setCurrentPage(1);
+    setHasMore(true);
+    fetchMediaItems(1, true);
+  };
+  
   // Render filter pills
   const renderFilters = () => (
     <div className="flex items-center gap-2 mb-4">
@@ -201,7 +275,7 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
       </ToggleGroup>
       
       <div className="ml-auto text-sm text-text-icon-02">
-        {filterType === 'all' && `${totalCount} items (${photoCount} photos, ${videoCount} videos)`}
+        {filterType === 'all' && `${totalCount || 0} items (${photoCount} photos, ${videoCount} videos)`}
         {filterType === 'photos' && `${photoCount} photos`}
         {filterType === 'videos' && `${videoCount} videos`}
       </div>
@@ -259,81 +333,147 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
     }
   };
 
-  // Render media grid
+  // Render media grid with loading skeletons
   const renderMediaGrid = () => (
-    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-      {filteredItems.map(item => (
-        <Card 
-          key={item.id} 
-          className={cn(
-            "overflow-hidden cursor-pointer hover:shadow-md transition-all",
-            isNearTimelinePosition(item.timestamp) || highlightedMediaId === item.id
-              ? "ring-2 ring-primary-300"
-              : ""
-          )}
-          onClick={() => handleItemClick(item)}
-        >
-          <div className="relative">
-            <AspectRatio ratio={16/9}>
-              <img 
-                src={item.thumbnailUrl} 
-                alt={item.title || item.id}
-                className="w-full h-full object-cover"
-              />
-              
-              {/* Media type indicator */}
-              <div className="absolute bottom-2 left-2 bg-black/60 rounded-full p-1.5">
-                {item.type === 'photo' ? (
-                  <ImageIcon className="w-4 h-4 text-white" />
-                ) : (
-                  <Film className="w-4 h-4 text-white" />
-                )}
+    <>
+      <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 gap-4">
+        {isLoading && !mediaItems.length ? (
+          // Render skeleton loaders during initial load
+          Array.from({ length: 6 }).map((_, index) => (
+            <Card key={`skeleton-${index}`} className="overflow-hidden">
+              <div className="relative">
+                <AspectRatio ratio={16/9}>
+                  <Skeleton className="w-full h-full" />
+                </AspectRatio>
               </div>
-              
-              {/* Timestamp indicator */}
-              <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs rounded-full flex items-center gap-1 px-2 py-1">
-                <Clock className="w-3 h-3" />
-                {item.timestamp}
-              </div>
-              
-              {/* Upload status indicator */}
-              {renderStatusIndicator(item)}
-            </AspectRatio>
-          </div>
-          <CardContent className="p-3">
-            <h4 className="font-medium text-sm">{item.title || item.id}</h4>
-            <div className="flex justify-between items-center mt-1">
-              <span className="text-xs text-text-icon-02">
-                {item.type === 'photo' ? 'Photo' : `Video (${item.duration}s)`}
-              </span>
-              
-              {/* Jump to timestamp button for easy navigation */}
-              {onTimelinePositionChange && (
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-6 px-2 text-xs"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onTimelinePositionChange(item.timestamp);
-                    toast({
-                      title: "Timeline updated",
-                      description: `Jumped to ${item.timestamp}`,
-                      duration: 2000,
-                    });
-                  }}
-                >
-                  <Clock className="w-3 h-3 mr-1" /> Jump
-                </Button>
+              <CardContent className="p-3">
+                <Skeleton className="h-4 w-3/4 mb-2" />
+                <Skeleton className="h-3 w-1/2" />
+              </CardContent>
+            </Card>
+          ))
+        ) : filteredItems.length > 0 ? (
+          // Render actual media items
+          filteredItems.map(item => (
+            <Card 
+              key={item.id} 
+              className={cn(
+                "overflow-hidden cursor-pointer hover:shadow-md transition-all",
+                isNearTimelinePosition(item.timestamp) || highlightedMediaId === item.id
+                  ? "ring-2 ring-primary-300"
+                  : ""
               )}
+              onClick={() => handleItemClick(item)}
+            >
+              <div className="relative">
+                <AspectRatio ratio={16/9}>
+                  {item.thumbnailUrl ? (
+                    <img 
+                      src={item.thumbnailUrl} 
+                      alt={item.title || item.id}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        // Fallback for broken images
+                        (e.target as HTMLImageElement).src = "https://placehold.co/800x450?text=Image+Not+Available";
+                      }}
+                    />
+                  ) : (
+                    // Fallback for items without thumbnails
+                    <div className="w-full h-full bg-background-level-3 flex items-center justify-center">
+                      {item.type === 'photo' ? (
+                        <ImageIcon className="w-10 h-10 text-text-icon-03" />
+                      ) : (
+                        <Film className="w-10 h-10 text-text-icon-03" />
+                      )}
+                    </div>
+                  )}
+                  
+                  {/* Media type indicator */}
+                  <div className="absolute bottom-2 left-2 bg-black/60 rounded-full p-1.5">
+                    {item.type === 'photo' ? (
+                      <ImageIcon className="w-4 h-4 text-white" />
+                    ) : (
+                      <Film className="w-4 h-4 text-white" />
+                    )}
+                  </div>
+                  
+                  {/* Timestamp indicator */}
+                  <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs rounded-full flex items-center gap-1 px-2 py-1">
+                    <Clock className="w-3 h-3" />
+                    {item.timestamp}
+                  </div>
+                  
+                  {/* Upload status indicator */}
+                  {renderStatusIndicator(item)}
+                </AspectRatio>
+              </div>
+              <CardContent className="p-3">
+                <h4 className="font-medium text-sm line-clamp-1">{item.title || item.id}</h4>
+                <div className="flex justify-between items-center mt-1">
+                  <span className="text-xs text-text-icon-02">
+                    {item.type === 'photo' ? 
+                      `Photo${item.fileSize ? ` • ${item.fileSize}` : ''}` : 
+                      `Video${item.duration ? ` • ${item.duration}s` : ''}`
+                    }
+                  </span>
+                  
+                  {/* Jump to timestamp button for easy navigation */}
+                  {onTimelinePositionChange && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-6 px-2 text-xs"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onTimelinePositionChange(item.timestamp);
+                        toast({
+                          title: "Timeline updated",
+                          description: `Jumped to ${item.timestamp}`,
+                          duration: 2000,
+                        });
+                      }}
+                    >
+                      <Clock className="w-3 h-3 mr-1" /> Jump
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        ) : !isLoading ? (
+          // Render empty state when no items match the filter
+          <div className="col-span-full">
+            {renderEmpty()}
+          </div>
+        ) : null}
+      </div>
+      
+      {/* Load more indicator */}
+      {hasMore && filteredItems.length > 0 && (
+        <div 
+          ref={loadMoreRef} 
+          className="w-full py-8 flex justify-center items-center"
+        >
+          {isLoadingMore ? (
+            <div className="flex flex-col items-center">
+              <Loader2 className="w-6 h-6 animate-spin mb-2 text-primary-200" />
+              <p className="text-sm text-text-icon-02">Loading more media...</p>
             </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
+          ) : (
+            <Button 
+              variant="outline" 
+              onClick={loadMoreItems} 
+              className="flex items-center gap-2"
+            >
+              Load More
+            </Button>
+          )}
+        </div>
+      )}
+    </>
   );
 
-  // Render media preview dialog
+  // Render media preview dialog with improved details
   const renderMediaPreview = () => (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogContent className="max-w-6xl p-0 gap-0 overflow-hidden bg-background/95 backdrop-blur-lg border-none sm:rounded-xl">
@@ -344,74 +484,120 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
         
         {selectedItem && (
           <div className="flex flex-col w-full h-full">
-            <div className="relative flex-1 bg-black min-h-[50vh]">
+            <div className="relative flex-1 bg-black min-h-[50vh] flex items-center justify-center">
               {selectedItem.type === 'photo' ? (
-                <div className="relative w-full h-full flex items-center justify-center">
-                  <img 
-                    src={selectedItem.url} 
-                    alt={selectedItem.title || selectedItem.id} 
-                    className="max-w-full max-h-[70vh] object-contain"
-                    onError={(e) => {
-                      // Show error if image fails to load
-                      (e.target as HTMLImageElement).src = 'https://placehold.co/800x450?text=Image+Failed+to+Load';
-                    }}
-                  />
-                </div>
+                <img 
+                  src={selectedItem.url} 
+                  alt={selectedItem.title || selectedItem.id} 
+                  className="max-w-full max-h-[70vh] object-contain"
+                  onError={(e) => {
+                    // Show error if image fails to load
+                    (e.target as HTMLImageElement).src = 'https://placehold.co/800x450?text=Image+Failed+to+Load';
+                  }}
+                />
               ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <video 
-                    src={selectedItem.url} 
-                    controls 
-                    className="max-w-full max-h-[70vh]"
-                    autoPlay
-                    onError={(e) => {
-                      // Show error message if video fails to load
-                      const target = e.target as HTMLVideoElement;
-                      target.outerHTML = `
-                        <div class="flex flex-col items-center justify-center p-8 text-white">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                          <p class="mt-4">Failed to load video</p>
-                        </div>
-                      `;
-                    }}
-                  >
-                    Your browser does not support the video tag.
-                  </video>
-                </div>
+                <video 
+                  src={selectedItem.url} 
+                  controls 
+                  className="max-w-full max-h-[70vh]"
+                  autoPlay
+                  onError={(e) => {
+                    // Show error message if video fails to load
+                    const target = e.target as HTMLVideoElement;
+                    target.outerHTML = `
+                      <div class="flex flex-col items-center justify-center p-8 text-white">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                        <p class="mt-4">Failed to load video</p>
+                      </div>
+                    `;
+                  }}
+                >
+                  Your browser does not support the video tag.
+                </video>
               )}
             </div>
             
-            <div className="p-6 border-t flex flex-wrap justify-between items-center gap-4 bg-background">
-              <div className="flex flex-col gap-2">
-                <h3 className="text-lg font-medium">{selectedItem.title || `Flight Media ${selectedItem.id}`}</h3>
-                <div className="flex items-center gap-4">
-                  <Badge variant="outline" className="flex items-center gap-1">
-                    {selectedItem.type === 'photo' ? (
-                      <>
-                        <ImageIcon className="w-3.5 h-3.5" /> Photo
-                      </>
-                    ) : (
-                      <>
-                        <Film className="w-3.5 h-3.5" /> Video {selectedItem.duration && `(${selectedItem.duration}s)`}
-                      </>
+            <div className="p-6 border-t flex flex-col gap-4 bg-background">
+              <div className="flex flex-wrap justify-between items-start gap-4">
+                <div className="flex flex-col gap-2">
+                  <h3 className="text-lg font-medium">{selectedItem.title || `Flight Media ${selectedItem.id}`}</h3>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant="outline" className="flex items-center gap-1">
+                      {selectedItem.type === 'photo' ? (
+                        <>
+                          <ImageIcon className="w-3.5 h-3.5" /> Photo
+                        </>
+                      ) : (
+                        <>
+                          <Film className="w-3.5 h-3.5" /> Video {selectedItem.duration && `(${selectedItem.duration}s)`}
+                        </>
+                      )}
+                    </Badge>
+                    
+                    <Badge variant="outline" className="flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5" /> {selectedItem.timestamp}
+                    </Badge>
+                    
+                    {selectedItem.fileSize && (
+                      <Badge variant="outline" className="flex items-center gap-1">
+                        <FileInfo className="w-3.5 h-3.5" /> {selectedItem.fileSize}
+                      </Badge>
                     )}
-                  </Badge>
+                    
+                    {selectedItem.width && selectedItem.height && (
+                      <Badge variant="outline" className="flex items-center gap-1">
+                        {selectedItem.width} × {selectedItem.height}
+                      </Badge>
+                    )}
+                    
+                    {selectedItem.uploadStatus && (
+                      <Badge 
+                        variant={selectedItem.uploadStatus === 'success' ? 'default' : 
+                                selectedItem.uploadStatus === 'processing' ? 'secondary' : 'destructive'} 
+                        className="flex items-center gap-1"
+                      >
+                        {selectedItem.uploadStatus === 'success' && <Check className="w-3.5 h-3.5" />}
+                        {selectedItem.uploadStatus === 'processing' && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                        {selectedItem.uploadStatus === 'failed' && <X className="w-3.5 h-3.5" />}
+                        {selectedItem.uploadStatus.charAt(0).toUpperCase() + selectedItem.uploadStatus.slice(1)}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="flex gap-2">
+                  {/* Retry button for failed uploads */}
+                  {selectedItem.uploadStatus === 'failed' && (
+                    <Button 
+                      variant="destructive"
+                      onClick={(e) => handleRetryUpload(e, selectedItem.id)}
+                      disabled={retryingItems.has(selectedItem.id)}
+                    >
+                      {retryingItems.has(selectedItem.id) ? (
+                        <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Retrying...</>
+                      ) : (
+                        <><RefreshCcw className="mr-2 h-4 w-4" /> Retry Upload</>
+                      )}
+                    </Button>
+                  )}
                   
-                  <Badge variant="outline" className="flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5" /> {selectedItem.timestamp}
-                  </Badge>
+                  {/* Download button */}
+                  <Button variant="outline">
+                    <Download className="mr-2 h-4 w-4" />
+                    Download
+                  </Button>
+                  
+                  {/* Jump to timeline button */}
+                  <Button 
+                    onClick={handleJumpToTimestamp}
+                    disabled={!onTimelinePositionChange}
+                  >
+                    <Clock className="mr-1 w-4 h-4" />
+                    Jump to Timeline
+                    <ArrowRight className="ml-1 w-4 h-4" />
+                  </Button>
                 </div>
               </div>
-              
-              <Button 
-                onClick={handleJumpToTimestamp}
-                disabled={!onTimelinePositionChange}
-                className="ml-auto"
-              >
-                <Clock className="mr-1 w-4 h-4" />
-                Jump to Timeline
-                <ArrowRight className="ml-1 w-4 h-4" />
-              </Button>
             </div>
           </div>
         )}
@@ -430,7 +616,7 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
         <Button 
           variant="destructive" 
           size="sm" 
-          onClick={fetchMediaItems}
+          onClick={handleRetryInitialLoad}
           className="self-start mt-2"
           disabled={isLoading}
         >
@@ -447,18 +633,55 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
 
   // Render empty state
   const renderEmpty = () => (
-    <div className="flex flex-col items-center justify-center h-40 text-text-icon-02">
-      <Info className="w-8 h-8 mb-2" />
-      <p>No media found</p>
-      <p className="text-sm">Try changing the filter</p>
+    <div className="flex flex-col items-center justify-center py-12 text-text-icon-02">
+      <Info className="w-10 h-10 mb-3 text-text-icon-03" />
+      <p className="text-lg font-medium">No media found</p>
+      <p className="text-sm mt-1 text-text-icon-03">
+        {filterType !== 'all' ? 
+          `Try changing the filter from "${filterType}" to "all"` : 
+          "No media is available for this flight"
+        }
+      </p>
+      {filterType !== 'all' && (
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="mt-4"
+          onClick={() => setFilterType('all')}
+        >
+          Show All Media
+        </Button>
+      )}
+    </div>
+  );
+
+  // Render error loading media item
+  const renderErrorItem = (item: MediaItem) => (
+    <div className="absolute inset-0 flex items-center justify-center bg-background-level-3">
+      <div className="flex flex-col items-center justify-center text-destructive p-4 text-center">
+        <AlertCircle className="w-8 h-8 mb-2" />
+        <p>Failed to load media</p>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="mt-2"
+          onClick={(e) => {
+            e.stopPropagation();
+            // Could implement a reload function here
+          }}
+        >
+          Try Again
+        </Button>
+      </div>
     </div>
   );
 
   // Render loading state
   const renderLoading = () => (
-    <div className="flex flex-col items-center justify-center h-40">
-      <Loader2 className="w-8 h-8 text-primary-200 animate-spin mb-2" />
-      <p className="text-text-icon-02">Loading media...</p>
+    <div className="flex flex-col items-center justify-center py-20">
+      <Loader2 className="w-10 h-10 text-primary-200 animate-spin mb-3" />
+      <p className="text-lg font-medium text-text-icon-02">Loading flight media</p>
+      <p className="text-sm mt-1 text-text-icon-03">Please wait while we fetch the media items...</p>
     </div>
   );
 
@@ -472,14 +695,12 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
       
       <ScrollArea className="flex-1">
         <div className="p-4">
-          {isLoading ? (
+          {isLoading && !mediaItems.length ? (
             renderLoading()
-          ) : error ? (
+          ) : error && !mediaItems.length ? (
             renderEmpty() // We already show the error above, so just show an empty state here
-          ) : filteredItems.length > 0 ? (
-            renderMediaGrid()
           ) : (
-            renderEmpty()
+            renderMediaGrid()
           )}
         </div>
       </ScrollArea>
