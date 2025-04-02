@@ -632,6 +632,7 @@ const FlightDetails = () => {
               timestamp={timelinePosition.timestamp} 
               className="h-full"
               onEventSelect={handleEventSelect}
+              onTimelinePositionChange={handleTimelinePositionChange}
             />
           </div>
         </div>

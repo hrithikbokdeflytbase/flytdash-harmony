@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Image as ImageIcon, Film, Loader2, Info, RefreshCcw, Check, X, Clock, Play, ArrowRight } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -96,6 +97,7 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
   const [isLoading, setIsLoading] = useState(true);
   const [selectedItem, setSelectedItem] = useState<MediaItem | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [highlightedMediaId, setHighlightedMediaId] = useState<string | null>(null);
   const { toast } = useToast();
   
   // Add placeholder implementation for fetching media
@@ -121,7 +123,7 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
     }
   }, [mediaItems, filterType]);
   
-  // Find nearest media item to current timeline position
+  // Enhanced: Find nearest media item to current timeline position
   useEffect(() => {
     if (mediaItems.length === 0 || !timelinePosition) return;
     
@@ -137,8 +139,20 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
       }
     });
     
-    // Highlight the closest item (future enhancement)
-  }, [timelinePosition, mediaItems]);
+    // Only highlight if the media is close to current position (within 5 seconds)
+    if (smallestDiff <= 5) {
+      setHighlightedMediaId(closestItem.id);
+      
+      // Auto-select media if very close (within 1 second)
+      if (smallestDiff <= 1 && !isDialogOpen) {
+        // Optional: Auto-open the dialog when timeline exactly matches media
+        // setSelectedItem(closestItem);
+        // setIsDialogOpen(true);
+      }
+    } else {
+      setHighlightedMediaId(null);
+    }
+  }, [timelinePosition, mediaItems, isDialogOpen]);
   
   // Handle item click
   const handleItemClick = (item: MediaItem) => {
@@ -146,13 +160,14 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
     setIsDialogOpen(true);
   };
   
-  // Jump to timestamp in timeline
+  // Enhanced: Jump to timestamp in timeline
   const handleJumpToTimestamp = () => {
     if (selectedItem && onTimelinePositionChange) {
       onTimelinePositionChange(selectedItem.timestamp);
       toast({
         title: "Timeline updated",
         description: `Jumped to ${selectedItem.timestamp}`,
+        duration: 3000,
       });
       setIsDialogOpen(false);
     }
@@ -176,6 +191,11 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
         item.id === itemId ? {...item, uploadStatus: 'success' as const} : item
       );
       setMediaItems(finalItems);
+      
+      toast({
+        title: "Upload successful",
+        description: `Media item ${itemId} was uploaded successfully.`,
+      });
     }, 2000);
   };
   
@@ -188,7 +208,7 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
   
   const { photoCount, videoCount, totalCount } = getMediaCounts();
   
-  // Check if a media item is near the current timeline position (within 5 seconds)
+  // Enhanced: Check if a media item is near the current timeline position (within 5 seconds)
   const isNearTimelinePosition = (itemTimestamp: string): boolean => {
     if (!timelinePosition) return false;
     
@@ -266,7 +286,9 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
           key={item.id} 
           className={cn(
             "overflow-hidden cursor-pointer hover:shadow-md transition-all",
-            isNearTimelinePosition(item.timestamp) ? "ring-2 ring-primary-300" : ""
+            isNearTimelinePosition(item.timestamp) || highlightedMediaId === item.id
+              ? "ring-2 ring-primary-300"
+              : ""
           )}
           onClick={() => handleItemClick(item)}
         >
@@ -303,6 +325,26 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00', onTimeline
               <span className="text-xs text-text-icon-02">
                 {item.type === 'photo' ? 'Photo' : `Video (${item.duration}s)`}
               </span>
+              
+              {/* Add "Jump to timestamp" button for easy navigation */}
+              {onTimelinePositionChange && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-6 px-2 text-xs"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onTimelinePositionChange(item.timestamp);
+                    toast({
+                      title: "Timeline updated",
+                      description: `Jumped to ${item.timestamp}`,
+                      duration: 2000,
+                    });
+                  }}
+                >
+                  <Clock className="w-3 h-3 mr-1" /> Jump
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>

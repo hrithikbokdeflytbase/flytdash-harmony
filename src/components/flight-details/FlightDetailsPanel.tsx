@@ -19,6 +19,7 @@ interface FlightDetailsPanelProps {
   timestamp: string;
   className?: string;
   onEventSelect?: (eventId: string) => void;
+  onTimelinePositionChange?: (timestamp: string) => void;
 }
 
 const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
@@ -26,7 +27,8 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
   flightMode,
   timestamp,
   className,
-  onEventSelect
+  onEventSelect,
+  onTimelinePositionChange
 }) => {
   // State for active tab (handled by Radix UI Tabs)
   const [activeTab, setActiveTab] = useState("telemetry");
@@ -237,7 +239,11 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
             
             <TabsContent value="media" className="h-full p-0 m-0 data-[state=active]:flex data-[state=active]:flex-col">
               <div className="flex-1 overflow-hidden">
-                <MediaPanel flightId={flightId} timelinePosition={timestamp} />
+                <MediaPanel 
+                  flightId={flightId} 
+                  timelinePosition={timestamp} 
+                  onTimelinePositionChange={onTimelinePositionChange}
+                />
               </div>
             </TabsContent>
           </div>
