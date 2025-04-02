@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { Image as ImageIcon, Film, Loader2, Info } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { timeToSeconds } from './timeline/timelineUtils';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 interface MediaItem {
   id: string;
@@ -143,47 +143,36 @@ export function MediaPanel({ flightId, timelinePosition = '00:00:00' }: MediaPan
     setIsPreviewOpen(false);
   };
   
-  // Render the filters
+  // Get counts for summary
+  const getMediaCounts = () => {
+    const photoCount = mediaItems.filter(item => item.type === 'photo').length;
+    const videoCount = mediaItems.filter(item => item.type === 'video').length;
+    return { photoCount, videoCount, totalCount: mediaItems.length };
+  };
+  
+  const { photoCount, videoCount, totalCount } = getMediaCounts();
+  
+  // Render filter pills
   const renderFilters = () => (
     <div className="flex items-center gap-2 mb-4">
-      <button 
-        className={cn(
-          "px-3 py-1 rounded-full text-sm font-medium",
-          filterType === 'all' 
-            ? "bg-primary-200 text-text-icon-01" 
-            : "bg-background-level-3 text-text-icon-02"
-        )}
-        onClick={() => setFilterType('all')}
-      >
-        All
-      </button>
-      <button 
-        className={cn(
-          "px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1",
-          filterType === 'photos' 
-            ? "bg-primary-200 text-text-icon-01" 
-            : "bg-background-level-3 text-text-icon-02"
-        )}
-        onClick={() => setFilterType('photos')}
-      >
-        <ImageIcon className="w-3 h-3" /> 
-        Photos
-      </button>
-      <button 
-        className={cn(
-          "px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1",
-          filterType === 'videos' 
-            ? "bg-primary-200 text-text-icon-01" 
-            : "bg-background-level-3 text-text-icon-02"
-        )}
-        onClick={() => setFilterType('videos')}
-      >
-        <Film className="w-3 h-3" /> 
-        Videos
-      </button>
+      <ToggleGroup type="single" value={filterType} onValueChange={(value) => value && setFilterType(value as 'all' | 'photos' | 'videos')}>
+        <ToggleGroupItem value="all" aria-label="Show all media">
+          All
+        </ToggleGroupItem>
+        <ToggleGroupItem value="photos" aria-label="Show photos only" className="flex items-center gap-1">
+          <ImageIcon className="w-3 h-3" /> 
+          Photos
+        </ToggleGroupItem>
+        <ToggleGroupItem value="videos" aria-label="Show videos only" className="flex items-center gap-1">
+          <Film className="w-3 h-3" /> 
+          Videos
+        </ToggleGroupItem>
+      </ToggleGroup>
       
       <div className="ml-auto text-sm text-text-icon-02">
-        {filteredItems.length} {filterType === 'all' ? 'items' : filterType}
+        {filterType === 'all' && `${totalCount} items (${photoCount} photos, ${videoCount} videos)`}
+        {filterType === 'photos' && `${photoCount} photos`}
+        {filterType === 'videos' && `${videoCount} videos`}
       </div>
     </div>
   );
