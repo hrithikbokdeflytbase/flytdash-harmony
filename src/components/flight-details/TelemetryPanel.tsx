@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Activity, Clock, Wifi, Thermometer, Wind, Compass, Home, Gauge, Signal, Video, Cpu, Eye } from 'lucide-react';
+import { Activity, Clock, Wifi, Thermometer, Wind, Compass, Home, Gauge, Signal, Video, Cpu, Eye, Users } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 // Import our components
@@ -13,6 +13,7 @@ import NetworkStatusSection from './NetworkStatusSection';
 import PositionDataSection from './PositionDataSection';
 import SystemStatusSection from './SystemStatusSection';
 import CompassHeadingCard from './CompassHeadingCard';
+import ControlSection, { ControlHistory } from './ControlSection';
 
 // Define interface for telemetry data
 export interface TelemetryData {
@@ -103,11 +104,15 @@ export interface TelemetryData {
 
 interface TelemetryPanelProps {
   telemetryData: TelemetryData;
+  timestamp: string; // Added timestamp prop
+  controlHistory: ControlHistory; // Added controlHistory prop
   className?: string;
 }
 
 const TelemetryPanel: React.FC<TelemetryPanelProps> = ({
   telemetryData,
+  timestamp,
+  controlHistory,
   className
 }) => {
   const [altitudeMode, setAltitudeMode] = useState<'AGL' | 'ASL' | 'RLT'>(telemetryData.altitude.mode);
@@ -122,7 +127,19 @@ const TelemetryPanel: React.FC<TelemetryPanelProps> = ({
       <div className="flex-1 relative overflow-hidden">
         <ScrollArea className="h-full pr-1" type="hover">
           <div className="space-y-0 pb-6 relative">
-            {/* Battery Section - Now inside ScrollArea */}
+            {/* Control Section - Added above Battery */}
+            <SectionHeader title="Control" icon={Users}>
+              <div className="flex items-center gap-1">
+                <span className="text-xs text-text-icon-01">{timestamp}</span>
+              </div>
+            </SectionHeader>
+            
+            <ControlSection 
+              currentTimestamp={timestamp}
+              controlHistory={controlHistory}
+            />
+            
+            {/* Battery Section */}
             <div className="px-4 py-3">
               <BatteryStatusCard 
                 percentage={telemetryData.battery.percentage}

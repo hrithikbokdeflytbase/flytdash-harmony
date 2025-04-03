@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Activity, Clock, LineChart, Camera } from 'lucide-react';
+import { Activity, Clock, LineChart, Camera, Info, Users } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -11,6 +12,7 @@ import TelemetryPanel, { TelemetryData } from './TelemetryPanel';
 import TimelinePanel from './TimelinePanel';
 import TelemetryGraphsPanel from './TelemetryGraphsPanel';
 import { MediaPanel } from './MediaPanel';
+import { ControlHistory } from './ControlSection';
 
 interface FlightDetailsPanelProps {
   flightId: string;
@@ -30,7 +32,7 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
   onTimelinePositionChange
 }) => {
   // State for active tab (handled by Radix UI Tabs)
-  const [activeTab, setActiveTab] = useState("telemetry");
+  const [activeTab, setActiveTab] = useState("details"); // Changed from "telemetry" to "details"
   
   // Mock telemetry data (in a real app, this would come from props or API)
   const [telemetryData, setTelemetryData] = useState<TelemetryData>({
@@ -119,6 +121,21 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
     }
   });
   
+  // Mock control history data
+  const [controlHistory, setControlHistory] = useState<ControlHistory>({
+    payload: [
+      { name: "John Doe", startTime: "00:00:00", endTime: "00:08:30" },
+      { name: "Alice Smith", startTime: "00:08:30", endTime: "00:15:00" },
+      { name: "Bob Johnson", startTime: "00:15:00", endTime: "00:25:30" }
+    ],
+    drone: [
+      { name: "Jane Wilson", startTime: "00:00:00", endTime: "00:05:15" },
+      { name: "Mike Brown", startTime: "00:05:15", endTime: "00:15:00" },
+      { name: "Lisa Garcia", startTime: "00:15:00", endTime: "00:21:30" },
+      { name: "Chris Evans", startTime: "00:18:45", endTime: "00:25:30" } // Overlapping with Lisa for demo
+    ]
+  });
+  
   // Function to update network connection statuses based on business rules
   useEffect(() => {
     // Make a copy of the current telemetry data
@@ -163,7 +180,7 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
       {/* Tab Navigation */}
       <div className="flex flex-col flex-1 overflow-hidden">
         <Tabs 
-          defaultValue="telemetry" 
+          defaultValue="details" 
           className="flex flex-col w-full h-full" 
           onValueChange={handleTabChange}
           value={activeTab}
@@ -173,12 +190,12 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
               <div className="w-max min-w-full flex">
                 <TabsList className="w-full h-[40px] bg-transparent">
                   <TabsTrigger 
-                    value="telemetry" 
+                    value="details" 
                     className="flex-1 h-full rounded-none data-[state=active]:bg-transparent data-[state=active]:text-text-icon-01 data-[state=inactive]:text-text-icon-02 relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-primary-200 after:transform after:scale-x-0 data-[state=active]:after:scale-x-100 after:transition-transform"
                   >
                     <div className="flex items-center gap-2">
-                      <Activity className="w-4 h-4" />
-                      Telemetry
+                      <Info className="w-4 h-4" />
+                      Details
                     </div>
                   </TabsTrigger>
                   <TabsTrigger 
@@ -215,9 +232,13 @@ const FlightDetailsPanel: React.FC<FlightDetailsPanelProps> = ({
 
           {/* Tab Contents */}
           <div className="flex-1 overflow-hidden">
-            <TabsContent value="telemetry" className="h-full p-0 m-0 data-[state=active]:flex data-[state=active]:flex-col">
+            <TabsContent value="details" className="h-full p-0 m-0 data-[state=active]:flex data-[state=active]:flex-col">
               <div className="flex-1 overflow-hidden">
-                <TelemetryPanel telemetryData={telemetryData} />
+                <TelemetryPanel 
+                  telemetryData={telemetryData} 
+                  timestamp={timestamp}
+                  controlHistory={controlHistory}
+                />
               </div>
             </TabsContent>
             
