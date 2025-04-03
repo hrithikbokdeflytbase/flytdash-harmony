@@ -400,7 +400,7 @@ const RecentFlightsTable: React.FC<RecentFlightsTableProps> = ({ isLoading = fal
               <TableHead className="text-text-icon-02 fb-body4-medium w-[60px]">Status</TableHead>
               <TableHead className="text-text-icon-02 fb-body4-medium w-[180px]">Mission Name</TableHead>
               <TableHead className="text-text-icon-02 fb-body4-medium w-[120px]">Operation Type</TableHead>
-              <TableHead className="text-text-icon-02 fb-body4-medium w-[140px]">Pilot</TableHead>
+              <TableHead className="text-text-icon-02 fb-body4-medium w-[140px]">Operator</TableHead>
               <TableHead className="text-text-icon-02 fb-body4-medium w-[140px]">Drone</TableHead>
               <TableHead className="text-text-icon-02 fb-body4-medium w-[150px]">Media</TableHead>
               <TableHead className="text-text-icon-02 fb-body4-medium w-[140px]">Date & Time</TableHead>
