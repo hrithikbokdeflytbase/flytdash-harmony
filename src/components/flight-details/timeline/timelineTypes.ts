@@ -1,4 +1,3 @@
-
 // Timeline position interface
 export interface TimelinePosition {
   timestamp: string;

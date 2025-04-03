@@ -19,7 +19,9 @@ import {
   MissionPhase,
   SystemEvent,
   WarningEvent,
-  MediaAction
+  MediaAction,
+  FlightPathPoint,
+  Waypoint
 } from '@/components/flight-details/timeline/timelineTypes';
 import { timeToSeconds } from '@/components/flight-details/timeline/timelineUtils';
 
@@ -28,22 +30,6 @@ type ViewMode = 'map' | 'video' | 'split';
 
 // Video state type
 type VideoState = 'loading' | 'error' | 'empty' | 'playing';
-
-// Flight path point interface
-interface FlightPathPoint {
-  lat: number;
-  lng: number;
-  altitude: number;
-  timestamp: string;
-  flightMode: 'mission' | 'gtl' | 'manual' | 'rtds';
-}
-
-// Waypoint interface
-interface Waypoint {
-  lat: number;
-  lng: number;
-  index: number;
-}
 
 // Mock flight path data
 const mockFlightPath: FlightPathPoint[] = [{
@@ -384,8 +370,6 @@ const FlightDetails = () => {
     setCurrentFlightMode(flightMode);
     console.log(`Current flight mode: ${flightMode} at ${timelinePosition.timestamp}`);
   }, [timelinePosition.timestamp, missionPhases]);
-
-  // Remove the useEffect for camera type switching since it's no longer needed
 
   // Convert "HH:MM:SS" format to seconds for comparison
   const timeToSeconds = (timeString: string): number => {
