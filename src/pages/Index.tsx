@@ -8,7 +8,13 @@ import RecentFlightsTable from '@/components/dashboard/RecentFlightsTable';
 import FiltersBar from '@/components/dashboard/FiltersBar';
 import FailedFlightsPopup from '@/components/dashboard/FailedFlightsPopup';
 import { AlertCircle, Calendar, Loader } from 'lucide-react';
-import { FlightStatistics, FlightTrend } from '@/components/dashboard/DashboardTypes';
+import { 
+  FlightStatistics, 
+  FlightTrend, 
+  Flight, 
+  MediaUploadStatus, 
+  MediaTypeStatus 
+} from '@/components/dashboard/DashboardTypes';
 
 const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -32,7 +38,9 @@ const Index = () => {
     total: 30,
     failed: 15,
     successful: 15,
-    failureRate: 50
+    failureRate: 50,
+    totalMedia: 450,
+    uploadedMedia: 378
   };
 
   // Mock flight trends

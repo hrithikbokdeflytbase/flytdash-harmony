@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { Loader, CheckCircle, AlertTriangle, XCircle, RefreshCcw } from 'lucide-react';
+import { Loader, CheckCircle, AlertTriangle, XCircle, RefreshCcw, Clock, CalendarClock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import {
   Table,
@@ -20,35 +21,13 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-
-interface RecentFlightsTableProps {
-  isLoading?: boolean;
-}
-
-type FlightStatus = 'completed' | 'warning' | 'failed';
-
-interface MediaUploadStatus {
-  photos?: {
-    total: number;
-    uploaded: number;
-  };
-  videos?: {
-    total: number;
-    uploaded: number;
-  };
-}
-
-interface Flight {
-  id: string;
-  missionName: string;
-  operationType: string;
-  pilotName: string;
-  droneName: string;
-  mediaCount: number;
-  mediaStatus: MediaUploadStatus;
-  dateTime: string;
-  status: FlightStatus;
-}
+import { 
+  Flight, 
+  FlightStatus, 
+  MediaUploadStatus, 
+  RecentFlightsTableProps, 
+  TablePaginationState 
+} from './DashboardTypes';
 
 // Mock data for recent flights - let's expand to more than 10 for pagination testing
 const mockFlights: Flight[] = [
@@ -258,6 +237,10 @@ const getStatusBadgeClass = (status: FlightStatus) => {
       return 'bg-container-error text-error-200';
     case 'warning':
       return 'bg-container-warning text-warning-200';
+    case 'inProgress':
+      return 'bg-container-info text-info-200';
+    case 'scheduled':
+      return 'bg-container-secondary text-text-icon-02';
     default:
       return 'bg-container-info text-info-200';
   }
@@ -271,6 +254,10 @@ const getStatusText = (status: FlightStatus): string => {
       return 'Failed';
     case 'warning':
       return 'Warning';
+    case 'inProgress':
+      return 'In Progress';
+    case 'scheduled':
+      return 'Scheduled';
     default:
       // Since we've exhaustively checked all possible values of FlightStatus,
       // this default case should never execute. But to satisfy TypeScript,
@@ -288,6 +275,10 @@ const getStatusIcon = (status: FlightStatus) => {
       return <XCircle className="w-4 h-4" />;
     case 'warning':
       return <AlertTriangle className="w-4 h-4" />;
+    case 'inProgress':
+      return <Clock className="w-4 h-4" />;
+    case 'scheduled':
+      return <CalendarClock className="w-4 h-4" />;
     default:
       return null;
   }
@@ -307,13 +298,25 @@ const isMediaUploadFailed = (uploadedPercentage: number) => {
   return uploadedPercentage === 0;
 };
 
-const RecentFlightsTable: React.FC<RecentFlightsTableProps> = ({ isLoading = false }) => {
+const RecentFlightsTable: React.FC<RecentFlightsTableProps> = ({ 
+  isLoading = false,
+  flights = mockFlights,
+  itemsPerPage = 10,
+  onFlightSelect
+}) => {
   const navigate = useNavigate();
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const [paginationState, setPaginationState] = useState<TablePaginationState>({
+    currentPage: 1,
+    itemsPerPage,
+    totalItems: flights.length
+  });
   
   const handleRowClick = (flightId: string) => {
-    navigate(`/flight-details/${flightId}`);
+    if (onFlightSelect) {
+      onFlightSelect(flightId);
+    } else {
+      navigate(`/flight-details/${flightId}`);
+    }
   };
 
   if (isLoading) {
@@ -379,15 +382,16 @@ const RecentFlightsTable: React.FC<RecentFlightsTableProps> = ({ isLoading = fal
   };
 
   // Calculate pagination values
-  const totalPages = Math.ceil(mockFlights.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = Math.min(startIndex + itemsPerPage, mockFlights.length);
-  const currentFlights = mockFlights.slice(startIndex, endIndex);
+  const { currentPage, itemsPerPage: itemsPerPageState } = paginationState;
+  const totalPages = Math.ceil(flights.length / itemsPerPageState);
+  const startIndex = (currentPage - 1) * itemsPerPageState;
+  const endIndex = Math.min(startIndex + itemsPerPageState, flights.length);
+  const currentFlights = flights.slice(startIndex, endIndex);
 
   // Handle page change
   const goToPage = (page: number) => {
     if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
+      setPaginationState(prev => ({ ...prev, currentPage: page }));
     }
   };
 

@@ -77,3 +77,81 @@ export interface OperationProgress {
   dataProcessing: number;
   reporting: number;
 }
+
+/**
+ * Flight - Core interface representing a flight entry in the table.
+ */
+export interface Flight {
+  id: string;
+  missionName: string;
+  operationType: string;
+  pilotName: string;
+  droneName: string;
+  mediaCount: number;
+  mediaStatus: MediaUploadStatus;
+  dateTime: string;
+  status: FlightStatus;
+}
+
+/**
+ * FlightStatus - Type representing the possible statuses of a flight.
+ */
+export type FlightStatus = 'completed' | 'warning' | 'failed' | 'inProgress' | 'scheduled';
+
+/**
+ * MediaUploadStatus - Interface for tracking the upload status of flight media.
+ */
+export interface MediaUploadStatus {
+  photos?: MediaTypeStatus;
+  videos?: MediaTypeStatus;
+}
+
+/**
+ * MediaTypeStatus - Interface for a specific type of media upload status.
+ */
+export interface MediaTypeStatus {
+  total: number;
+  uploaded: number;
+}
+
+/**
+ * RecentFlightsTableProps - Props for the RecentFlightsTable component.
+ */
+export interface RecentFlightsTableProps {
+  isLoading?: boolean;
+  flights?: Flight[];
+  itemsPerPage?: number;
+  onFlightSelect?: (flightId: string) => void;
+}
+
+/**
+ * TablePaginationState - Interface for table pagination state.
+ */
+export interface TablePaginationState {
+  currentPage: number;
+  itemsPerPage: number;
+  totalItems: number;
+}
+
+/**
+ * TableSortState - Interface for table sorting state.
+ */
+export interface TableSortState {
+  column: string;
+  direction: 'asc' | 'desc';
+}
+
+/**
+ * TableFilterState - Interface for table filtering state.
+ */
+export interface TableFilterState {
+  filters: Record<string, string | string[]>;
+}
+
+/**
+ * MediaStatusDisplayProps - Props for the media upload status display component.
+ */
+export interface MediaStatusDisplayProps {
+  mediaData?: MediaTypeStatus;
+  mediaType: 'photos' | 'videos';
+}
