@@ -2,15 +2,7 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { TrendingUp, TrendingDown } from 'lucide-react';
-
-interface TelemetryMetricCardProps {
-  label: string;
-  value: string | number;
-  unit?: string;
-  showTrend?: boolean;
-  trendDirection?: 'up' | 'down' | 'stable';
-  className?: string;
-}
+import { TelemetryMetricCardProps } from './types/telemetryTypes';
 
 const TelemetryMetricCard: React.FC<TelemetryMetricCardProps> = ({
   label,
@@ -18,7 +10,9 @@ const TelemetryMetricCard: React.FC<TelemetryMetricCardProps> = ({
   unit,
   showTrend = false,
   trendDirection = 'stable',
-  className
+  className,
+  icon,
+  onClick
 }) => {
   // Generate a pseudo-random trend direction based on the value for demo purposes
   const getTrendDirection = (): 'up' | 'down' | 'stable' => {
@@ -48,12 +42,17 @@ const TelemetryMetricCard: React.FC<TelemetryMetricCardProps> = ({
   };
 
   return (
-    <div className={cn(
-      "bg-background-level-1 p-3 rounded-md border border-outline-primary hover:border-primary-100 transition-colors", 
-      className
-    )}>
+    <div 
+      className={cn(
+        "bg-background-level-1 p-3 rounded-md border border-outline-primary hover:border-primary-100 transition-colors", 
+        className,
+        onClick && "cursor-pointer"
+      )}
+      onClick={onClick}
+    >
       <div className="flex flex-col">
-        <div className="mb-1">
+        <div className="mb-1 flex items-center gap-1.5">
+          {icon && <span className="text-text-icon-02">{icon}</span>}
           <span className="text-xs text-text-icon-02">{label}</span>
         </div>
         <div className="flex items-baseline justify-between">

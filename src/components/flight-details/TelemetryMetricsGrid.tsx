@@ -1,27 +1,10 @@
+
 import React from 'react';
 import TelemetryMetricCard from './TelemetryMetricCard';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-interface TelemetryMetricsGridProps {
-  altitude: {
-    value: number;
-    unit: string;
-    mode: 'AGL' | 'ASL' | 'RLT';
-  };
-  distance: {
-    value: number;
-    unit: string;
-  };
-  verticalSpeed: {
-    value: number;
-    unit: string;
-  };
-  horizontalSpeed: {
-    value: number;
-    unit: string;
-  };
-  onAltitudeModeToggle?: (mode: 'AGL' | 'ASL' | 'RLT') => void;
-}
+import { TelemetryMetricsGridProps } from './types/telemetryTypes';
+
 const TelemetryMetricsGrid: React.FC<TelemetryMetricsGridProps> = ({
   altitude,
   distance,
@@ -46,9 +29,9 @@ const TelemetryMetricsGrid: React.FC<TelemetryMetricsGridProps> = ({
     const newIndex = (currentModeIndex + 1) % altitudeModes.length;
     onAltitudeModeToggle?.(altitudeModes[newIndex]);
   };
-  return <div className="p-4">
-      
-      
+  
+  return (
+    <div className="p-4">
       <div className="grid grid-cols-2 gap-3">
         {/* Full-width altitude card with minimal design */}
         <div className="col-span-2 relative">
@@ -90,6 +73,8 @@ const TelemetryMetricsGrid: React.FC<TelemetryMetricsGridProps> = ({
         
         <TelemetryMetricCard label="Horizontal Speed" value={horizontalSpeed.value} unit={horizontalSpeed.unit} showTrend={true} className="h-full" />
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default TelemetryMetricsGrid;

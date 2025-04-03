@@ -1,16 +1,14 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { TelemetryData } from './TelemetryPanel';
 import { timeToSeconds } from './timeline/timelineUtils';
-import { MetricChart, TelemetryDataPoint } from './graphs/MetricChart';
+import { MetricChart } from './graphs/MetricChart';
 import { Battery, MountainSnow, Wind, LifeBuoy, Signal } from 'lucide-react';
 import { generateMockTelemetryHistory } from './graphs/mockTelemetryData';
-
-interface TelemetryGraphsPanelProps {
-  timestamp: string;
-  telemetryData: TelemetryData;
-}
+import { 
+  TelemetryGraphsPanelProps, 
+  TelemetryDataPoint
+} from './types/telemetryTypes';
 
 const TelemetryGraphsPanel: React.FC<TelemetryGraphsPanelProps> = ({
   timestamp,

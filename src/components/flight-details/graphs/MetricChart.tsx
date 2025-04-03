@@ -1,4 +1,3 @@
-
 import React, { useMemo, useRef, useEffect } from 'react';
 import {
   ResponsiveContainer,
@@ -13,41 +12,12 @@ import {
 } from 'recharts';
 import { cn } from '@/lib/utils';
 import { secondsToTime } from '../timeline/timelineUtils';
-
-export interface TelemetryDataPoint {
-  timestamp: number; // in seconds from flight start
-  value: number;
-  rawTime?: string; // HH:MM:SS format
-}
-
-export interface ThresholdConfig {
-  value: number;
-  color: string;
-  label?: string;
-}
-
-export interface MetricChartConfig {
-  title: string;
-  icon?: React.ReactNode;
-  unit: string;
-  color: string;
-  dataKey: string;
-  minValue?: number;
-  maxValue?: number;
-  gradientFill?: boolean;
-  decimals: number;
-  thresholds?: ThresholdConfig[];
-}
-
-interface MetricChartProps {
-  data: TelemetryDataPoint[];
-  currentValue: number;
-  currentTimestamp: number; // in seconds from flight start
-  config: MetricChartConfig;
-  isLastChart?: boolean;
-  zoomLevel?: number; // Added zoom level prop
-  height?: number; // Height of the chart in pixels
-}
+import { 
+  TelemetryDataPoint, 
+  ThresholdConfig, 
+  MetricChartConfig,
+  MetricChartProps
+} from '../types/telemetryTypes';
 
 export const MetricChart: React.FC<MetricChartProps> = ({
   data,
@@ -401,3 +371,5 @@ export const MetricChart: React.FC<MetricChartProps> = ({
     </div>
   );
 };
+
+export default MetricChart;

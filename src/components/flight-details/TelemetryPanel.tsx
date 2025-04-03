@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Activity, Clock, Wifi, Thermometer, Wind, Compass, Home, Gauge, Signal, Video, Cpu, Eye, Users } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -15,92 +14,8 @@ import SystemStatusSection from './SystemStatusSection';
 import CompassHeadingCard from './CompassHeadingCard';
 import ControlSection, { ControlHistory } from './ControlSection';
 
-// Define interface for telemetry data
-export interface TelemetryData {
-  battery: {
-    percentage: number;
-    estimatedRemaining: string;
-    temperature: number;
-    voltage: number;
-    dischargeRate?: number;
-  };
-  altitude: {
-    value: number;
-    unit: string;
-    mode: 'AGL' | 'ASL' | 'RLT';
-  };
-  distance: {
-    value: number;
-    unit: string;
-  };
-  horizontalSpeed: {
-    value: number;
-    unit: string;
-  };
-  verticalSpeed: {
-    value: number;
-    unit: string;
-  };
-  coordinates: {
-    latitude: number;
-    longitude: number;
-  };
-  heading: {
-    value: number;
-    direction: string; // N, NE, E, etc.
-  };
-  distanceToHome: {
-    value: number;
-    unit: string;
-    direction: string;
-  };
-  environment: {
-    wind: {
-      speed: number;
-      unit: string;
-      direction: string;
-    };
-    temperature: number;
-    pressure: number;
-    humidity: number;
-  };
-  gpsStatus?: {
-    count: number;
-    signal: string;
-    quality: 'excellent' | 'good' | 'fair' | 'poor';
-  };
-  rtkStatus: {
-    count: number;
-    signal: string;
-    mode: 'Fixed' | 'Float' | 'None';
-  };
-  latency: {
-    video: number;
-    control: number;
-  };
-  visionSystem: {
-    status: 'active' | 'inactive' | 'limited';
-    details?: string;
-  };
-  connections: {
-    rfLink: {
-      status: 'active' | 'inactive' | 'poor';
-      details: string;
-    };
-    ethernet: {
-      status: 'active' | 'inactive' | 'poor';
-      details: string;
-    };
-    dockCellular: {
-      status: 'active' | 'inactive' | 'poor';
-      details: string;
-    };
-    droneCellular: {
-      status: 'active' | 'inactive' | 'poor';
-      details: string;
-    };
-  }
-}
+// Import types
+import { TelemetryData } from './types/telemetryTypes';
 
 interface TelemetryPanelProps {
   telemetryData: TelemetryData;

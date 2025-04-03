@@ -2,14 +2,7 @@
 import React from 'react';
 import { Compass } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-interface CompassHeadingCardProps {
-  heading: {
-    value: number;
-    direction: string;
-  };
-  className?: string;
-}
+import { CompassHeadingCardProps } from './types/telemetryTypes';
 
 const CompassHeadingCard: React.FC<CompassHeadingCardProps> = ({
   heading,

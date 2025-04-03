@@ -1,15 +1,7 @@
 
 import React from 'react';
 import { cn } from '@/lib/utils';
-
-type ConnectionStatus = 'active' | 'inactive' | 'poor';
-
-interface ConnectionStatusCardProps {
-  label: string;
-  status: ConnectionStatus;
-  details?: string;
-  className?: string;
-}
+import { ConnectionStatusCardProps } from './types/telemetryTypes';
 
 const ConnectionStatusCard: React.FC<ConnectionStatusCardProps> = ({
   label,

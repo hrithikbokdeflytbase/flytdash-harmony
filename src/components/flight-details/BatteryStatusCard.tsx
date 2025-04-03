@@ -3,15 +3,7 @@ import React from 'react';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import { Battery, BatteryCharging, BatteryWarning, BatteryLow, BatteryMedium, BatteryFull, Thermometer, Zap } from 'lucide-react';
-
-interface BatteryStatusCardProps {
-  percentage: number;
-  estimatedRemaining: string;
-  temperature: number;
-  voltage: number;
-  dischargeRate?: number;
-  className?: string;
-}
+import { BatteryStatusCardProps } from './types/telemetryTypes';
 
 const BatteryStatusCard: React.FC<BatteryStatusCardProps> = ({
   percentage,
