@@ -1,3 +1,4 @@
+
 // Timeline position interface
 export interface TimelinePosition {
   timestamp: string;
@@ -337,4 +338,168 @@ export interface MapViewSettings {
   viewMode: '2D' | '3D';
   pitch: number;
   zoom: number;
+}
+
+/**
+ * FlightDetailsPanelProps - Props for the FlightDetailsPanel component
+ */
+export interface FlightDetailsPanelProps {
+  flightId: string;
+  flightMode: string;
+  timestamp: string;
+  className?: string;
+  onEventSelect?: (eventId: string) => void;
+  onTimelinePositionChange?: (timestamp: string) => void;
+}
+
+/**
+ * TelemetryData - Complete telemetry data structure for the flight
+ */
+export interface TelemetryData {
+  battery: BatteryData;
+  altitude: AltitudeData;
+  distance: DistanceData;
+  horizontalSpeed: SpeedData;
+  verticalSpeed: SpeedData;
+  coordinates: Coordinates;
+  heading: HeadingData;
+  distanceToHome: DistanceToHomeData;
+  environment: EnvironmentData;
+  gpsStatus?: GpsStatus;
+  rtkStatus: RtkStatus;
+  latency: LatencyData;
+  visionSystem: VisionSystemStatus;
+  connections: ConnectionsData;
+}
+
+/**
+ * BatteryData - Battery information
+ */
+export interface BatteryData {
+  percentage: number;
+  estimatedRemaining: string;
+  temperature: number;
+  voltage: number;
+  dischargeRate?: number;
+}
+
+/**
+ * AltitudeData - Altitude information
+ */
+export interface AltitudeData {
+  value: number;
+  unit: string;
+  mode: 'AGL' | 'ASL' | 'RLT';
+}
+
+/**
+ * DistanceData - Distance information
+ */
+export interface DistanceData {
+  value: number;
+  unit: string;
+}
+
+/**
+ * SpeedData - Speed information
+ */
+export interface SpeedData {
+  value: number;
+  unit: string;
+}
+
+/**
+ * Coordinates - GPS coordinates
+ */
+export interface Coordinates {
+  latitude: number;
+  longitude: number;
+}
+
+/**
+ * HeadingData - Heading information
+ */
+export interface HeadingData {
+  value: number;
+  direction: string;
+}
+
+/**
+ * DistanceToHomeData - Distance to home point information
+ */
+export interface DistanceToHomeData {
+  value: number;
+  unit: string;
+  direction: string;
+}
+
+/**
+ * EnvironmentData - Environmental information
+ */
+export interface EnvironmentData {
+  wind: WindData;
+  temperature: number;
+  pressure: number;
+  humidity: number;
+}
+
+/**
+ * WindData - Wind information
+ */
+export interface WindData {
+  speed: number;
+  unit: string;
+  direction: string;
+}
+
+/**
+ * GpsStatus - GPS status information
+ */
+export interface GpsStatus {
+  count: number;
+  signal: string;
+  quality: 'excellent' | 'good' | 'fair' | 'poor';
+}
+
+/**
+ * RtkStatus - RTK status information
+ */
+export interface RtkStatus {
+  count: number;
+  signal: string;
+  mode: 'Fixed' | 'Float' | 'None';
+}
+
+/**
+ * LatencyData - System latency information
+ */
+export interface LatencyData {
+  video: number;
+  control: number;
+}
+
+/**
+ * VisionSystemStatus - Vision system status
+ */
+export interface VisionSystemStatus {
+  status: 'active' | 'inactive' | 'limited';
+  details?: string;
+}
+
+/**
+ * ConnectionsData - Network connection statuses
+ */
+export interface ConnectionsData {
+  rfLink: ConnectionStatus;
+  ethernet: ConnectionStatus;
+  dockCellular: ConnectionStatus;
+  droneCellular: ConnectionStatus;
+}
+
+/**
+ * ConnectionStatus - Network connection status
+ */
+export interface ConnectionStatus {
+  status: 'active' | 'inactive' | 'poor';
+  details: string;
 }
