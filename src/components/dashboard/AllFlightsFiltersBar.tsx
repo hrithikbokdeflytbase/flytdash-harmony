@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { ChevronDown, Filter, RefreshCw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { DateRangeValue } from './DateRangeFilter';
+import { DateRangeValue, OperationType, TriggerType } from './DateRangeFilter';
 import AdvancedFilters from './AdvancedFilters';
 import FilterChip from './FilterChip';
 import { cn } from '@/lib/utils';
@@ -26,10 +26,10 @@ const AllFlightsFiltersBar: React.FC<AllFlightsFiltersBarProps> = ({
   onDateRangeChange,
   isLoading = false
 }) => {
-  const [operationType, setOperationType] = useState<string>('all');
+  const [operationType, setOperationType] = useState<OperationType>('all');
   const [includeManual, setIncludeManual] = useState<boolean>(false);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState<boolean>(false);
-  const [triggerType, setTriggerType] = useState<string>('all');
+  const [triggerType, setTriggerType] = useState<TriggerType>('all');
   const [selectedDrones, setSelectedDrones] = useState<string[]>([]);
   
   const resetFilters = () => {
@@ -50,7 +50,7 @@ const AllFlightsFiltersBar: React.FC<AllFlightsFiltersBarProps> = ({
     }] : []),
     ...(operationType !== 'all' ? [{
       id: 'operation',
-      label: `Operation: ${operationType === 'gtl' ? 'GTL' : 'Mission'}`
+      label: `Operation: ${operationType === 'gtt' ? 'GTT' : 'Mission'}`
     }] : []), 
     ...(includeManual ? [{
       id: 'manual',

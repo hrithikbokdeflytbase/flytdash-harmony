@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectSeparator } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { DateRangeType } from './DateRangeFilter';
+import { DateRangeType, OperationType, TriggerType } from './DateRangeFilter';
 import AdvancedFilters from './AdvancedFilters';
 import FilterChip from './FilterChip';
 import { cn } from '@/lib/utils';
@@ -24,10 +23,10 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
   onDateRangeChange,
   isLoading = false
 }) => {
-  const [operationType, setOperationType] = useState<string>('all');
+  const [operationType, setOperationType] = useState<OperationType>('all');
   const [includeManual, setIncludeManual] = useState<boolean>(false);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState<boolean>(false);
-  const [triggerType, setTriggerType] = useState<string>('all');
+  const [triggerType, setTriggerType] = useState<TriggerType>('all');
   const [selectedDrones, setSelectedDrones] = useState<string[]>([]);
   
   const resetFilters = () => {
@@ -44,7 +43,7 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
   const activeFilters = [
     ...(operationType !== 'all' ? [{
       id: 'operation',
-      label: `Operation: ${operationType === 'gtl' ? 'GTL' : 'Mission'}`
+      label: `Operation: ${operationType === 'gtt' ? 'GTT' : 'Mission'}`
     }] : []), 
     ...(includeManual ? [{
       id: 'manual',
@@ -169,10 +168,10 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
                     <span>All Operations</span>
                   </div>
                 </SelectItem>
-                <SelectItem value="gtl">
+                <SelectItem value="gtt">
                   <div className="flex items-center gap-2">
                     <Target className="h-4 w-4 text-primary-100" />
-                    <span>GTL</span>
+                    <span>GTT</span>
                   </div>
                 </SelectItem>
                 <SelectItem value="mission">
@@ -229,4 +228,3 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
 };
 
 export default FiltersBar;
-
