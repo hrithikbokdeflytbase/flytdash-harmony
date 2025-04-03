@@ -22,16 +22,18 @@ interface ControlSectionProps {
   currentTimestamp: string;
   controlHistory: ControlHistory;
   className?: string;
+  showAllControllers?: boolean; // New prop to determine display mode
 }
 
 const ControlSection: React.FC<ControlSectionProps> = ({
   currentTimestamp,
   controlHistory,
-  className
+  className,
+  showAllControllers = false // Default to showing only current controller
 }) => {
   // Find the active controllers at the current timestamp
-  const findActiveController = (controllers: Controller[]): string => {
-    if (!controllers || controllers.length === 0) return "N/A";
+  const findActiveController = (controllers: Controller[]): { name: string, count: number } => {
+    if (!controllers || controllers.length === 0) return { name: "N/A", count: 0 };
     
     const currentTime = timeToSeconds(currentTimestamp);
     
@@ -42,7 +44,7 @@ const ControlSection: React.FC<ControlSectionProps> = ({
       return currentTime >= startTime && currentTime <= endTime;
     });
     
-    if (!activeController) return "N/A";
+    if (!activeController) return { name: "N/A", count: 0 };
     
     // Check if this is the only controller, or if there are others with overlapping time
     const overlappingControllers = controllers.filter(controller => {
@@ -59,17 +61,24 @@ const ControlSection: React.FC<ControlSectionProps> = ({
       );
     });
     
-    // Format the display name based on whether there are additional controllers
-    if (overlappingControllers.length === 0) {
-      return activeController.name;
-    } else {
-      return `${activeController.name} +${overlappingControllers.length}`;
-    }
+    return { 
+      name: activeController.name,
+      count: overlappingControllers.length
+    };
   };
   
   const activePayloadController = findActiveController(controlHistory.payload);
   const activeDroneController = findActiveController(controlHistory.drone);
   
+  // Format the display name based on whether to show additional controllers
+  const formatControllerDisplay = (controller: { name: string, count: number }): string => {
+    if (!showAllControllers || controller.count === 0) {
+      return controller.name;
+    } else {
+      return `${controller.name} +${controller.count}`;
+    }
+  };
+
   return (
     <div className={cn("px-4 py-3", className)}>
       <div className="rounded-lg border border-outline-primary overflow-hidden">
@@ -84,7 +93,7 @@ const ControlSection: React.FC<ControlSectionProps> = ({
               </TableCell>
               <TableCell className="py-2 px-4 text-right">
                 <span className="text-text-icon-01 font-medium text-sm">
-                  {activePayloadController}
+                  {formatControllerDisplay(activePayloadController)}
                 </span>
               </TableCell>
             </TableRow>
@@ -97,7 +106,7 @@ const ControlSection: React.FC<ControlSectionProps> = ({
               </TableCell>
               <TableCell className="py-2 px-4 text-right border-0">
                 <span className="text-text-icon-01 font-medium text-sm">
-                  {activeDroneController}
+                  {formatControllerDisplay(activeDroneController)}
                 </span>
               </TableCell>
             </TableRow>

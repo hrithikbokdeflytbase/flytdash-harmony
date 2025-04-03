@@ -137,6 +137,7 @@ const TelemetryPanel: React.FC<TelemetryPanelProps> = ({
             <ControlSection 
               currentTimestamp={timestamp}
               controlHistory={controlHistory}
+              showAllControllers={false} // Only show current controller without +X notation
             />
             
             {/* Battery Section */}
