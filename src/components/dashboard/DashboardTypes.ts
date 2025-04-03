@@ -7,6 +7,8 @@ export interface FlightStatistics {
   failed: number;
   successful: number;
   failureRate: number;
+  totalMedia: number; // Total media count across all flights
+  uploadedMedia: number; // Total successfully uploaded media count
 }
 
 /**
@@ -63,6 +65,7 @@ export interface FlightPerformanceData {
   flightTime: number;
   areaCoverage: number;
   batteryUnits: number;
+  mediaCaptured: number; // Number of media files captured during flights
 }
 
 /**
