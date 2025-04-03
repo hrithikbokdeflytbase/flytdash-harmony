@@ -8,6 +8,7 @@ import RecentFlightsTable from '@/components/dashboard/RecentFlightsTable';
 import FiltersBar from '@/components/dashboard/FiltersBar';
 import FailedFlightsPopup from '@/components/dashboard/FailedFlightsPopup';
 import { AlertCircle, Calendar, Loader } from 'lucide-react';
+import { FlightStatistics, FlightTrend } from '@/components/dashboard/DashboardTypes';
 
 const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -26,9 +27,26 @@ const Index = () => {
     }, 800);
   };
 
-  // Updated counts to match the failure data
-  const totalFlights = 30;
-  const failedFlights = 15; // Sum of all failures in the categories
+  // Mock flight statistics
+  const flightStatistics: FlightStatistics = {
+    total: 30,
+    failed: 15,
+    successful: 15,
+    failureRate: 50
+  };
+
+  // Mock flight trends
+  const totalFlightTrend: FlightTrend = {
+    value: 12,
+    isPositive: true,
+    comparisonPeriod: 'from last week'
+  };
+
+  const failedFlightTrend: FlightTrend = {
+    value: 5,
+    isPositive: false,
+    comparisonPeriod: 'from last week'
+  };
   
   return (
     <DashboardLayout title="Flight Logs Dashboard">
@@ -56,18 +74,18 @@ const Index = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-400">
           <MetricCard
             title="Total Flights"
-            value={isLoading ? <Loader className="w-6 h-6 animate-spin text-primary-100" /> : totalFlights.toString()}
+            value={isLoading ? <Loader className="w-6 h-6 animate-spin text-primary-100" /> : flightStatistics.total.toString()}
             icon={Calendar}
-            trend={{ value: 12, isPositive: true }}
+            trend={totalFlightTrend}
             iconColor="text-primary-100"
             iconBgColor="bg-container-info"
             className="w-full"
           />
           <MetricCard
             title="Failed Flights"
-            value={isLoading ? <Loader className="w-6 h-6 animate-spin text-error-200" /> : failedFlights.toString()}
+            value={isLoading ? <Loader className="w-6 h-6 animate-spin text-error-200" /> : flightStatistics.failed.toString()}
             icon={AlertCircle}
-            trend={{ value: 5, isPositive: false }}
+            trend={failedFlightTrend}
             iconColor="text-error-200"
             iconBgColor="bg-container-error"
             className="w-full cursor-pointer"
@@ -80,8 +98,8 @@ const Index = () => {
       <FailedFlightsPopup 
         open={failedFlightsPopupOpen}
         onOpenChange={setFailedFlightsPopupOpen}
-        failedCount={failedFlights}
-        totalCount={totalFlights}
+        failedCount={flightStatistics.failed}
+        totalCount={flightStatistics.total}
       />
       
       {/* Flight Timeline Section */}

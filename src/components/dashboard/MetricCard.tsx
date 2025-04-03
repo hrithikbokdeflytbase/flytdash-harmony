@@ -2,6 +2,7 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { LucideIcon } from 'lucide-react';
+import { FlightTrend } from './DashboardTypes';
 
 interface MetricCardProps {
   title: string;
@@ -9,10 +10,7 @@ interface MetricCardProps {
   icon: LucideIcon;
   iconColor?: string;
   iconBgColor?: string;
-  trend?: {
-    value: number;
-    isPositive: boolean;
-  };
+  trend?: FlightTrend;
   className?: string;
   onClick?: () => void;
 }
@@ -54,7 +52,9 @@ const MetricCard = ({
               >
                 {trend.isPositive ? '↑' : '↓'} {Math.abs(trend.value)}%
               </span>
-              <span className="ml-200 fb-body5-regular text-text-icon-02">from last period</span>
+              <span className="ml-200 fb-body5-regular text-text-icon-02">
+                {trend.comparisonPeriod || 'from last period'}
+              </span>
             </div>
           )}
         </div>

@@ -2,6 +2,7 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { LucideIcon } from 'lucide-react';
+import { FlightTrend } from './DashboardTypes';
 
 interface StatusCardProps {
   title: string;
@@ -9,10 +10,7 @@ interface StatusCardProps {
   icon: LucideIcon;
   iconColor?: string;
   iconBgColor?: string;
-  trend?: {
-    value: number;
-    isPositive: boolean;
-  };
+  trend?: FlightTrend;
   className?: string;
 }
 
@@ -48,7 +46,9 @@ const StatusCard = ({
               >
                 {trend.isPositive ? '↑' : '↓'} {Math.abs(trend.value)}%
               </span>
-              <span className="ml-200 fb-body5-regular text-text-icon-02">from last period</span>
+              <span className="ml-200 fb-body5-regular text-text-icon-02">
+                {trend.comparisonPeriod || 'from last period'}
+              </span>
             </div>
           )}
         </div>
