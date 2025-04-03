@@ -86,7 +86,8 @@ export const CustomBar = (props: any) => {
     
     const glowColor = getGlowColor();
     
-    // Only show the CURRENT label for the first item in a stack (based on payload property)
+    // Only show the CURRENT label for the first item in a stack
+    // This fixes the issue with multiple CURRENT labels
     const shouldShowCurrentLabel = dataKey === 'flights' || 
       (payload && payload.isFirstInStack === true);
     

@@ -13,11 +13,12 @@ interface LegendItem {
 const MapLegend: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
 
-  // Flight path mode items
+  // Flight path mode items - updated with new names
   const pathItems: LegendItem[] = [
-    { color: '#496DC8', label: 'Mission Mode' },
-    { color: '#8B5CF6', label: 'GTL Mode' },
-    { color: '#F97316', label: 'Manual Control' },
+    { color: '#496DC8', label: 'Mission' },
+    { color: '#8B5CF6', label: 'GTL' },
+    { color: '#F97316', label: 'Manual' },
+    { color: '#EF4444', label: 'RTDS' }
   ];
 
   // Marker items
