@@ -1,5 +1,5 @@
 
-import { TelemetryDataPoint } from './MetricChart';
+import { TelemetryDataPoint } from '../types/telemetryTypes';
 import { secondsToTime } from '../timeline/timelineUtils';
 
 // Interface for all telemetry history data

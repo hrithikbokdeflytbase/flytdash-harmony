@@ -87,6 +87,16 @@ const AllFlightsFiltersBar: React.FC<AllFlightsFiltersBarProps> = ({
         break;
     }
   };
+  
+  // Type safe handler for operation type changes
+  const handleOperationTypeChange = (value: string) => {
+    setOperationType(value as OperationType);
+  };
+  
+  // Type safe handler for trigger type changes
+  const handleTriggerTypeChange = (value: string) => {
+    setTriggerType(value as TriggerType);
+  };
 
   return (
     <div className="rounded-xl overflow-hidden shadow-sm border border-outline-primary">
@@ -152,7 +162,10 @@ const AllFlightsFiltersBar: React.FC<AllFlightsFiltersBarProps> = ({
           {/* Operation Type Filter */}
           <div>
             <Label htmlFor="operation-type" className="text-sm text-text-icon-02 mb-100 block">Operation Type</Label>
-            <Select value={operationType} onValueChange={setOperationType}>
+            <Select 
+              value={operationType} 
+              onValueChange={handleOperationTypeChange}
+            >
               <SelectTrigger id="operation-type" disabled={isLoading} className="h-10 w-full bg-background-level-3 border-outline-primary">
                 <SelectValue placeholder="Operation Type" />
               </SelectTrigger>
@@ -211,7 +224,7 @@ const AllFlightsFiltersBar: React.FC<AllFlightsFiltersBarProps> = ({
         <div className="animate-accordion-down">
           <AdvancedFilters 
             triggerType={triggerType} 
-            setTriggerType={setTriggerType} 
+            setTriggerType={handleTriggerTypeChange} 
             selectedDrones={selectedDrones} 
             setSelectedDrones={setSelectedDrones} 
             isLoading={isLoading} 

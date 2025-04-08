@@ -8,11 +8,12 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 
 // Import our components
 import DetailsPanelHeader from './DetailsPanelHeader';
-import TelemetryPanel, { TelemetryData } from './TelemetryPanel';
+import TelemetryPanel from './TelemetryPanel';
 import TimelinePanel from './TimelinePanel';
 import TelemetryGraphsPanel from './TelemetryGraphsPanel';
 import { MediaPanel } from './MediaPanel';
 import { ControlHistory } from './ControlSection';
+import { TelemetryData } from './types/telemetryTypes';
 
 interface FlightDetailsPanelProps {
   flightId: string;

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectSeparator } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
@@ -76,6 +77,16 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
       default:
         break;
     }
+  };
+  
+  // Type safe handler for operation type changes
+  const handleOperationTypeChange = (value: string) => {
+    setOperationType(value as OperationType);
+  };
+  
+  // Type safe handler for trigger type changes
+  const handleTriggerTypeChange = (value: string) => {
+    setTriggerType(value as TriggerType);
   };
   
   return (
@@ -157,7 +168,10 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
           {/* Operation Type Filter */}
           <div>
             <Label htmlFor="operation-type" className="text-sm text-text-icon-02 mb-100 block">Operation Type</Label>
-            <Select value={operationType} onValueChange={setOperationType}>
+            <Select 
+              value={operationType} 
+              onValueChange={handleOperationTypeChange}
+            >
               <SelectTrigger id="operation-type" disabled={isLoading} className="h-10 w-full bg-background-level-3 border-outline-primary">
                 <SelectValue placeholder="Operation Type" />
               </SelectTrigger>
@@ -216,7 +230,7 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
         <div className="animate-accordion-down">
           <AdvancedFilters 
             triggerType={triggerType} 
-            setTriggerType={setTriggerType} 
+            setTriggerType={handleTriggerTypeChange} 
             selectedDrones={selectedDrones} 
             setSelectedDrones={setSelectedDrones} 
             isLoading={isLoading} 

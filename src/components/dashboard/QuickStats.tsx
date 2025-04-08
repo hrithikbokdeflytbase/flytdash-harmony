@@ -20,7 +20,8 @@ const QuickStats = ({
   performanceData = {
     flightTime: 3.5,
     areaCoverage: 125,
-    batteryUnits: 4
+    batteryUnits: 4,
+    mediaCaptured: 58  // Added the missing mediaCaptured property
   }
 }: QuickStatsProps) => {
   const scansPercentage = (operationProgress.scansCompleted / operationProgress.totalScans) * 100;
